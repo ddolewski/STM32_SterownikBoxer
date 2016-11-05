@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;STM32_Boxer/RemoteSystemsTempFiles&apos;" deleteContents="false" description="Delete resource &apos;STM32_Boxer/RemoteSystemsTempFiles&apos;" element1="/STM32_Boxer/RemoteSystemsTempFiles" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1456084737748"/>&#x0A;<refactoring comment="Delete resource &apos;STM32_Boxer/system/cmsis&apos;" deleteContents="false" description="Delete resource &apos;STM32_Boxer/system/cmsis&apos;" element1="/STM32_Boxer/system/cmsis" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1456085005067"/>
+</session>

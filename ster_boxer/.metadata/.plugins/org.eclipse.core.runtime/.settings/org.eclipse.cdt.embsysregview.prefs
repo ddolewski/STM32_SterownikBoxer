@@ -1,0 +1,5 @@
+architecture=cortex-m0
+board=STM32F0DISCOVERY
+chip=stm32f051x
+eclipse.preferences.version=1
+vendor=STMicro
