@@ -3,14 +3,18 @@ Monitor uprawy roślin STM32F051
 
 
 Zmiany:
-
+- dorobić czas letni/zimowy dla Polski (biblioteka time.h ze sterownika bojlera)
+- funkcja ustawiania czasu przez atnel wifi (wbudowane ntp?)
 - zrobić sprzętowe opóźnienie delay_us (1us) -> Timer?
 - zrobić algorytm wyszukiwania 1Wire
 - uruchomić HSE+PLL na 48MHz
 - dorobić info o nawadnianiu na LCD
-
-
-
+- przerobić usart tx na przerwaniach i fifo
+- dodać manualne sterowanie wentylatorami z C#
+- zmienić sposób pomiaru wilgotności gleby (oksydacja sondy -> podawać napięcie tylko na czas pomiaru a potem 0V)
+- zmienić RTC z PCF8583 na PCF8563 
+- zmienić zapis liczników oświetlenia z pamięci RAM PCF8583 do pamięci FLASH
+- dodać obsługę błędów czujników na LCD (w miejscu wartości pomiarowej dać napis Error)
 
 
 - zmniejszono częstotliwość PWM'a sterującego wentylatorami (z 12kHz na 30Hz) w 

@@ -1,3 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<session version="1.0">&#x0A;<refactoring comment="Delete resource &apos;ster_boxer/my_src/sysclock.c&apos;" deleteContents="false" description="Delete resource &apos;ster_boxer/my_src/sysclock.c&apos;" element1="/ster_boxer/my_src/sysclock.c" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1476018594985"/>&#x0A;<refactoring comment="Delete resource &apos;ster_boxer/my_inc/sysclock.h&apos;" deleteContents="false" description="Delete resource &apos;ster_boxer/my_inc/sysclock.h&apos;" element1="/ster_boxer/my_inc/sysclock.h" flags="7" id="org.eclipse.ltk.core.refactoring.delete.resources" resources="1" stamp="1476018599724"/>
-</session>
