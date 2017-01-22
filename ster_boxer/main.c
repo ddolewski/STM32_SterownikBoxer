@@ -195,7 +195,6 @@ static void PeripheralInit(void)
 	GPIOx_PinConfig(SOLENOID_PORT, Mode_Out, OSpeed_50MHz, OType_PP, OState_PD, SOLENOID_PIN);
 	GPIOx_ResetPin(SOLENOID_PORT, SOLENOID_PIN);
 
-	//todo sprawdzic jaki powinien byc stan na BUZZER_PIN
 	GPIOx_PinConfig(BUZZER_PORT, Mode_Out, OSpeed_50MHz, OType_PP, OState_PU, BUZZER_PIN);
 	GPIOx_SetPin(BUZZER_PORT, BUZZER_PIN);
 
