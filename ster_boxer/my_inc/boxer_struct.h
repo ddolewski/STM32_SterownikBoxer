@@ -116,8 +116,8 @@ typedef union
 
 typedef enum
 {
-	TEMP_CONTROL_OFF,
-	TEMP_CONTROL_ON
+	TEMP_AUTO = 'A',
+	TEMP_MANUAL = 'M'
 }temp_control_state_t;
 
 typedef struct userParameters_t
@@ -136,8 +136,8 @@ typedef struct
 
 typedef enum
 {
-	LIGHT_OFF = 1,
-	LIGHT_ON = 2
+	LIGHT_OFF = 'R',
+	LIGHT_ON = 'S'
 }light_state_t;
 
 typedef struct

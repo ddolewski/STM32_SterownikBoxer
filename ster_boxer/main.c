@@ -1,4 +1,5 @@
 #include "global.h"
+#include "stm32f0xx_flash.h"
 ///////////////////////////////////////////////////////////
 // Wykorzystane peryferia:
 // USART2 - WiFi
@@ -12,7 +13,6 @@ static systime_t measureI2cTimer = 0;
 static systime_t saveConfigTimer = 0;
 static systime_t shtInitTimer = 0;
 static systime_t oWireInitTimer = 0;
-static systime_t fansSoftStartTimer = 0;
 static systime_t readTimeTimer = 0;
 
 static DS18B20Sensor_t ds18b20_1 = {0};
@@ -22,57 +22,55 @@ static ErrorStatus Error = SUCCESS;
 
 static time_complex_t localTime;
 
+
 static void PeripheralInit(void);
 
-#include "stm32f0xx_flash.h"
+void konf_zegary(void)
+{
+  ErrorStatus HSEStartUpStatus;
 
-//void konf_zegary(void)
-//{
-//  ErrorStatus HSEStartUpStatus;
-//
-//  // Reset ustawien RCC
-//  RCC_DeInit();
-//  // Wlacz HSE
-//  RCC_HSEConfig(RCC_HSE_ON);
-//  // Czekaj za HSE bedzie gotowy
-//  HSEStartUpStatus = RCC_WaitForHSEStartUp();
-//  if(HSEStartUpStatus == SUCCESS)
-//  {
-//        FLASH_PrefetchBufferCmd(ENABLE);
-//
-//        // zwloka dla pamieci Flash
-//        FLASH_SetLatency(FLASH_Latency_1);
-//        // HCLK = SYSCLK
-//        RCC_HCLKConfig(RCC_SYSCLK_Div1);
-//        // PCLK2 = HCLK
-//        //RCC_PCLK2Config(RCC_HCLK_Div1);
-//        // PCLK1 = HCLK/2
-//        //RCC_PCLK1Config(RCC_HCLK_Div2);
-//        RCC_PCLKConfig(RCC_HCLK_Div1);
-//        // PLLCLK = 8MHz * 9 = 72 MHz
-//        RCC_PLLConfig(RCC_PLLSource_PREDIV1, RCC_PLLMul_4);
-//        // Wlacz PLL
-//        RCC_PLLCmd(ENABLE);
-//        // Czekaj az PLL poprawnie sie uruchomi
-//        while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET);
-//        // PLL bedzie zrodlem sygnalu zegarowego
-//        RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
-//        // Czekaj az PLL bedzie sygnalem zegarowym systemu
-//        while(RCC_GetSYSCLKSource() != 0x08);
-//  }
-//}
+  // Reset ustawien RCC
+  RCC_DeInit();
+  // Wlacz HSE
+  RCC_HSEConfig(RCC_HSE_ON);
+  // Czekaj za HSE bedzie gotowy
+  HSEStartUpStatus = RCC_WaitForHSEStartUp();
+  if(HSEStartUpStatus == SUCCESS)
+  {
+        FLASH_PrefetchBufferCmd(ENABLE);
+
+        // zwloka dla pamieci Flash
+        FLASH_SetLatency(FLASH_Latency_1);
+        // HCLK = SYSCLK
+        RCC_HCLKConfig(RCC_SYSCLK_Div1);
+        // PCLK2 = HCLK
+//        RCC_PCLK2Config(RCC_HCLK_Div1);
+        // PCLK1 = HCLK/2
+//        RCC_PCLK1Config(RCC_HCLK_Div2);
+        RCC_PCLKConfig(RCC_HCLK_Div1);
+        // PLLCLK = 8MHz * 9 = 72 MHz
+        RCC_PLLConfig(RCC_PLLSource_PREDIV1, RCC_PLLMul_4);
+        // Wlacz PLL
+        RCC_PLLCmd(ENABLE);
+        // Czekaj az PLL poprawnie sie uruchomi
+        while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET);
+        // PLL bedzie zrodlem sygnalu zegarowego
+        RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
+        // Czekaj az PLL bedzie sygnalem zegarowym systemu
+        while(RCC_GetSYSCLKSource() != 0x08);
+  }
+}
 
 int main(void)
 {
 	SystemInit();
 	SystemCoreClockUpdate();
-//	konf_zegary();
 	systimeInit();
 	PeripheralInit();
 
     while (TRUE)
 	{
-    	PcCommunication_Handler();
+    	ReceiveSerial_Handler();
     	FanSoftStart_Handler();
     	MainTimer_Handle();
     	PhMeasurementCalibration_Handler();
@@ -82,8 +80,9 @@ int main(void)
 		/************************************************************************/
     	if (systimeTimeoutControl(&readTimeTimer, 400))
     	{
+#ifndef DEBUG_TERMINAL_USART
     		PCF8563_ReadTime(&rtcFullDate, I2C1);
-
+#endif
     		timeUtcToLocalConv(&rtcFullDate, &localTime);
 			displayMakeTimeString(timeString, &localTime);
 			displayMakeDateString(dateString, &localTime);
@@ -147,15 +146,18 @@ int main(void)
 
     	if (flagsGlobal.udpSendMsg == TRUE)
     	{
+    		char DataToSend[TX_BUFF_SIZE] = {0};
     		PrepareUdpString(displayData.lux, displayData.humiditySHT2x, displayData.tempSHT2x, ds18b20_1.fTemp, ds18b20_2.fTemp, DataToSend);
-    		USARTx_SendString(USART_COMM, (uint8_t*)DataToSend);
+//    		USARTx_SendString(USART_COMM, (uint8_t*)DataToSend);
+    		SerialPort_PutString(DataToSend);
     		flagsGlobal.udpSendMsg = FALSE;
     	}
     	else
     	{
     		if (calibrateFlags.calibrateDone == TRUE)
     		{
-    			USARTx_SendString(USART_COMM, (uint8_t*)"STA CD END"); //calibrate done
+//    			USARTx_SendString(USART_COMM, (uint8_t*)"STA CD END"); //calibrate done
+    			SerialPort_PutString((uint8_t*)"STA CD END");
     			calibrateFlags.calibrateDone = FALSE;
     		}
     	}
@@ -183,7 +185,7 @@ static void PeripheralInit(void)
 	GLCD_ClearScreen();
 	GLCD_GoTo(0,0);
 	GLCD_WriteString(UC"Inicjalizacja...");
-	UART2_Init();
+	SerialPort_Init();
 
 	GPIOx_PinConfig(SOIL_MOIST_PORT, Mode_In, OSpeed_50MHz, OType_OD, OState_PU, SOIL_MOIST_PIN);
 
@@ -217,13 +219,17 @@ static void PeripheralInit(void)
 
     ADC_DMA_Init();
 
+#ifndef DEBUG_TERMINAL_USART
 	I2C1_Init();
 	Error = PCF8563_Init(I2C1);
 
 	if (Error == ERROR)
 	{
-		USARTx_SendString(USART_COMM, "pcf8563 init error\n\r");
+		//error
 	}
+#else
+	DEBUG_Init();
+#endif
 
 #ifdef RTC_WRITE_TEST
 	time_complex_t timeTest;
@@ -272,6 +278,7 @@ static void PeripheralInit(void)
 	displayData.tempDS18B20_2_t = ds18b20_2.fTemp;
 #endif
 
+#ifndef I2C_OFF_MODE
 	displayData.lux = TSL2561_ReadLux(&Error);
     uint16_t tempWord = 0;
     uint16_t humWord = 0;
@@ -284,6 +291,7 @@ static void PeripheralInit(void)
 
 	displayData.tempSHT2x = SHT21_CalcTemp(tempWord);
 	displayData.humiditySHT2x = SHT21_CalcRH(humWord);
+#endif
 
 	displayData.page = 1;
 	systimeDelayMs(2000);

@@ -15,7 +15,7 @@ static const flashSettings_t defFlashConfig =
 	.backupTempControl =
 	{
 		.userTemp = 25,
-		.tempControl = TEMP_CONTROL_OFF,
+		.tempControl = TEMP_AUTO,
 	},
 
 	.backupLightControl =
@@ -186,7 +186,7 @@ void FLASH_STORAGE_TEST(void)
 	xBackupConfig.backupLightControl.timeOffHours = 4;
 	xBackupConfig.backupLightControl.timeOnHours = 20;
 
-	xBackupConfig.backupTempControl.tempControl = TEMP_CONTROL_OFF;
+	xBackupConfig.backupTempControl.tempControl = TEMP_AUTO;
 	xBackupConfig.backupTempControl.userTemp = 30;
 
 	xBackupConfig.backupPhEcuationFactors.waterFactor_A = 6.34;

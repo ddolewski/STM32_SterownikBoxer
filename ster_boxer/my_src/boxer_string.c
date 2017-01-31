@@ -12,7 +12,7 @@ static char TempString[20] = {0};
 void PrepareUdpString(uint32_t Lux, float humSht, float tempSht, float ds18b20Temp1, float ds18b20Temp2, char * xOutString)
 {
 	// STA BOXER humSht tempSht tempDs1 tempDs2 lux soilPh waterpH soilMoist lightState LightHouCnt END
-	memset(xOutString, 0, 100);
+	memset(xOutString, 0, TX_BUFF_SIZE);
 
 	strcat(xOutString, "STA BOXER ");
 

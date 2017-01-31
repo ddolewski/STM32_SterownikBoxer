@@ -2,6 +2,13 @@
 
 static int mod10(int xNumber);
 
+void append(char* s, char c)
+{
+        int len = strlen(s);
+        s[len] = c;
+        s[len+1] = '\0';
+}
+
 char* ftoa(float xNumber, char * xBuffer, uint8_t xAccuracy)
 {
 	int tmp, i;

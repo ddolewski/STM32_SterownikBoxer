@@ -29,7 +29,6 @@
 
 #include "string_builder.h"
 #include "hardware/SHT2x/sht2x.h"
-//#include "hardware/PCF8583/pcf8583.h"
 #include "hardware/PCF8563/pcf8563.h"
 #include "hardware/TSL2561/tsl2561.h"
 #include "hardware/DS18B20/ds18b20.h"
@@ -40,13 +39,14 @@
 //#define FLASH_READ_TEST
 //#define DISPLAY_PAGE1_TEST
 //#define DISPLAY_PAGE2_TEST
-//#define DISPLAY_PAGE3_TEST
+//#define DEBUG_TERMINAL_USART
+#define DISPLAY_PAGE3_TEST
 #define BUZZER_OFF_MODE
-//#define I2C_OFF_MODE
-//#define OWIRE_OFF_MODE
+#define I2C_OFF_MODE
+#define OWIRE_OFF_MODE
 //#define RTC_WRITE_TEST
 
-#define SOFTWARE_VERSION		2.5
+#define SOFTWARE_VERSION		"2.6"
 
 #define WIFI_RST_PORT			GPIOC
 #define WIFI_RST_PIN			GPIOx_Pin_3

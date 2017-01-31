@@ -17,7 +17,7 @@ void ClimateTempControl_Handler(DS18B20Sensor_t * ds18b20_2)
 		flagsGlobal.increaseSpeedFlag = TRUE;
 	}
 
-    if ((tempControl.tempControl == TEMP_CONTROL_OFF) && (gFansSoftStartFlag == FALSE)) //sterowanie temperatura maksymalna
+    if ((tempControl.tempControl == TEMP_AUTO) && (gFansSoftStartFlag == FALSE)) //sterowanie temperatura maksymalna
 	{
 //    	_printParam(UC"userParam.tempControl", userParam.tempControl);
 		if (xLightControl.lightingState == LIGHT_ON)
@@ -29,7 +29,7 @@ void ClimateTempControl_Handler(DS18B20Sensor_t * ds18b20_2)
 				{
 					//USARTx_SendString(USART_COMM, UC"fTemp > userTemp\n\r");
 
-					PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100); //wyciagajacy
+					PWM_IncPercentTo(PWM_FAN_PULL_AIR, 95); //wyciagajacy
 					PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70); //wciagajacy
 				}
 				else
@@ -49,8 +49,8 @@ void ClimateTempControl_Handler(DS18B20Sensor_t * ds18b20_2)
 			PWM_SetPercent(PWM_FAN_PUSH_AIR, 25);
 		}
 	}
-//	else // sterowanie jesli wlaczymy petle histerezy
-//	{
-//		// TODO PÊTLA HISTEREZY (ogniwo peltiera)!
-//	}
+    else if (tempControl.tempControl == TEMP_MANUAL)
+    {
+    	//TODO manualne sterowanie
+    }
 }

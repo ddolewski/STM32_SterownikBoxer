@@ -5,6 +5,7 @@
 #define	True		1
 #define False 		0
 
+void append(char* s, char c);
 char* ftoa(float xNumber, char * xBuffer, uint8_t xAccuracy);
 char* itoa(int xNumber, char * xBuffer);
 uint32_t atoi(uint8_t *str);

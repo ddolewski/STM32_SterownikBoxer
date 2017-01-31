@@ -73,7 +73,7 @@ ErrorStatus PCF8563_ReadTime(time_complex_t * xTime, I2C_TypeDef* I2Cx)
 		}
 		else
 		{
-			USARTx_SendString(USART_COMM, "pcf8563 readtime error\n\r");
+//			USARTx_SendString(USART_COMM, "pcf8563 readtime error\n\r");
 		}
 	}
 	
