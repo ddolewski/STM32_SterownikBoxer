@@ -120,10 +120,24 @@ typedef enum
 	TEMP_MANUAL = 'M'
 }temp_control_state_t;
 
+typedef enum
+{
+	TEMP_MIN = 20,
+	TEMP_MAX = 33,
+}temp_range_t;
+
+typedef enum
+{
+	PWM_MIN_PERCENT = 20,
+	PWM_MAX_PERCENT = 95
+}pwm_range_t;
+
 typedef struct userParameters_t
 {
 	uint8_t userTemp;
-	temp_control_state_t tempControl;
+	uint8_t fanPull;
+	uint8_t fanPush;
+	temp_control_state_t tempCtrlMode;
 }temp_control_t;
 
 typedef struct

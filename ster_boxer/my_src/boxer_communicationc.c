@@ -172,7 +172,6 @@ void USART2_IRQHandler(void)
 		fifo_write(&rx_fifo, &rxChar, 1);
 		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 	}
-
 }
 
 void ReceiveSerial_Handler(void)
@@ -224,37 +223,69 @@ void ReceiveSerial_Handler(void)
 						char timeOff  = atoi(ReceivedString[3]);
 						char newState = *ReceivedString[4];
 
-						lastTimeOnHour  = xLightControl.timeOnHours;
-						lastTimeOffHour = xLightControl.timeOffHours;
-						xLightControl.timeOnHours  = (uint8_t)timeOn;
-						xLightControl.timeOffHours = (uint8_t)timeOff;
-
-						light_state_t tempLightState = xLightControl.lightingState;
-						xLightControl.lightingState  = newState;
-
-						// jesli nowy stan lampy jest inny od poprzedniego to skasuj liczniki (nowy stan)
-						if (tempLightState != xLightControl.lightingState)
+						if (timeOn + timeOff == 24)
 						{
-							xLightCounters.counterHours   = 0;
-							xLightCounters.counterSeconds = 0;
-						}
+							lastTimeOnHour  = xLightControl.timeOnHours;
+							lastTimeOffHour = xLightControl.timeOffHours;
+							xLightControl.timeOnHours  = (uint8_t)timeOn;
+							xLightControl.timeOffHours = (uint8_t)timeOff;
 
-						FLASH_SaveConfiguration();
+							light_state_t tempLightState = xLightControl.lightingState;
+							xLightControl.lightingState  = newState;
+
+							// jesli nowy stan lampy jest inny od poprzedniego to skasuj liczniki (nowy stan)
+							if (tempLightState != xLightControl.lightingState)
+							{
+								xLightCounters.counterHours   = 0;
+								xLightCounters.counterSeconds = 0;
+							}
+
+							FLASH_SaveConfiguration();
+						}
 					}
 				}
 				else if (strcmp(ReceivedString[1], "ST") == 0) //set temp frame command
 				{
-					if (strcmp(ReceivedString[4], "END") == 0) //end frame suffix
+					if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
 					{
 						memset(recvstr, 0, RX_BUFF_SIZE);
 
-						uint8_t temp    = atoi( ReceivedString[2] );
-						char newMode = ReceivedString[3][0];
+						uint8_t temp = atoi( ReceivedString[2] );
 
-						tempControl.tempControl = newMode;
-						tempControl.userTemp    = temp;
+						tempControl.tempCtrlMode = TEMP_AUTO;
+						if (tempControl.userTemp >= TEMP_MIN && tempControl.userTemp <= TEMP_MAX)
+						{
+							tempControl.userTemp = temp;
+							FLASH_SaveConfiguration();
+						}
+					}
+				}
+				else if (strcmp(ReceivedString[1], "SF") == 0) //set fans frame command
+				{
+					if (strcmp(ReceivedString[4], "END") == 0) //end frame suffix
+					{
+						memset(recvstr, 0, RX_BUFF_SIZE);
+						uint8_t isProper = TRUE;
+						uint8_t fanPull = atoi( ReceivedString[2] );
+						uint8_t fanPush = atoi( ReceivedString[3] );
 
-						FLASH_SaveConfiguration();
+						tempControl.tempCtrlMode = TEMP_MANUAL;
+
+						if ( (fanPull >= PWM_MIN_PERCENT && fanPull <= PWM_MAX_PERCENT) &&
+							 (fanPush >= PWM_MIN_PERCENT && fanPush <= PWM_MAX_PERCENT) )
+						{
+							tempControl.fanPull = fanPull;
+							tempControl.fanPush = fanPush;
+						}
+						else
+						{
+							isProper = FALSE;
+						}
+
+						if (isProper == TRUE)
+						{
+							FLASH_SaveConfiguration();
+						}
 					}
 				}
 				else if (strcmp(ReceivedString[1], "CP") == 0) //set temp frame command
@@ -287,6 +318,17 @@ void ReceiveSerial_Handler(void)
 					if (strcmp(ReceivedString[2], "END") == 0) //end frame suffix
 					{
 						MISC_ResetARM();
+					}
+				}
+				else if (strcmp(ReceivedString[1], "DEF") == 0) //default first command word
+				{
+					if (strcmp(ReceivedString[2], "SETT") == 0) //settings second command word
+					{
+						if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
+						{
+							FLASH_RestoreDefaultConfig();
+							MISC_ResetARM();
+						}
 					}
 				}
 			}

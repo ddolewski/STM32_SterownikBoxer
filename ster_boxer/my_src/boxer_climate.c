@@ -17,7 +17,7 @@ void ClimateTempControl_Handler(DS18B20Sensor_t * ds18b20_2)
 		flagsGlobal.increaseSpeedFlag = TRUE;
 	}
 
-    if ((tempControl.tempControl == TEMP_AUTO) && (gFansSoftStartFlag == FALSE)) //sterowanie temperatura maksymalna
+    if ((tempControl.tempCtrlMode == TEMP_AUTO) && (gFansSoftStartFlag == FALSE)) //sterowanie temperatura maksymalna
 	{
 //    	_printParam(UC"userParam.tempControl", userParam.tempControl);
 		if (xLightControl.lightingState == LIGHT_ON)
@@ -49,7 +49,7 @@ void ClimateTempControl_Handler(DS18B20Sensor_t * ds18b20_2)
 			PWM_SetPercent(PWM_FAN_PUSH_AIR, 25);
 		}
 	}
-    else if (tempControl.tempControl == TEMP_MANUAL)
+    else if (tempControl.tempCtrlMode == TEMP_MANUAL)
     {
     	//TODO manualne sterowanie
     }

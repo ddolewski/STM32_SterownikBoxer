@@ -15,7 +15,9 @@ static const flashSettings_t defFlashConfig =
 	.backupTempControl =
 	{
 		.userTemp = 25,
-		.tempControl = TEMP_AUTO,
+		.fanPull = 40,
+		.fanPush = 60,
+		.tempCtrlMode = TEMP_AUTO,
 	},
 
 	.backupLightControl =
@@ -114,6 +116,27 @@ void FLASH_SaveConfiguration(void)
 	if (flashError == ERROR)
 	{
 		//todo blad zapisu pamieci flash
+	}
+}
+
+void FLASH_RestoreDefaultConfig(void)
+{
+	irrigationControl = defFlashConfig.backupIrrigationControl;
+	xLightControl = defFlashConfig.backupLightControl;
+	tempControl = defFlashConfig.backupTempControl;
+	FactorsEquationpH = defFlashConfig.backupPhEcuationFactors;
+
+	ErrorStatus flashError = SYSTEM_FLASH_ErasePage(CONFIG_PAGE_NUMBER);
+	if (flashError == ERROR)
+	{
+		//TODO informacja o bledzie flash
+	}
+
+	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&defFlashConfig, CONFIG_PAGE_NUMBER, sizeof(defFlashConfig));
+
+	if (flashError == ERROR)
+	{
+		//TODO informacja o bledzie flash
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
