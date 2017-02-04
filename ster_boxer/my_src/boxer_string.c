@@ -6,6 +6,7 @@
  */
 
 #include "boxer_string.h"
+#include "fifo.h"
 
 static char TempString[20] = {0};
 

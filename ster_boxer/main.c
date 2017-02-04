@@ -1,4 +1,6 @@
 #include "global.h"
+#include "fifo.h"
+#include "boxer_timers.h"
 #include "stm32f0xx_flash.h"
 ///////////////////////////////////////////////////////////
 // Wykorzystane peryferia:
@@ -7,21 +9,7 @@
 // I2C1 - rtc + czujniki
 //
 
-
-static systime_t measureOwireTimer = 0;
-static systime_t measureI2cTimer = 0;
 static systime_t saveConfigTimer = 0;
-static systime_t shtInitTimer = 0;
-static systime_t oWireInitTimer = 0;
-static systime_t readTimeTimer = 0;
-
-static DS18B20Sensor_t ds18b20_1 = {0};
-static DS18B20Sensor_t ds18b20_2 = {0};
-static uint8_t ucReset;
-static ErrorStatus Error = SUCCESS;
-
-static time_complex_t localTime;
-
 
 static void PeripheralInit(void);
 
@@ -70,110 +58,20 @@ int main(void)
 
     while (TRUE)
 	{
+    	TransmitSerial_Handler();
     	ReceiveSerial_Handler();
     	FanSoftStart_Handler();
-    	MainTimer_Handle();
+    	MainTimer_Handler();
     	PhMeasurementCalibration_Handler();
-    	ClimateTempControl_Handler(&ds18b20_1);
-		/************************************************************************/
-		/*                       	 READING SENSORS                          	*/
-		/************************************************************************/
-    	if (systimeTimeoutControl(&readTimeTimer, 400))
-    	{
-#ifndef DEBUG_TERMINAL_USART
-    		PCF8563_ReadTime(&rtcFullDate, I2C1);
-#endif
-    		timeUtcToLocalConv(&rtcFullDate, &localTime);
-			displayMakeTimeString(timeString, &localTime);
-			displayMakeDateString(dateString, &localTime);
-			displayWeekDayConvert(localTime.wday, weekDayString);
-
-			strcpy(displayData.time, timeString);
-    	}
-
-    	if (systimeTimeoutControl(&oWireInitTimer, 2000))
-    	{
-#ifndef OWIRE_OFF_MODE
-    		ucReset = initializeConversion(&ds18b20_1);
-        	ucReset = initializeConversion(&ds18b20_2);
-#endif
-    	}
-
-    	if (systimeTimeoutControl(&measureOwireTimer, 3000))
-		{
-#ifndef OWIRE_OFF_MODE
-    		readTemperature(&ds18b20_1);
-			displayData.tempDS18B20_1_t = ds18b20_1.fTemp;
-			readTemperature(&ds18b20_2);
-			displayData.tempDS18B20_2_t = ds18b20_2.fTemp;
-#endif
-		}
-
-    	if (systimeTimeoutControl(&shtInitTimer, 2500))
-    	{
-#ifndef I2C_OFF_MODE
-    		Error = SHT21_SoftReset(I2C2, SHT21_ADDR);
-#endif
-    	}
-
-    	if (systimeTimeoutControl(&measureI2cTimer, 5000))
-		{
-#ifndef I2C_OFF_MODE
-			displayData.lux = TSL2561_ReadLux(&Error);
-
-            uint16_t tempWord = 0;
-            uint16_t humWord = 0;
-
-        	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &Error);
-        	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &Error);
-
-        	humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
-        	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
-
-        	displayData.tempSHT2x = SHT21_CalcTemp(tempWord);
-        	displayData.humiditySHT2x = SHT21_CalcRH(humWord);
-#endif
-		}
-
-		/************************************************************************/
-		/*								IRRIGATION                              */
-		/************************************************************************/
-		Irrigation_PumpControll();
-		Irrigation_WaterLevel();
-		Irrigation_SoilMoisture_Handler();
-
+    	Climate_TempCtrl_Handler();
+    	Climate_SensorsHandler();
+    	Irrigation_Handler();
     	Display_Handler();
-
-    	if (flagsGlobal.udpSendMsg == TRUE)
-    	{
-    		char DataToSend[TX_BUFF_SIZE] = {0};
-    		PrepareUdpString(displayData.lux, displayData.humiditySHT2x, displayData.tempSHT2x, ds18b20_1.fTemp, ds18b20_2.fTemp, DataToSend);
-//    		USARTx_SendString(USART_COMM, (uint8_t*)DataToSend);
-    		SerialPort_PutString(DataToSend);
-    		flagsGlobal.udpSendMsg = FALSE;
-    	}
-    	else
-    	{
-    		if (calibrateFlags.calibrateDone == TRUE)
-    		{
-//    			USARTx_SendString(USART_COMM, (uint8_t*)"STA CD END"); //calibrate done
-    			SerialPort_PutString((uint8_t*)"STA CD END");
-    			calibrateFlags.calibrateDone = FALSE;
-    		}
-    	}
-
-        if (systimeTimeoutControl(&saveConfigTimer, 1000)) //cykliczny zapis ustawien do FLASH co 5min
-        {
-        	if (xLightCounters.counterSeconds % 300 == 0)
-        	{
-        		FLASH_SaveLightCounters();
-        	}
-        }
 	}
 
     return 0;
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////
 static void PeripheralInit(void)
 {
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
@@ -221,9 +119,9 @@ static void PeripheralInit(void)
 
 #ifndef DEBUG_TERMINAL_USART
 	I2C1_Init();
-	Error = PCF8563_Init(I2C1);
+	ErrorStatus rtcError = PCF8563_Init(I2C1);
 
-	if (Error == ERROR)
+	if (rtcError == ERROR)
 	{
 		//error
 	}
@@ -249,16 +147,16 @@ static void PeripheralInit(void)
 #ifndef I2C_OFF_MODE
 	I2C2_Init();
 
-	ErrorStatus Error = ERROR;
-	ErrorStatus ErrorTmp1 = SUCCESS;
-	ErrorStatus ErrorTmp2 = SUCCESS;
-
-	ErrorTmp1 = TSL2561_Init(I2C2, TSL2561_GND_ADDR); // tutaj sa bledy i2c
+//	ErrorStatus Error = ERROR;
+//	ErrorStatus ErrorTmp1 = SUCCESS;
+//	ErrorStatus ErrorTmp2 = SUCCESS;
+	ErrorStatus tslError = SUCCESS;
+	tslError = TSL2561_Init(I2C2, TSL2561_GND_ADDR); // tutaj sa bledy i2c
 	systimeDelayMs(30);
-	ErrorTmp2 = TSL2561_Config(I2C2, TSL2561_GND_ADDR); // tutaj sa bledy i2c
+	tslError = TSL2561_Config(I2C2, TSL2561_GND_ADDR); // tutaj sa bledy i2c
 	systimeDelayMs(10);
 
-	Error = SHT21_SoftReset(I2C2, SHT21_ADDR);
+	ErrorStatus shtError = SHT21_SoftReset(I2C2, SHT21_ADDR);
 #endif
 
 	FLASH_ReadConfiguration();
@@ -269,8 +167,8 @@ static void PeripheralInit(void)
 	memCopy(ds18b20_1.cROM, sensor1ROM, 8);
 	memCopy(ds18b20_2.cROM, sensor2ROM, 8);
 
-	ucReset = initializeConversion(&ds18b20_1);
-	ucReset = initializeConversion(&ds18b20_2);
+	initializeConversion(&ds18b20_1);
+	initializeConversion(&ds18b20_2);
 	systimeDelayMs(1000);
 	readTemperature(&ds18b20_1);
 	displayData.tempDS18B20_1_t = ds18b20_1.fTemp;
@@ -279,12 +177,13 @@ static void PeripheralInit(void)
 #endif
 
 #ifndef I2C_OFF_MODE
-	displayData.lux = TSL2561_ReadLux(&Error);
+
+	displayData.lux = TSL2561_ReadLux(&tslError);
     uint16_t tempWord = 0;
     uint16_t humWord = 0;
 
-	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &Error);
-	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &Error);
+	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
+	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
 
 	humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
 	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];

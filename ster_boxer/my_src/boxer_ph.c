@@ -234,7 +234,7 @@ static void ADC_CalibrateProbes_BufferChooser(void)
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ADC_CalibrateProbes_Handler(void)
+void ADC_CalibrateProbes_Core(void)
 {
 	if (calibrateFlags.processActive == TRUE)
 	{

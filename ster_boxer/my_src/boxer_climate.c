@@ -9,10 +9,81 @@
 #include "boxer_timers.h"
 
 static systime_t speedTimer = 0;
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ClimateTempControl_Handler(DS18B20Sensor_t * ds18b20_2)
+static uint8_t lastFanPull = 0;
+static uint8_t lastFanPush = 0;
+
+static systime_t measureOwireTimer = 0;
+static systime_t measureI2cTimer = 0;
+static systime_t shtInitTimer = 0;
+static systime_t oWireInitTimer = 0;
+static systime_t readTimeTimer = 0;
+static time_complex_t localTime;
+
+static ErrorStatus error = SUCCESS;
+/////////////////////////////////////////////////////////////////////////////
+void Climate_SensorsHandler(void)
 {
-	if (systimeTimeoutControl(&speedTimer, 100))
+	if (systimeTimeoutControl(&readTimeTimer, 400))
+	{
+#ifndef DEBUG_TERMINAL_USART
+		PCF8563_ReadTime(&rtcFullDate, I2C1);
+#endif
+		timeUtcToLocalConv(&rtcFullDate, &localTime);
+		displayMakeTimeString(timeString, &localTime);
+		displayMakeDateString(dateString, &localTime);
+		displayWeekDayConvert(localTime.wday, weekDayString);
+
+		strcpy(displayData.time, timeString);
+	}
+
+	if (systimeTimeoutControl(&oWireInitTimer, 2000))
+	{
+#ifndef OWIRE_OFF_MODE
+		initializeConversion(&ds18b20_1);
+    	initializeConversion(&ds18b20_2);
+#endif
+	}
+
+	if (systimeTimeoutControl(&measureOwireTimer, 3000))
+	{
+#ifndef OWIRE_OFF_MODE
+		readTemperature(&ds18b20_1);
+		displayData.tempDS18B20_1_t = ds18b20_1.fTemp;
+		readTemperature(&ds18b20_2);
+		displayData.tempDS18B20_2_t = ds18b20_2.fTemp;
+#endif
+	}
+
+	if (systimeTimeoutControl(&shtInitTimer, 2500))
+	{
+#ifndef I2C_OFF_MODE
+		error = SHT21_SoftReset(I2C2, SHT21_ADDR);
+#endif
+	}
+
+	if (systimeTimeoutControl(&measureI2cTimer, 5000))
+	{
+#ifndef I2C_OFF_MODE
+		displayData.lux = TSL2561_ReadLux(&error);
+
+        uint16_t tempWord = 0;
+        uint16_t humWord = 0;
+
+    	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &error);
+    	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &error);
+
+    	humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
+    	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
+
+    	displayData.tempSHT2x = SHT21_CalcTemp(tempWord);
+    	displayData.humiditySHT2x = SHT21_CalcRH(humWord);
+#endif
+	}
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void Climate_TempCtrl_Handler(void)
+{
+	if (systimeTimeoutControl(&speedTimer, 200))
 	{
 		flagsGlobal.increaseSpeedFlag = TRUE;
 	}
@@ -25,7 +96,7 @@ void ClimateTempControl_Handler(DS18B20Sensor_t * ds18b20_2)
 //			_printParam(UC"LightControl.LightingState", LightControl.LightingState);
 			if (flagsGlobal.increaseSpeedFlag == TRUE) //powoduje zwiekszanie PWM'a co sekunde
 			{
-				if (ds18b20_2->fTemp > (float)tempControl.userTemp)
+				if (ds18b20_1.fTemp > (float)tempControl.userTemp)
 				{
 					//USARTx_SendString(USART_COMM, UC"fTemp > userTemp\n\r");
 
@@ -51,6 +122,17 @@ void ClimateTempControl_Handler(DS18B20Sensor_t * ds18b20_2)
 	}
     else if (tempControl.tempCtrlMode == TEMP_MANUAL)
     {
-    	//TODO manualne sterowanie
+    	if (lastFanPull != tempControl.fanPull)
+		{
+			PWM_SetPercent(PWM_FAN_PULL_AIR, tempControl.fanPull);
+		}
+
+		if (lastFanPush != tempControl.fanPush)
+		{
+			PWM_SetPercent(PWM_FAN_PUSH_AIR, tempControl.fanPush);
+		}
+
+    	lastFanPull = tempControl.fanPull;
+    	lastFanPush = tempControl.fanPush;
     }
 }

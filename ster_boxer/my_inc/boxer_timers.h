@@ -36,13 +36,15 @@ typedef enum
 
 light_state_t lastLightState;
 extern uint8_t gFansSoftStartFlag;
-extern uint16_t TimerPeriod;
+
+extern bool_t ntpSendRequest;
+extern bool_t ntpSyncProccess;
 
 void PWM_FansInit(void);
 void PWM_PumpInit(void);
 
 void FanSoftStart_Handler(void);
-void MainTimer_Handle(void);
+void MainTimer_Handler(void);
 void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent);
 uint8_t PWM_IncPercentTo(uint8_t xPwmDev, uint32_t xPercent);
 uint8_t PWM_DecPercentTo(uint8_t xPwmDev, uint32_t xPercent);

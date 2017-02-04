@@ -3,18 +3,21 @@ Monitor uprawy roślin STM32F051
 
 
 Zmiany:
-- funkcja ustawiania czasu przez atnel wifi (wbudowane ntp?)
+- funkcja ustawiania czasu przez atnel wifi (wbudowane ntp?) --------------- ???????????
+- dodać manualne sterowanie wentylatorami z C# ?????????????
+- zmienić sposób pomiaru wilgotności gleby (oksydacja sondy -> podawać napięcie tylko na czas pomiaru a potem 0V)
 - zrobić sprzętowe opóźnienie delay_us (1us) -> Timer?
 - zrobić algorytm wyszukiwania 1Wire
 - uruchomić HSE+PLL na 48MHz
 - dorobić info o nawadnianiu na LCD
-- przerobić usart tx na przerwaniach i fifo
-- dodać manualne sterowanie wentylatorami z C#
-- zmienić sposób pomiaru wilgotności gleby (oksydacja sondy -> podawać napięcie tylko na czas pomiaru a potem 0V)
 - dodać obsługę błędów czujników na LCD (w miejscu wartości pomiarowej dać napis Error)
 
 
 WYKONANE:
+
+- przerobić usart tx na przerwaniach i fifo + poprawione ramki ------> OK 
+
+- dodanie przywracania ustawień domyślnych we flash ------> OK
 
 - zmienić zapis liczników oświetlenia z pamięci RAM PCF8583 do pamięci FLASH ------> OK
 

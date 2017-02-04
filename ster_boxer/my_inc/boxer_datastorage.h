@@ -42,6 +42,7 @@ extern flashSettings_t currentFlashConfig;
 void FLASH_ReadConfiguration(void);
 void FLASH_SaveConfiguration(void);
 void FLASH_RestoreDefaultConfig(void);
+void FLASH_ClearLightState(void);
 void FLASH_ReadLightCounters(void);
 void FLASH_SaveLightCounters(void);
 void FLASH_STORAGE_TEST(void);

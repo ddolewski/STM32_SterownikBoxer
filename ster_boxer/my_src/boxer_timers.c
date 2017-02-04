@@ -13,13 +13,17 @@ static uint8_t gSetPwmFAN1Flag = 0;
 static uint8_t gSetPwmFAN2Flag = 0;
 static uint8_t gSetPwmPUMPFlag = 0;
 
+static void Lightning_Core(void);
 static uint32_t PWM_PercentToRegister(uint32_t xPercent);
 static void PWM_IncOnePercent(uint8_t xPwmDev);
 static void PWM_DecOnePercent(uint8_t xPwmDev);
 static uint8_t PWM_FANSoftStart(bool_t xStatus);
-
-uint16_t TimerPeriod = 0;
+static uint16_t ntpRequestTimer = 0;
+static uint16_t TimerPeriod = 0;
 uint8_t gFansSoftStartFlag = 0;
+
+bool_t ntpSyncProccess = FALSE;
+bool_t ntpSendRequest = FALSE;
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t PWM_IncPercentTo(uint8_t xPwmDev, uint32_t xPercent)
 {
@@ -215,75 +219,85 @@ void FanSoftStart_Handler(void)
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void MainTimer_Handle(void)
+void MainTimer_Handler(void)
 {
 	if (systimeTimeoutControl(&oneSecTimer, 1000))
 	{
 		flagsGlobal.udpSendMsg = TRUE;
 		displayData.pageCounter++;
 
-		/************************************************************************/
-		/*		            CONTROLLING CALIBRATE PH PROCESS					*/
-		/************************************************************************/
-		ADC_CalibrateProbes_Handler();
-
-		/************************************************************************/
-		/*							CONTROLLING LAMP                            */
-		/************************************************************************/
-		lastLightState = xLightControl.lightingState;
-		if (xLightControl.timeOnHours == 0 && xLightControl.timeOffHours == 24)
+		if (ntpSyncProccess == FALSE)
 		{
-			GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
-			xLightControl.lightingState = LIGHT_OFF;
+			ntpRequestTimer++;
+	    	if (ntpRequestTimer == 3600) //wyslij zapytanie o czas co godzine
+	    	{
+	    		ntpRequestTimer = 0;
+	    		ntpSendRequest = TRUE;
+	    		ntpSyncProccess = TRUE;
+	    	}
+		}
+
+    	if (xLightCounters.counterSeconds % 300 == 0)
+    	{
+    		FLASH_SaveLightCounters();
+    	}
+
+    	Lightning_Core();
+		ADC_CalibrateProbes_Core();
+//		Irrigation_Core();
+	}
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static void Lightning_Core(void)
+{
+	lastLightState = xLightControl.lightingState;
+	if (xLightControl.timeOnHours == 0 && xLightControl.timeOffHours == 24)
+	{
+		GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
+		xLightControl.lightingState = LIGHT_OFF;
+		xLightCounters.counterSeconds = 0;
+	}
+	else if (xLightControl.timeOnHours == 24 && xLightControl.timeOffHours == 0)
+	{
+		GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
+		xLightControl.lightingState = LIGHT_ON;
+		xLightCounters.counterSeconds = 0;
+	}
+	else
+	{
+		xLightCounters.counterSeconds++;
+		if (xLightCounters.counterSeconds == 3600)
+		{
+			xLightCounters.counterHours++;
 			xLightCounters.counterSeconds = 0;
 		}
-		else if (xLightControl.timeOnHours == 24 && xLightControl.timeOffHours == 0)
-		{
-			GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
-			xLightControl.lightingState = LIGHT_ON;
-			xLightCounters.counterSeconds = 0;
-		}
-		else
-		{
-			xLightCounters.counterSeconds++;
-			if (xLightCounters.counterSeconds == 3600)
-			{
-				xLightCounters.counterHours++;
-				xLightCounters.counterSeconds = 0;
-			}
 
-			if (xLightControl.lightingState == LIGHT_ON) //lampa wlaczona
+		if (xLightControl.lightingState == LIGHT_ON) //lampa wlaczona
+		{
+			if (xLightControl.timeOnHours != 0 && xLightControl.timeOnHours != 24)
 			{
-				if (xLightControl.timeOnHours != 0 && xLightControl.timeOnHours != 24)
+				GPIOx_SetPin(LAMP_PORT, LAMP_PIN);
+				if (xLightControl.timeOnHours == xLightCounters.counterHours)
 				{
-					GPIOx_SetPin(LAMP_PORT, LAMP_PIN);
-					if (xLightControl.timeOnHours == xLightCounters.counterHours)
-					{
-						xLightControl.lightingState = LIGHT_OFF;
-						xLightCounters.counterHours = 0;
-						xLightCounters.counterSeconds = 0;
-					}
-				}
-			}
-			else if (xLightControl.lightingState == LIGHT_OFF) //lampa wylaczona
-			{
-				if (xLightControl.timeOffHours != 0 && xLightControl.timeOffHours != 24)
-				{
-					GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
-					if (xLightControl.timeOffHours == xLightCounters.counterHours)
-					{
-						xLightControl.lightingState = LIGHT_ON;
-						xLightCounters.counterHours = 0;
-						xLightCounters.counterSeconds = 0;
-					}
+					xLightControl.lightingState = LIGHT_OFF;
+					xLightCounters.counterHours = 0;
+					xLightCounters.counterSeconds = 0;
 				}
 			}
 		}
-
-		/************************************************************************/
-		/*					CONTROLLING PUMP - IRRIGATION MODES					*/
-		/************************************************************************/
-		Irrigation_Core();
+		else if (xLightControl.lightingState == LIGHT_OFF) //lampa wylaczona
+		{
+			if (xLightControl.timeOffHours != 0 && xLightControl.timeOffHours != 24)
+			{
+				GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
+				if (xLightControl.timeOffHours == xLightCounters.counterHours)
+				{
+					xLightControl.lightingState = LIGHT_ON;
+					xLightCounters.counterHours = 0;
+					xLightCounters.counterSeconds = 0;
+				}
+			}
+		}
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -433,7 +447,7 @@ void PWM_FansInit(void)
 static uint8_t PWM_FANSoftStart(bool_t xStatus)
 {
 	uint8_t ret = 0;
-	if (systimeTimeoutControl(&softStartTimer, 50))
+	if (systimeTimeoutControl(&softStartTimer, 100))
 	{
 		if (xStatus)
 		{

@@ -26,7 +26,7 @@ extern pHBufferVoltage_t pHBufferVoltage;
 volatile calibrationProcess_t calibrateFlags;
 
 void ADC_DMA_Init(void);
-void ADC_CalibrateProbes_Handler(void);
+void ADC_CalibrateProbes_Core(void);
 void PhMeasurementCalibration_Handler(void);
 
 #endif /* MY_INC_BOXER_PH_H_ */

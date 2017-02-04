@@ -6,6 +6,7 @@
  */
 
 #include "debug.h"
+#include "fifo.h"
 
 #ifdef DEBUG_TERMINAL_USART
 

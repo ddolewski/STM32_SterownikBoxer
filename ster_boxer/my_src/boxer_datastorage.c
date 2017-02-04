@@ -139,6 +139,23 @@ void FLASH_RestoreDefaultConfig(void)
 		//TODO informacja o bledzie flash
 	}
 }
+
+void FLASH_ClearLightState(void)
+{
+	xLightCounters = defFlashLightCounters.lightCounters;
+	ErrorStatus flashError = SYSTEM_FLASH_ErasePage(LIGHT_COUNTERS_PAGE_NUMBER);
+	if (flashError == ERROR)
+	{
+		//TODO informacja o bledzie flash
+	}
+
+	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&defFlashLightCounters, LIGHT_COUNTERS_PAGE_NUMBER, sizeof(defFlashLightCounters));
+
+	if (flashError == ERROR)
+	{
+		//TODO informacja o bledzie flash
+	}
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void FLASH_SaveLightCounters(void)
 {

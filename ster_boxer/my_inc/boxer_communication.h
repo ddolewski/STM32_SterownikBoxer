@@ -16,26 +16,24 @@
 
 #define countof(a)             (uint8_t)(sizeof(a) / sizeof(*(a)))
 
-#define TX_BUFF_SIZE	128
-#define RX_BUFF_SIZE	128
+typedef enum
+{
+	ATNEL_UNINITIALISE,
+	ATNEL_SEND_3PLUS,
+	ATNEL_RECV_A,
+	ATNEL_SEND_A,
+	ATNEL_RECV_OK
+}atnel_init_state_t;
 
-typedef struct {
-     char * buf;
-     int head;
-     int tail;
-     int size;
-} fifo_t;
-
-void fifo_init(volatile fifo_t * fifo, char * buf, int size);
-int fifo_read(volatile fifo_t * fifo, void * buf, int nbytes);
-int fifo_write(volatile fifo_t * fifo, const void * buf, int nbytes);
-
-
+extern atnel_init_state_t atnelInitProccess;
+extern bool_t atnelAtCmdEnable;
 
 void SerialPort_PutChar(char xSendChar);
 void SerialPort_PutString(char * xString);
 
 void SerialPort_Init(void);
 void ReceiveSerial_Handler(void);
+void TransmitSerial_Handler(void);
+ErrorStatus AtnelGetTime(char * xStrTime);
 
 #endif /* MY_INC_BOXER_COMMUNICATION_H_ */

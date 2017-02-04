@@ -20,9 +20,20 @@ static uint8_t WaterToSecond;
 soil_moist_t soilMoisture = SOIL_UNKNOWN_STATE;
 soil_moist_t lastSoilMoistState = SOIL_UNKNOWN_STATE;
 
+static void Irrigation_WaterLevel(void);
+static void Irrigation_PumpControll(void);
+static void Irrigation_SoilMoisture_Handler(void);
+static uint8_t Irrigation_PumpSoftStart(bool_t xStatus);
+/////////////////////////////////////////////////////////////////////////////
 irrigate_control_t irrigationControl;
-
-void Irrigation_PumpControll(void)
+void Irrigation_Handler(void)
+{
+	Irrigation_PumpControll();
+	Irrigation_WaterLevel();
+	Irrigation_SoilMoisture_Handler();
+}
+/////////////////////////////////////////////////////////////////////////////
+static void Irrigation_PumpControll(void)
 {
 	if (flagTurnOnPump == 1)
 	{
@@ -49,8 +60,8 @@ void Irrigation_PumpControll(void)
 		}
 	}
 }
-
-void Irrigation_WaterLevel(void)
+/////////////////////////////////////////////////////////////////////////////
+static void Irrigation_WaterLevel(void)
 {
 	if (systimeTimeoutControl(&waterLvlCheckTimer, 250))
 	{
@@ -66,8 +77,8 @@ void Irrigation_WaterLevel(void)
 		}
 	}
 }
-
-void Irrigation_SoilMoisture_Handler(void)
+/////////////////////////////////////////////////////////////////////////////
+static void Irrigation_SoilMoisture_Handler(void)
 {
 	if (systimeTimeoutControl(&soilMoistTimer, 1000))
 	{
@@ -82,7 +93,7 @@ void Irrigation_SoilMoisture_Handler(void)
 		}
 	}
 }
-
+/////////////////////////////////////////////////////////////////////////////
 void Irrigation_Core(void)
 {
 	if (flagTurnOnPump != 1)
@@ -137,8 +148,8 @@ void Irrigation_Core(void)
 		pumpCounter++;
 	}
 }
-
-uint8_t Irrigation_PumpSoftStart(bool_t xStatus)
+/////////////////////////////////////////////////////////////////////////////
+static uint8_t Irrigation_PumpSoftStart(bool_t xStatus)
 {
 	uint8_t ret = 0;
 	if (systimeTimeoutControl(&softStartTimer, 20))

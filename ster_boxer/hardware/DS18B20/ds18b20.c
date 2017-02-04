@@ -206,7 +206,7 @@ uint8_t CRC8(uint8_t *inData, uint8_t len)
    return crc;
 }
 
-void readTemperature(DS18B20Sensor_t * sensor) //todo odczytywac caly scratchpad razem z crc - policzyc crc z odebranych 8 bajtow i porwonac z 9
+void readTemperature(DS18B20Sensor_t * sensor)
 {
 	uint8_t ucReset;
 	uint8_t crcData[8] = {0};

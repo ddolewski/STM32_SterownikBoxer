@@ -15,6 +15,7 @@
 #include "debug.h"
 #include "boxer_timers.h"
 
-void ClimateTempControl_Handler(DS18B20Sensor_t * ds18b20_1);
+void Climate_TempCtrl_Handler(void);
+void Climate_SensorsHandler(void);
 
 #endif /* MY_INC_BOXER_CLIMATE_H_ */
