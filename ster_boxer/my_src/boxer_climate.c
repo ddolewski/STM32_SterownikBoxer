@@ -16,26 +16,11 @@ static systime_t measureOwireTimer = 0;
 static systime_t measureI2cTimer = 0;
 static systime_t shtInitTimer = 0;
 static systime_t oWireInitTimer = 0;
-static systime_t readTimeTimer = 0;
-static time_complex_t localTime;
-
 static ErrorStatus error = SUCCESS;
+
 /////////////////////////////////////////////////////////////////////////////
 void Climate_SensorsHandler(void)
 {
-	if (systimeTimeoutControl(&readTimeTimer, 400))
-	{
-#ifndef DEBUG_TERMINAL_USART
-		PCF8563_ReadTime(&rtcFullDate, I2C1);
-#endif
-		timeUtcToLocalConv(&rtcFullDate, &localTime);
-		displayMakeTimeString(timeString, &localTime);
-		displayMakeDateString(dateString, &localTime);
-		displayWeekDayConvert(localTime.wday, weekDayString);
-
-		strcpy(displayData.time, timeString);
-	}
-
 	if (systimeTimeoutControl(&oWireInitTimer, 2000))
 	{
 #ifndef OWIRE_OFF_MODE

@@ -13,17 +13,24 @@ static uint8_t gSetPwmFAN1Flag = 0;
 static uint8_t gSetPwmFAN2Flag = 0;
 static uint8_t gSetPwmPUMPFlag = 0;
 
+static void FanSoftStart_Handler(void);
 static void Lightning_Core(void);
 static uint32_t PWM_PercentToRegister(uint32_t xPercent);
 static void PWM_IncOnePercent(uint8_t xPwmDev);
 static void PWM_DecOnePercent(uint8_t xPwmDev);
 static uint8_t PWM_FANSoftStart(bool_t xStatus);
-static uint16_t ntpRequestTimer = 0;
 static uint16_t TimerPeriod = 0;
 uint8_t gFansSoftStartFlag = 0;
 
 bool_t ntpSyncProccess = FALSE;
-bool_t ntpSendRequest = FALSE;
+static uint8_t atnelWaitCounter = 0;
+#ifdef NTP_DEBUG
+static uint16_t ntpRequestTimer = 3590;
+
+#else
+static uint16_t ntpRequestTimer = 0;
+#endif
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t PWM_IncPercentTo(uint8_t xPwmDev, uint32_t xPercent)
 {
@@ -208,7 +215,7 @@ static uint32_t PWM_PercentToRegister(uint32_t xPercent)
 	return ((uint16_t) (((uint32_t) xPercent * (TimerPeriod - 1)) / 100));//(xPercent * ONE_PERCENT);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void FanSoftStart_Handler(void)
+static void FanSoftStart_Handler(void)
 {
 	if (gFansSoftStartFlag == TRUE)
 	{
@@ -221,10 +228,25 @@ void FanSoftStart_Handler(void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MainTimer_Handler(void)
 {
+	FanSoftStart_Handler();
+
 	if (systimeTimeoutControl(&oneSecTimer, 1000))
 	{
-		flagsGlobal.udpSendMsg = TRUE;
+//		flagsGlobal.udpSendMsg = TRUE;
+		atnel_TrCmdReqType = TRNSP_MEAS_DATA_REQ;
 		displayData.pageCounter++;
+
+		if (atnel_wait_change_mode == TRUE)
+		{
+			atnelWaitCounter++;
+			if (atnelWaitCounter == 15)
+			{
+				atnelWaitCounter = 0;
+				atnel_wait_change_mode = FALSE;
+				AtnelSetTransparentMode();
+			}
+		}
+
 
 		if (ntpSyncProccess == FALSE)
 		{
@@ -232,8 +254,8 @@ void MainTimer_Handler(void)
 	    	if (ntpRequestTimer == 3600) //wyslij zapytanie o czas co godzine
 	    	{
 	    		ntpRequestTimer = 0;
-	    		ntpSendRequest = TRUE;
 	    		ntpSyncProccess = TRUE;
+	    		NtpSendRequest();
 	    	}
 		}
 

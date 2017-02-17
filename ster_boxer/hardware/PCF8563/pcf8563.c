@@ -8,6 +8,8 @@
 #include <timestamp.h>
 #include "pcf8563.h"
 
+static systime_t readTimeTimer = 0;
+static time_complex_t localTime;
 //-----------------------------------------------------------------------------
 // Funkcja konwertujaca bin na bcd
 // byte_to_conv/in: konwertowany bajt
@@ -102,7 +104,21 @@ ErrorStatus PCF8563_WriteTime(time_complex_t * xTime, I2C_TypeDef * I2Cx)
 	return error;
 }
 
+void RTC_Handler(void)
+{
+	if (systimeTimeoutControl(&readTimeTimer, 400))
+	{
+#ifndef DEBUG_TERMINAL_USART
+		PCF8563_ReadTime(&rtcFullDate, I2C1);
+#endif
+		timeUtcToLocalConv(&rtcFullDate, &localTime);
+		displayMakeTimeString(timeString, &localTime);
+		displayMakeDateString(dateString, &localTime);
+		displayWeekDayConvert(localTime.wday, weekDayString);
 
+		strcpy(displayData.time, timeString);
+	}
+}
 
 void I2C1_Init(void)
 {

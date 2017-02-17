@@ -9,45 +9,7 @@
 // I2C1 - rtc + czujniki
 //
 
-static systime_t saveConfigTimer = 0;
-
 static void PeripheralInit(void);
-
-void konf_zegary(void)
-{
-  ErrorStatus HSEStartUpStatus;
-
-  // Reset ustawien RCC
-  RCC_DeInit();
-  // Wlacz HSE
-  RCC_HSEConfig(RCC_HSE_ON);
-  // Czekaj za HSE bedzie gotowy
-  HSEStartUpStatus = RCC_WaitForHSEStartUp();
-  if(HSEStartUpStatus == SUCCESS)
-  {
-        FLASH_PrefetchBufferCmd(ENABLE);
-
-        // zwloka dla pamieci Flash
-        FLASH_SetLatency(FLASH_Latency_1);
-        // HCLK = SYSCLK
-        RCC_HCLKConfig(RCC_SYSCLK_Div1);
-        // PCLK2 = HCLK
-//        RCC_PCLK2Config(RCC_HCLK_Div1);
-        // PCLK1 = HCLK/2
-//        RCC_PCLK1Config(RCC_HCLK_Div2);
-        RCC_PCLKConfig(RCC_HCLK_Div1);
-        // PLLCLK = 8MHz * 9 = 72 MHz
-        RCC_PLLConfig(RCC_PLLSource_PREDIV1, RCC_PLLMul_4);
-        // Wlacz PLL
-        RCC_PLLCmd(ENABLE);
-        // Czekaj az PLL poprawnie sie uruchomi
-        while(RCC_GetFlagStatus(RCC_FLAG_PLLRDY) == RESET);
-        // PLL bedzie zrodlem sygnalu zegarowego
-        RCC_SYSCLKConfig(RCC_SYSCLKSource_PLLCLK);
-        // Czekaj az PLL bedzie sygnalem zegarowym systemu
-        while(RCC_GetSYSCLKSource() != 0x08);
-  }
-}
 
 int main(void)
 {
@@ -58,18 +20,18 @@ int main(void)
 
     while (TRUE)
 	{
+    	RTC_Handler();
+    	MainTimer_Handler();
     	TransmitSerial_Handler();
     	ReceiveSerial_Handler();
-    	FanSoftStart_Handler();
-    	MainTimer_Handler();
-    	PhMeasurementCalibration_Handler();
-    	Climate_TempCtrl_Handler();
     	Climate_SensorsHandler();
-    	Irrigation_Handler();
+    	Climate_TempCtrl_Handler();
     	Display_Handler();
+    	PhProccess_Handler();
+    	Irrigation_Handler();
 	}
 
-    return 0;
+    return FALSE;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 static void PeripheralInit(void)
@@ -132,12 +94,12 @@ static void PeripheralInit(void)
 #ifdef RTC_WRITE_TEST
 	time_complex_t timeTest;
 	timeTest.sec = 0;
-	timeTest.min = 26;
-	timeTest.hour = 10;
-	timeTest.mday = 22;
-	timeTest.wday = 6;
-	timeTest.month = 1;
-	timeTest.year = 2017;
+	timeTest.min = 0;
+	timeTest.hour = 0;
+	timeTest.mday = 0;
+	timeTest.wday = 0;
+	timeTest.month = 0;
+	timeTest.year = 0;
 
 	static time_complex_t timeUtc 	= {2000, 1, 1, 1, 0, 0, 0};
 	timeLocalToUtcConv(&timeTest, &timeUtc);
@@ -193,6 +155,6 @@ static void PeripheralInit(void)
 #endif
 
 	displayData.page = 1;
-	systimeDelayMs(2000);
+	systimeDelayMs(500);
 	GLCD_ClearScreen();
 }

@@ -355,11 +355,9 @@ static void ADC_CalibrateProbess_GetFactorsFromMeasurement(pHBufferVoltage_t * x
 		default:
 			break;
 	}
-
-//	printf("Slope: %.2f\nIntercept: %.3f\nRegression: %.3f",slope,intercept,reg);
 }
 
-void PhMeasurementCalibration_Handler(void)
+void PhProccess_Handler(void)
 {
 	ADC_ReadCalcPh();
 	ADC_CalibrateProbes_BufferChooser();

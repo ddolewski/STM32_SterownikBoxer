@@ -100,6 +100,7 @@ void I2C1_Init(void);
 void I2C2_Init(void);
 uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error);
 ErrorStatus PCF8563_RegWrite(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, uint8_t data);
+void RTC_Handler(void);
 int BcdToDec(int data);
 int DecToBcd(int data);
 //void PCF8563_SetDate(I2C_TypeDef* I2Cx, date_t * rtcDate);

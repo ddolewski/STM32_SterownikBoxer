@@ -28,8 +28,8 @@ static uint8_t Irrigation_PumpSoftStart(bool_t xStatus);
 irrigate_control_t irrigationControl;
 void Irrigation_Handler(void)
 {
-	Irrigation_PumpControll();
-	Irrigation_WaterLevel();
+//	Irrigation_PumpControll();
+//	Irrigation_WaterLevel();
 	Irrigation_SoilMoisture_Handler();
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -80,7 +80,7 @@ static void Irrigation_WaterLevel(void)
 /////////////////////////////////////////////////////////////////////////////
 static void Irrigation_SoilMoisture_Handler(void)
 {
-	if (systimeTimeoutControl(&soilMoistTimer, 1000))
+	if (systimeTimeoutControl(&soilMoistTimer, 60000))
 	{
 		lastSoilMoistState = soilMoisture;
 		if (GPIOx_ReadInputPin(SOIL_MOIST_PORT, SOIL_MOIST_PIN)) //stan wysoki
@@ -92,6 +92,10 @@ static void Irrigation_SoilMoisture_Handler(void)
 			soilMoisture = SOIL_WET;
 		}
 	}
+//	else //todo oksydacja sondy
+//	{
+//
+//	}
 }
 /////////////////////////////////////////////////////////////////////////////
 void Irrigation_Core(void)
@@ -116,18 +120,18 @@ void Irrigation_Core(void)
 				}
 			break;
 
-			case IRRIGATION_MODE_AUTO_SOIL:
-				if (soilMoisture == SOIL_WET || soilMoisture == SOIL_UNKNOWN_STATE) //stan wysoki
-				{
-					flagTurnOnPump = 0;
-					flagSoftStartOff = 0;
-				}
-				else
-				{
-					WaterToSecond = (irrigationControl.water*10)/100; //todo iloœæ w ml / 100ml (1s) np.
-					flagTurnOnPump = 1;
-				}
-			break;
+//			case IRRIGATION_MODE_AUTO_SOIL:
+//				if (soilMoisture == SOIL_WET || soilMoisture == SOIL_UNKNOWN_STATE) //stan wysoki
+//				{
+//					flagTurnOnPump = 0;
+//					flagSoftStartOff = 0;
+//				}
+//				else
+//				{
+//					WaterToSecond = (irrigationControl.water*10)/100; //todo iloœæ w ml / 100ml (1s) np.
+//					flagTurnOnPump = 1;
+//				}
+//			break;
 
 			case IRRIGATION_MODE_MANUAL:
 				flagTurnOnPump = 1;

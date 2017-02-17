@@ -8,8 +8,6 @@
 #include "debug.h"
 #include "fifo.h"
 
-#ifdef DEBUG_TERMINAL_USART
-
 volatile fifo_t debug_fifo;
 volatile char DebugBuffer[TX_BUFF_SIZE];
 
@@ -20,7 +18,7 @@ void DEBUG_Init(void)
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
 
-    USART_InitStructure.USART_BaudRate = 230400;
+    USART_InitStructure.USART_BaudRate = 400000;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART_InitStructure.USART_StopBits = USART_StopBits_1;
     USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -58,14 +56,18 @@ void DEBUG_Init(void)
 
 void DEBUG_SendString(char * xString)
 {
+#ifdef DEBUG_TERMINAL_USART
 	fifo_write(&debug_fifo, xString, strlen(xString));
 	USART_ITConfig( USART1, USART_IT_TXE, ENABLE );
+#endif
 }
 
 void DEBUG_SendByte(uint8_t xData)
 {
-	fifo_write(&debug_fifo, xData, 1);
+#ifdef DEBUG_TERMINAL_USART
+	fifo_write(&debug_fifo, &xData, 1);
 	USART_ITConfig( USART1, USART_IT_TXE, ENABLE );
+#endif
 }
 
 void USART1_IRQHandler(void)
@@ -202,4 +204,3 @@ void _infoc(const uint8_t * xString)
 {
 	_print(xString);
 }
-#endif

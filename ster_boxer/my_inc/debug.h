@@ -11,8 +11,6 @@
 #include "stm32f0xx_usart.h"
 #include "boxer_communication.h"
 
-#ifdef DEBUG_TERMINAL_USART
-
 void DEBUG_Init(void);
 void DEBUG_SendString(char * xString);
 void DEBUG_SendByte(uint8_t xData);
@@ -35,7 +33,5 @@ void _infoc(const uint8_t * xString);
 		   	   	   	   	   	   	   _print(UC" = ");\
 		   	   	   	   	   	   	   _printInt(X);\
 								}while(0)
-
-#endif
 
 #endif /* MY_INC_DEBUG_H_ */

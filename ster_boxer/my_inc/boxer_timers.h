@@ -43,7 +43,6 @@ extern bool_t ntpSyncProccess;
 void PWM_FansInit(void);
 void PWM_PumpInit(void);
 
-void FanSoftStart_Handler(void);
 void MainTimer_Handler(void);
 void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent);
 uint8_t PWM_IncPercentTo(uint8_t xPwmDev, uint32_t xPercent);

@@ -27,6 +27,6 @@ volatile calibrationProcess_t calibrateFlags;
 
 void ADC_DMA_Init(void);
 void ADC_CalibrateProbes_Core(void);
-void PhMeasurementCalibration_Handler(void);
+void PhProccess_Handler(void);
 
 #endif /* MY_INC_BOXER_PH_H_ */
