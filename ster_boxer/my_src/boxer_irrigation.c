@@ -82,6 +82,10 @@ static void Irrigation_SoilMoisture_Handler(void)
 {
 	if (systimeTimeoutControl(&soilMoistTimer, 60000))
 	{
+		//wlaczam na chwile +5V na sonde i robie pomiar wilgotnosci
+		//po wykonanym pomiarze wylaczam sonde aby nie rdzewiala
+		GPIOx_SetPin(SOIL_MOIST_EN, SOIL_MOIST_EN_PIN);
+		systimeDelayMs(50);
 		lastSoilMoistState = soilMoisture;
 		if (GPIOx_ReadInputPin(SOIL_MOIST_PORT, SOIL_MOIST_PIN)) //stan wysoki
 		{
@@ -91,11 +95,9 @@ static void Irrigation_SoilMoisture_Handler(void)
 		{
 			soilMoisture = SOIL_WET;
 		}
+
+		GPIOx_ResetPin(SOIL_MOIST_EN, SOIL_MOIST_EN_PIN);
 	}
-//	else //todo oksydacja sondy
-//	{
-//
-//	}
 }
 /////////////////////////////////////////////////////////////////////////////
 void Irrigation_Core(void)

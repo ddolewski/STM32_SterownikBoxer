@@ -60,7 +60,6 @@ typedef enum
 	ATNEL_MODE_AT_CMD
 }atnel_mode_t;
 
-//extern atnel_init_state_t atnelInitProccess;
 extern bool_t atnel_wait_change_mode;
 
 extern atnel_at_cmd_resp_t atnel_AtCmdRespType;
@@ -69,9 +68,7 @@ extern atnel_at_cmd_req_t atnel_AtCmdReqType;
 extern atnel_trnsp_cmd_resp_t atnel_TrCmdRespType;
 extern atnel_trnsp_cmd_req_t atnel_TrCmdReqType;
 
-//extern bool_t atnel_sendAtCmd;
-//extern bool_t atnelAtCmdEnable;
-//extern bool_t atnel_init_next_step;
+extern bool_t ntpSendRequest;
 
 void SerialPort_PutChar(char xSendChar);
 void SerialPort_PutString(char * xString);
@@ -79,7 +76,7 @@ void SerialPort_PutString(char * xString);
 void SerialPort_Init(void);
 void ReceiveSerial_Handler(void);
 void TransmitSerial_Handler(void);
-void NtpSendRequest(void);
-ErrorStatus AtnelGetTime(char * xStrTime);
-void AtnelSetTransparentMode(void);
+void Ntp_SendRequest(void);
+ErrorStatus Atnel_GetTime(char * xStrTime);
+void Atnel_SetTransparentMode(void);
 #endif /* MY_INC_BOXER_COMMUNICATION_H_ */

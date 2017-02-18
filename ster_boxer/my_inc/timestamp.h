@@ -65,6 +65,6 @@ void timeComplexCopy(time_complex_t * xSrcTime, time_complex_t * xDstTime);
 time_compare_result_t timeComplexCompare(time_complex_t * xTimeA, time_complex_t * xTimeB);
 int8_t timeSimpleCompare(time_simple_t * xTimeA, time_simple_t * xTimeB);
 uint8_t timeLocalToUtcConv(time_complex_t * xInLocalTime, time_complex_t * xOutUtcTime);
+bool_t timeCheckDstStatus(time_complex_t * xInTime);
 
-void testTimeDstCorrection(time_complex_t* xInTime, time_complex_t* xOutTime, int8_t xLocaltimeZoneHours, int8_t xLocaltimeZoneMinutes, uint8_t xInDstActive);
 #endif /* TIME_H_ */

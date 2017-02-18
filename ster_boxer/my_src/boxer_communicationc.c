@@ -11,8 +11,8 @@
 #include "string_builder.h"
 #include "fifo.h"
 
-static void fifo_flush(void);
-static void AtnelResetModule(void);
+
+static void Atnel_ResetModule(void);
 
 
 static volatile char RxBuffer[RX_BUFF_SIZE];
@@ -36,10 +36,20 @@ static time_complex_t ntpTime = {0};
 static char DataToSend[TX_BUFF_SIZE] = {0};
 static char recvstr[RX_BUFF_SIZE] = {0};
 
-void AtnelSetTransparentMode(void)
+static bool_t ntpSyncProccess = FALSE;
+
+#ifdef NTP_DEBUG
+static uint16_t ntpRequestTimer = 3590;
+
+#else
+static uint16_t ntpRequestTimer = 0;
+#endif
+
+
+void Atnel_SetTransparentMode(void)
 {
 	atnel_Mode = ATNEL_MODE_TRANSPARENT;
-	fifo_flush();
+	fifo_flush(&rx_fifo);
 	memset(recvstr, 0, RX_BUFF_SIZE);
 }
 
@@ -131,14 +141,19 @@ void USART2_IRQHandler(void)
 	}
 }
 
-static void fifo_flush(void)
+void Ntp_Handler(void)
 {
-	rx_fifo.head = 0;
-	rx_fifo.tail = 0;
-	memset(rx_fifo.buf, 0, RX_BUFF_SIZE);
+	// aktualizacja czasu wykonywana jest co godzine
+	// wysylany jest wtedy request
+	ntpRequestTimer++;
+	if (ntpRequestTimer == 3600) //wyslij zapytanie o czas co godzine
+	{
+		ntpRequestTimer = 0;
+		Ntp_SendRequest();
+	}
 }
 
-void NtpSendRequest(void)
+void Ntp_SendRequest(void)
 {
 	atnel_AtCmdReqType = AT_GMT_REQ;
 	atnel_Mode = ATNEL_MODE_AT_CMD;
@@ -146,6 +161,7 @@ void NtpSendRequest(void)
 
 void TransmitSerial_Handler(void)
 {
+	bool_t isDst = FALSE;
 	switch (atnel_Mode)
 	{
 	case ATNEL_MODE_AT_CMD:
@@ -169,9 +185,18 @@ void TransmitSerial_Handler(void)
 			switch (atnel_AtCmdReqType)
 			{
 			case AT_GMT_REQ:
-				SerialPort_PutString("AT+GMT=1\r"); //todo sprawdzac czy jest aktualnie czas letni czy zimowy i wstawiac w komende AT
+				isDst = timeCheckDstStatus(&rtcFullDate);
 
-				DEBUG_SendString("send AT+GMT=1\r\n");
+				if (isDst == TRUE)
+				{
+					SerialPort_PutString("AT+GMT=2\r");
+					DEBUG_SendString("send AT+GMT=2\r\n");
+				}
+				else
+				{
+					SerialPort_PutString("AT+GMT=1\r");
+					DEBUG_SendString("send AT+GMT=1\r\n");
+				}
 
 				atnel_AtCmdReqType = AT_NONE_REQ;
 				atnel_AtCmdRespType = AT_GMT_RESP;
@@ -179,8 +204,6 @@ void TransmitSerial_Handler(void)
 
 			case AT_ENTM_REQ:
 				SerialPort_PutString("AT+ENTM\r");
-//				SerialPort_PutString("AT+Z\r");
-
 				DEBUG_SendString("send AT+ENTM\r\n");
 
 				atnel_AtCmdReqType = AT_NONE_REQ;
@@ -322,7 +345,7 @@ void ReceiveSerial_Handler(void)
 	#endif
 							atnel_AtCmdReqType = AT_ENTM_REQ;
 							atnel_AtCmdRespType = AT_NONE_RESP;
-							ntpSyncProccess = FALSE;
+//							ntpSyncProccess = FALSE;
 							memset(recvstr, 0, RX_BUFF_SIZE);
 						}
 					}
@@ -388,7 +411,7 @@ void ReceiveSerial_Handler(void)
 						}
 
 						splitStr = strtok (NULL, " ");
-						strcpy(ReceivedString[i], splitStr); //todo HARD FAULT!!!!
+						strcpy(ReceivedString[i], splitStr);
 					}
 
 					if (strcmp(ReceivedString[0], "STA") == 0) //start frame preffix
@@ -528,14 +551,14 @@ void ReceiveSerial_Handler(void)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void AtnelResetModule(void)
+static void Atnel_ResetModule(void)
 {
 	GPIOx_ResetPin(WIFI_RST_PORT, WIFI_RST_PIN);
 	systimeDelayMs(3500);
 	GPIOx_SetPin(WIFI_RST_PORT, WIFI_RST_PIN);
 }
 
-ErrorStatus AtnelGetTime(char * xStrTime)
+ErrorStatus Atnel_GetTime(char * xStrTime)
 {
 	ErrorStatus err = SUCCESS;
 

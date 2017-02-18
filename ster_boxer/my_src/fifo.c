@@ -16,6 +16,13 @@ void fifo_init(volatile fifo_t * fifo, char * buf, int size)
 	fifo->buf = buf;
 }
 
+void fifo_flush(fifo_t *  flushFifo)
+{
+	flushFifo->head = 0;
+	flushFifo->tail = 0;
+	memset(flushFifo->buf, 0, RX_BUFF_SIZE);
+}
+
 //This reads nbytes bytes from the FIFO
 //The number of bytes read is returned
 int fifo_read(volatile fifo_t * fifo, void * buf, int nbytes)

@@ -292,7 +292,7 @@ void ADC_CalibrateProbes_Core(void)
 				calibrateFlags.turnOnBuzzer = TRUE;
 				if (calibrateFlags.pH9Buffer == TRUE)
 				{
-					ADC_CalibrateProbess_GetFactorsFromMeasurement(&pHBufferVoltage, &FactorsEquationpH, calibrateFlags.probeType); //todo regresja C
+					ADC_CalibrateProbess_GetFactorsFromMeasurement(&pHBufferVoltage, &FactorsEquationpH, calibrateFlags.probeType);
 					calibrateFlags.calibrateDone = TRUE;
 
 					memset(&calibrateFlags, 0, sizeof(calibrateFlags)); //skasowanie flag

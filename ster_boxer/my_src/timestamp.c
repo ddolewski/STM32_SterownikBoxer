@@ -33,7 +33,7 @@ static const dst_date_t timeDstDates[21] = // tablica dni ostatnich niedziel w m
 	{{2036,3,30,0,1,0,0}, {2036,10,26,0,1,0,0}}  // 2036
 };
 
-static uint8_t timeCheckDstStatus(time_complex_t * xInTime);
+
 //-----------------------------------------------------------------------------
 // Funkcja cykliczna obslugi synchronizacji
 // xYearToTest/in: rok do przetestowania
@@ -291,9 +291,9 @@ uint8_t timeUtcToLocalConv(time_complex_t * xInUtcTime, time_complex_t * xOutLoc
 // xTime/in: czas wejsciowy
 // return: TRUE / FALSE - zmiana czasu na DST lub nie
 //-----------------------------------------------------------------------------
-static uint8_t timeCheckDstStatus(time_complex_t * xInTime)
+bool_t timeCheckDstStatus(time_complex_t * xInTime)
 {
-	uint8_t IsDstTime = FALSE;
+	bool_t IsDstTime = FALSE;
 	static time_complex_t startDstTime;
 	static time_complex_t endDstTime;
 

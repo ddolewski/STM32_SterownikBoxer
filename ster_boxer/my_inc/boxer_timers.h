@@ -37,9 +37,6 @@ typedef enum
 light_state_t lastLightState;
 extern uint8_t gFansSoftStartFlag;
 
-extern bool_t ntpSendRequest;
-extern bool_t ntpSyncProccess;
-
 void PWM_FansInit(void);
 void PWM_PumpInit(void);
 

@@ -1,5 +1,5 @@
 #include "global.h"
-#include "fifo.h"
+//#include "fifo.h"
 #include "boxer_timers.h"
 #include "stm32f0xx_flash.h"
 ///////////////////////////////////////////////////////////
@@ -48,6 +48,7 @@ static void PeripheralInit(void)
 	SerialPort_Init();
 
 	GPIOx_PinConfig(SOIL_MOIST_PORT, Mode_In, OSpeed_50MHz, OType_OD, OState_PU, SOIL_MOIST_PIN);
+	GPIOx_PinConfig(SOIL_MOIST_EN, Mode_Out, OSpeed_50MHz, OType_PP, OState_PD, SOIL_MOIST_EN_PIN);
 
 	GPIOx_PinConfig(WATER_LEVEL_PORT, Mode_In, OSpeed_50MHz, OType_OD, OState_PU, WATER_LEVEL_PIN);
 
@@ -85,7 +86,7 @@ static void PeripheralInit(void)
 
 	if (rtcError == ERROR)
 	{
-		//error
+		DEBUG_SendString("blad inicjalizacji RTC\r\n");
 	}
 #else
 	DEBUG_Init();
@@ -109,9 +110,6 @@ static void PeripheralInit(void)
 #ifndef I2C_OFF_MODE
 	I2C2_Init();
 
-//	ErrorStatus Error = ERROR;
-//	ErrorStatus ErrorTmp1 = SUCCESS;
-//	ErrorStatus ErrorTmp2 = SUCCESS;
 	ErrorStatus tslError = SUCCESS;
 	tslError = TSL2561_Init(I2C2, TSL2561_GND_ADDR); // tutaj sa bledy i2c
 	systimeDelayMs(30);
@@ -155,6 +153,8 @@ static void PeripheralInit(void)
 #endif
 
 	displayData.page = 1;
-	systimeDelayMs(500);
+	systimeDelayMs(1000);
 	GLCD_ClearScreen();
+
+	Ntp_SendRequest();
 }

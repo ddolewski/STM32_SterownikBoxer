@@ -94,5 +94,7 @@
 			<resource resourceType="PROJECT" workspacePath="/STM32_Boxer"/>
 		</configuration>
 	</storageModule>
-	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets"/>
+	<storageModule moduleId="org.eclipse.cdt.make.core.buildtargets">
+		<buildTargets/>
+	</storageModule>
 </cproject>

@@ -40,12 +40,12 @@
 //#define DISPLAY_PAGE1_TEST
 //#define DISPLAY_PAGE2_TEST
 #define NTP_DEBUG
-#define DEBUG_TERMINAL_USART
-#define DISPLAY_PAGE3_TEST
+//#define DEBUG_TERMINAL_USART
+//#define DISPLAY_PAGE3_TEST
 #define BUZZER_OFF_MODE
 #define I2C_OFF_MODE
 #define OWIRE_OFF_MODE
-#define RTC_WRITE_TEST
+//#define RTC_WRITE_TEST
 
 #define SOFTWARE_VERSION		"2.6"
 
@@ -63,6 +63,9 @@
 
 #define SOIL_MOIST_PORT			GPIOC
 #define SOIL_MOIST_PIN			GPIOx_Pin_2
+
+#define SOIL_MOIST_EN			GPIOC
+#define SOIL_MOIST_EN_PIN		GPIOx_Pin_4
 
 #define LAMP_PORT				GPIOF
 #define LAMP_PIN				GPIOx_Pin_7

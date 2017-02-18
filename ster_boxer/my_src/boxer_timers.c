@@ -22,14 +22,14 @@ static uint8_t PWM_FANSoftStart(bool_t xStatus);
 static uint16_t TimerPeriod = 0;
 uint8_t gFansSoftStartFlag = 0;
 
-bool_t ntpSyncProccess = FALSE;
 static uint8_t atnelWaitCounter = 0;
-#ifdef NTP_DEBUG
-static uint16_t ntpRequestTimer = 3590;
-
-#else
-static uint16_t ntpRequestTimer = 0;
-#endif
+//bool_t ntpSyncProccess = FALSE;
+//#ifdef NTP_DEBUG
+//static uint16_t ntpRequestTimer = 3590;
+//
+//#else
+//static uint16_t ntpRequestTimer = 0;
+//#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t PWM_IncPercentTo(uint8_t xPwmDev, uint32_t xPercent)
@@ -232,7 +232,6 @@ void MainTimer_Handler(void)
 
 	if (systimeTimeoutControl(&oneSecTimer, 1000))
 	{
-//		flagsGlobal.udpSendMsg = TRUE;
 		atnel_TrCmdReqType = TRNSP_MEAS_DATA_REQ;
 		displayData.pageCounter++;
 
@@ -243,21 +242,11 @@ void MainTimer_Handler(void)
 			{
 				atnelWaitCounter = 0;
 				atnel_wait_change_mode = FALSE;
-				AtnelSetTransparentMode();
+				Atnel_SetTransparentMode();
 			}
 		}
 
-
-		if (ntpSyncProccess == FALSE)
-		{
-			ntpRequestTimer++;
-	    	if (ntpRequestTimer == 3600) //wyslij zapytanie o czas co godzine
-	    	{
-	    		ntpRequestTimer = 0;
-	    		ntpSyncProccess = TRUE;
-	    		NtpSendRequest();
-	    	}
-		}
+		Ntp_Handler();
 
     	if (xLightCounters.counterSeconds % 300 == 0)
     	{
