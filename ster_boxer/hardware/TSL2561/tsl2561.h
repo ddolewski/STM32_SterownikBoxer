@@ -10,21 +10,21 @@
 #define TSL2561AddressWrite_Float 		0x72	//address 7bits + write bit "0" -> 0b01110010
 #define TSL2561AddressRead_Float		0x73	//address 7bits + read bit "1" -> 0b01110011
 #define TSL2561AddressWrite_Vcc 		0x92	//address 7bits + write bit "0" -> 0b10010010
-#define TSL2561AddressRead_Vcc 			0x93		//address 7bits + read bit "1" -> 0b10010011
+#define TSL2561AddressRead_Vcc 			0x93	//address 7bits + read bit "1" -> 0b10010011
 
 // Control Register (power control) definitions
-#define ControlRegiser 					0x80		// Power Control Register: bits 1:0 control power)
-#define TurnOnBits 						0x03			// 0x03 - turn on
-#define TurnOffBits						0x00		// 0x00 - turn off
+#define ControlRegiser 					0x80	// Power Control Register: bits 1:0 control power)
+#define TurnOnBits 						0x03	// 0x03 - turn on
+#define TurnOffBits						0x00	// 0x00 - turn off
 
 // Timing register definitions
 #define TimingRegister 					0x81					// configure integration time for each conversion, configure gain
 #define DefaultIntegrationTimeAndGain 	0x02	// default value - 402ms integration time for each conversion, gain x1
-#define IntegrationTime101Gainx1 		0x01		// 101ms integration time for each conversion, gain x1
-#define IntegrationTime13_7Gainx1 		0x00		// 13,7ms integration time for each conversion. gain x1
-#define IntegrationTime101Gainx16 		0x11		// 101ms integration time for each conversion, gain x16
-#define IntegrationTime13_7Gainx16 		0x10		// 13,7ms integration time for each conversion, gain x16
-#define IntegrationTime402Gainx16 		0x12		// 402ms integration time for each conversion, gain x16
+#define IntegrationTime101Gainx1 		0x01	// 101ms integration time for each conversion, gain x1
+#define IntegrationTime13_7Gainx1 		0x00	// 13,7ms integration time for each conversion. gain x1
+#define IntegrationTime101Gainx16 		0x11	// 101ms integration time for each conversion, gain x16
+#define IntegrationTime13_7Gainx16 		0x10	// 13,7ms integration time for each conversion, gain x16
+#define IntegrationTime402Gainx16 		0x12	// 402ms integration time for each conversion, gain x16
 
 // Arguments for Calculate function
 #define GainX1 							0
@@ -36,14 +36,14 @@
 #define T_FN_CL_Package 				0
 #define CS_Package 						1
 
-#define LUX_SCALE 						14 // scale by 2^14
-#define RATIO_SCALE 					9 // scale ratio by 2^9
+#define LUX_SCALE 						14 		// scale by 2^14
+#define RATIO_SCALE 					9 		// scale ratio by 2^9
 //???????????????????????????????????????????????????
 // Integration time scaling factors
 //???????????????????????????????????????????????????
-#define CH_SCALE 						10 // scale channel values by 2^10
-#define CHSCALE_TINT0 					0x7517 // 322/11 * 2^CH_SCALE
-#define CHSCALE_TINT1 					0x0fe7 // 322/81 * 2^CH_SCALE
+#define CH_SCALE 						10 		// scale channel values by 2^10
+#define CHSCALE_TINT0 					0x7517 	// 322/11 * 2^CH_SCALE
+#define CHSCALE_TINT1 					0x0fe7 	// 322/81 * 2^CH_SCALE
 //???????????????????????????????????????????????????
 // T, FN, and CL Package coefficients
 //???????????????????????????????????????????????????

@@ -5,7 +5,7 @@ ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 	uint32_t TimeOut = 10000;
 
 	I2C_NumberOfBytesConfig(I2Cx, 2);
-	I2C_SlaveAddressConfig(I2Cx, SlaveAddr); // configure TSL address
+	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Transmitter);
 
 	I2C_GenerateSTART(I2Cx, ENABLE);
@@ -76,7 +76,7 @@ ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 	uint32_t TimeOut = 10000;
 
 	I2C_NumberOfBytesConfig(I2Cx, 2);
-	I2C_SlaveAddressConfig(I2Cx, SlaveAddr); // configure TSL address
+	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Transmitter);
 
 	I2C_GenerateSTART(I2Cx, ENABLE);
@@ -225,10 +225,10 @@ uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Register
 uint32_t TSL2561_ReadLux(ErrorStatus * Error)
 {
 	uint32_t Lux = 0;
-	Data0Low_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0LowByteMode, Error); //(Data0LowByteMode);
-	Data0High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0HighByteMode, Error); //(Data0HighByteMode);
-	Data1Low_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1LowByteMode, Error); //(Data1LowByteMode);
-	Data1High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1HighByteMode, Error); //(Data1HighByteMode);
+	Data0Low_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0LowByteMode, Error);
+	Data0High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0HighByteMode, Error);
+	Data1Low_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1LowByteMode, Error);
+	Data1High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1HighByteMode, Error);
 
 	Data0Low_uint = (uint32_t)Data0Low_uchar;
 	Data0High_uint = (uint32_t)Data0High_uchar;
@@ -243,7 +243,6 @@ uint32_t TSL2561_ReadLux(ErrorStatus * Error)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint32_t CalculateLux(uint32_t iGain, uint32_t tInt, uint32_t ch0, uint32_t ch1, int32_t iType)
 {
-	//????????????????????????????????????????????????????????????????????????
 	// first, scale the channel values depending on the gain and integration time
 	// 16X, 402mS is nominal.
 	// scale if integration time is NOT 402 msec
@@ -270,7 +269,6 @@ uint32_t CalculateLux(uint32_t iGain, uint32_t tInt, uint32_t ch0, uint32_t ch1,
 	// scale the channel values
 	channel0 = (ch0 * chScale) >> CH_SCALE;
 	channel1 = (ch1 * chScale) >> CH_SCALE;
-	//????????????????????????????????????????????????????????????????????????
 	// find the ratio of the channel values (Channel1/Channel0)
 	// protect against divide by zero
 	uint32_t ratio1 = 0;

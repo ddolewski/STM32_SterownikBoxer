@@ -147,7 +147,8 @@ void USART2_IRQHandler(void)
 void Ntp_Handler(void)
 {
 	// aktualizacja czasu wykonywana jest co godzine
-	// wysylany jest wtedy request
+	// pierwsza synchronizacja po uruchomieniu urzadzenia po 10s
+
 	if (ntpSyncProccess == FALSE)
 	{
 		ntpRequestTimer++;
@@ -274,8 +275,8 @@ void TransmitSerial_Handler(void)
 		PrepareUdpString(displayData.lux, displayData.humiditySHT2x, displayData.tempSHT2x, ds18b20_1.fTemp, ds18b20_2.fTemp, DataToSend);
 		SerialPort_PutString(DataToSend);
 
-//    		DEBUG_SendString(DataToSend);
-//    		DEBUG_SendString("\n\r");
+//		DEBUG_SendString(DataToSend);
+//		DEBUG_SendString("\n\r");
 
 		atnel_TrCmdReqType = TRNSP_NONE_REQ;
 		break;
@@ -605,12 +606,4 @@ static void Atnel_ResetModule(void)
 	GPIOx_ResetPin(WIFI_RST_PORT, WIFI_RST_PIN);
 	systimeDelayMs(3500);
 	GPIOx_SetPin(WIFI_RST_PORT, WIFI_RST_PIN);
-}
-
-ErrorStatus Atnel_GetTime(char * xStrTime)
-{
-	ErrorStatus err = SUCCESS;
-
-
-	return err;
 }

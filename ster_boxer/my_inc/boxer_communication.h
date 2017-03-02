@@ -77,6 +77,5 @@ void SerialPort_Init(void);
 void ReceiveSerial_Handler(void);
 void TransmitSerial_Handler(void);
 void Ntp_SendRequest(void);
-ErrorStatus Atnel_GetTime(char * xStrTime);
 void Atnel_SetTransparentMode(void);
 #endif /* MY_INC_BOXER_COMMUNICATION_H_ */

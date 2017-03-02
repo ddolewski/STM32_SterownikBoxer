@@ -39,7 +39,7 @@
 //#define FLASH_READ_TEST
 //#define DISPLAY_PAGE1_TEST
 //#define DISPLAY_PAGE2_TEST
-#define NTP_DEBUG
+//#define NTP_DEBUG
 //#define DEBUG_TERMINAL_USART
 //#define DISPLAY_PAGE3_TEST
 #define BUZZER_OFF_MODE
@@ -47,7 +47,7 @@
 #define OWIRE_OFF_MODE
 //#define RTC_WRITE_TEST
 
-#define SOFTWARE_VERSION		"2.6"
+#define SOFTWARE_VERSION		"2.7"
 
 #define WIFI_RST_PORT			GPIOC
 #define WIFI_RST_PIN			GPIOx_Pin_3

@@ -235,7 +235,7 @@ uint8_t SHT21_ReadUserReg(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * E
 	}
 
 	TimeOut = 10000;
-	I2C_SendData(I2Cx, USER_REG_R); // user register read address
+	I2C_SendData(I2Cx, USER_REG_R);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
 	{
@@ -270,7 +270,7 @@ uint8_t SHT21_ReadUserReg(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * E
 	}
 
 	TimeOut = 10000;
-	readValue = I2C_ReceiveData(I2Cx); // read register
+	readValue = I2C_ReceiveData(I2Cx);
 
 	I2C_GenerateSTOP(I2Cx, ENABLE);
 
@@ -316,7 +316,7 @@ ErrorStatus SHT21_SoftReset(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 	}
 
 	TimeOut = 10000;
-	I2C_SendData(I2Cx, SOFT_RESET); // send soft reset register address
+	I2C_SendData(I2Cx, SOFT_RESET);
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
 	{
 		if(TimeOut > 0)
