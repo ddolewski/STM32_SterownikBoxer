@@ -198,7 +198,7 @@ void I2C2_Init(void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error)
 {
-	uint32_t TimeOut = 100000;
+	uint32_t TimeOut = 10000;
 
 	uint8_t ReadValue = 0;
 	uint8_t ConvertValue = 0;
@@ -222,7 +222,7 @@ uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterA
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, RegisterAddr);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
@@ -241,7 +241,7 @@ uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterA
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Receiver);
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_GenerateSTART(I2Cx, ENABLE);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE))
@@ -257,7 +257,7 @@ uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterA
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	ReadValue = I2C_ReceiveData(I2Cx);
 
 	I2C_GenerateSTOP(I2Cx, ENABLE);
@@ -281,7 +281,7 @@ uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterA
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ErrorStatus PCF8563_RegWrite(I2C_TypeDef * I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, uint8_t data)
 {
-	uint32_t TimeOut = 100000;
+	uint32_t TimeOut = 10000;
 	uint8_t TimeBCD = 0;
 	TimeBCD = DecToBcd(data);
 
@@ -303,7 +303,7 @@ ErrorStatus PCF8563_RegWrite(I2C_TypeDef * I2Cx, uint16_t SlaveAddr, uint8_t Reg
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, RegisterAddr); // PCF time register
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TXIS))
@@ -318,7 +318,7 @@ ErrorStatus PCF8563_RegWrite(I2C_TypeDef * I2Cx, uint16_t SlaveAddr, uint8_t Reg
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, TimeBCD);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
@@ -333,7 +333,7 @@ ErrorStatus PCF8563_RegWrite(I2C_TypeDef * I2Cx, uint16_t SlaveAddr, uint8_t Reg
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_GenerateSTOP(I2Cx, ENABLE);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_STOPF))

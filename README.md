@@ -13,6 +13,8 @@ Zmiany:
 
 WYKONANE:
 
+- pierwsza synchronizacja czasu po włączeniu urządzenia po 10s potem co godzinę ------> OK
+
 - dodać manualne sterowanie wentylatorami z C# ------> OK
 
 - zmienić sposób pomiaru wilgotności gleby (oksydacja sondy -> podawać napięcie tylko na czas pomiaru a potem 0V) ------> OK

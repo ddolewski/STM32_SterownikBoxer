@@ -2,7 +2,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint16_t SHT21_MeasureTempCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * Error)
 {
-	uint32_t TimeOut = 100000;
+	uint32_t TimeOut = 10000;
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
@@ -23,7 +23,7 @@ uint16_t SHT21_MeasureTempCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSt
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, TRIG_T_MEASUREMENT_HM);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
@@ -42,7 +42,7 @@ uint16_t SHT21_MeasureTempCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSt
 	I2C_NumberOfBytesConfig(I2Cx, 2);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Receiver);
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_GenerateSTART(I2Cx, ENABLE);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE))
@@ -58,7 +58,7 @@ uint16_t SHT21_MeasureTempCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSt
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	SHT_TempData.msb_lsb[0] = I2C_ReceiveData(I2Cx);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE))
@@ -74,7 +74,7 @@ uint16_t SHT21_MeasureTempCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSt
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	SHT_TempData.msb_lsb[1] = I2C_ReceiveData(I2Cx);
 
 	I2C_GenerateSTOP(I2Cx, ENABLE);
@@ -98,7 +98,7 @@ uint16_t SHT21_MeasureTempCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSt
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint16_t SHT21_MeasureHumCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * Error)
 {
-	uint32_t TimeOut = 100000;
+	uint32_t TimeOut = 10000;
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
@@ -119,7 +119,7 @@ uint16_t SHT21_MeasureHumCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSta
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, TRIG_RH_MEASUREMENT_HM);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
@@ -138,7 +138,7 @@ uint16_t SHT21_MeasureHumCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSta
 	I2C_NumberOfBytesConfig(I2Cx, 2);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Receiver);
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_GenerateSTART(I2Cx, ENABLE);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE))
@@ -154,7 +154,7 @@ uint16_t SHT21_MeasureHumCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSta
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	SHT_HumData.msb_lsb[0] = I2C_ReceiveData(I2Cx);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE))
@@ -170,7 +170,7 @@ uint16_t SHT21_MeasureHumCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSta
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	SHT_HumData.msb_lsb[1] = I2C_ReceiveData(I2Cx);
 
 	I2C_GenerateSTOP(I2Cx, ENABLE);
@@ -212,7 +212,7 @@ float SHT21_CalcRH(uint16_t humidity)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t SHT21_ReadUserReg(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * Error)
 {
-	uint32_t TimeOut = 100000;
+	uint32_t TimeOut = 10000;
 	uint8_t readValue = 0;
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
@@ -234,7 +234,7 @@ uint8_t SHT21_ReadUserReg(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * E
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, USER_REG_R); // user register read address
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
@@ -253,7 +253,7 @@ uint8_t SHT21_ReadUserReg(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * E
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Receiver);
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_GenerateSTART(I2Cx, ENABLE);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE))
@@ -269,7 +269,7 @@ uint8_t SHT21_ReadUserReg(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * E
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	readValue = I2C_ReceiveData(I2Cx); // read register
 
 	I2C_GenerateSTOP(I2Cx, ENABLE);
@@ -293,7 +293,7 @@ uint8_t SHT21_ReadUserReg(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * E
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ErrorStatus SHT21_SoftReset(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 {
-	uint32_t TimeOut = 100000;
+	uint32_t TimeOut = 10000;
 
 	I2C_SoftwareResetCmd(I2Cx, DISABLE);
 	I2C_SoftwareResetCmd(I2Cx, ENABLE);
@@ -315,7 +315,7 @@ ErrorStatus SHT21_SoftReset(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, SOFT_RESET); // send soft reset register address
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
 	{
@@ -329,7 +329,7 @@ ErrorStatus SHT21_SoftReset(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_GenerateSTOP(I2Cx, ENABLE);
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_STOPF))
 	{

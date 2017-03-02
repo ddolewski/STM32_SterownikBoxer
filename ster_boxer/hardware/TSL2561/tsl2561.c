@@ -2,7 +2,7 @@
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 {
-	uint32_t TimeOut = 100000;
+	uint32_t TimeOut = 10000;
 
 	I2C_NumberOfBytesConfig(I2Cx, 2);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr); // configure TSL address
@@ -10,7 +10,7 @@ ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 
 	I2C_GenerateSTART(I2Cx, ENABLE);
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TXIS))
 	{
 		if(TimeOut > 0)
@@ -23,7 +23,7 @@ ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, ControlRegiser);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TXIS))
@@ -38,10 +38,10 @@ ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, TurnOnBits);
 
-	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC)) // TUTAJ WYSTEPUJE ERROR !!!!!!!!!!!!!!!
+	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
 	{
 		if(TimeOut > 0)
 		{
@@ -53,7 +53,7 @@ ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_GenerateSTOP(I2Cx, ENABLE);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_STOPF))
@@ -73,7 +73,7 @@ ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 {
-	uint32_t TimeOut = 100000;
+	uint32_t TimeOut = 10000;
 
 	I2C_NumberOfBytesConfig(I2Cx, 2);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr); // configure TSL address
@@ -93,7 +93,7 @@ ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, TimingRegister);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TXIS))
@@ -108,7 +108,7 @@ ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, DefaultIntegrationTimeAndGain);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
@@ -123,7 +123,7 @@ ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_GenerateSTOP(I2Cx, ENABLE);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_STOPF))
@@ -143,7 +143,7 @@ ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error)
 {
-	uint32_t TimeOut = 100000;
+	uint32_t TimeOut = 10000;
 	uint8_t ReadValue = 0;
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
@@ -165,7 +165,7 @@ uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Register
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_SendData(I2Cx, RegisterAddr);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
@@ -184,7 +184,7 @@ uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Register
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Receiver);
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	I2C_GenerateSTART(I2Cx, ENABLE);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_FLAG_RXNE))
@@ -200,7 +200,7 @@ uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Register
 		}
 	}
 
-	TimeOut = 100000;
+	TimeOut = 10000;
 	ReadValue = I2C_ReceiveData(I2Cx);
 
 	I2C_GenerateSTOP(I2Cx, ENABLE);
