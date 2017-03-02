@@ -14,7 +14,6 @@
 
 static void Atnel_ResetModule(void);
 
-
 static volatile char RxBuffer[RX_BUFF_SIZE];
 static volatile fifo_t rx_fifo;
 
@@ -37,20 +36,24 @@ static char DataToSend[TX_BUFF_SIZE] = {0};
 static char recvstr[RX_BUFF_SIZE] = {0};
 
 static bool_t ntpSyncProccess = FALSE;
-
-#ifdef NTP_DEBUG
-static uint16_t ntpRequestTimer = 3590;
-
-#else
-static uint16_t ntpRequestTimer = 0;
-#endif
-
+static bool_t ntpFirstReq = FALSE;
+static uint16_t ntpRequestTimer = 0; //pierwsze zapytanie o czas po 10s od wlaczenia
+static uint8_t ntp_resp_wait = FALSE;
+static uint8_t ntpRetryTimer = 0;
+static uint8_t ntpRetryCounter = 0;
 
 void Atnel_SetTransparentMode(void)
 {
+//#ifdef NTP_DEBUG
+//	ntpRequestTimer = 3560;//debug
+//#endif
 	atnel_Mode = ATNEL_MODE_TRANSPARENT;
+	atnelInitProccess = ATNEL_UNINITIALISE;
 	fifo_flush(&rx_fifo);
 	memset(recvstr, 0, RX_BUFF_SIZE);
+	atnel_wait_change_mode = FALSE;
+	ntpSyncProccess = FALSE;
+	DEBUG_SendString("\r\ntryb transparentny wlaczony\n\r");
 }
 
 void SerialPort_Init(void)
@@ -145,16 +148,56 @@ void Ntp_Handler(void)
 {
 	// aktualizacja czasu wykonywana jest co godzine
 	// wysylany jest wtedy request
-	ntpRequestTimer++;
-	if (ntpRequestTimer == 3600) //wyslij zapytanie o czas co godzine
+	if (ntpSyncProccess == FALSE)
 	{
-		ntpRequestTimer = 0;
-		Ntp_SendRequest();
+		ntpRequestTimer++;
+
+		if (ntpFirstReq == FALSE)
+		{
+			if (ntpRequestTimer == 10)
+			{
+				ntpFirstReq = TRUE;
+				Ntp_SendRequest();
+			}
+		}
+		else
+		{
+//			_printInt(ntpRequestTimer);
+//			DEBUG_SendString("\r\n");
+			if (ntpRequestTimer == 3600) //wyslij zapytanie o czas co godzine
+			{
+				Ntp_SendRequest();
+			}
+		}
+	}
+
+	if (ntp_resp_wait == TRUE)
+	{
+		ntpRetryTimer++;
+		if (ntpRetryTimer == 5) //czekaj maksymalnie 5s na odpowiedz
+		{
+			DEBUG_SendString("timeout odpowiedzi ntp\r\n");
+			ntpRetryTimer = 0;
+			Ntp_SendRequest();
+
+			ntpRetryCounter++;
+			DEBUG_SendString("ponowne zapytanie o czas\r\n");
+			if (ntpRetryCounter == 3) //do 3 prob potem wylacz komendy AT
+			{
+				atnel_AtCmdReqType = AT_ENTM_REQ;
+				atnel_AtCmdRespType = AT_NONE_RESP;
+				ntp_resp_wait = FALSE;
+				DEBUG_SendString("BLAD! serwer nie odpowiedzial 3x\r\n");
+			}
+		}
 	}
 }
 
 void Ntp_SendRequest(void)
 {
+	ntpSyncProccess = TRUE;
+	ntpRequestTimer = 0;
+//	DEBUG_SendString("wysylam zapytanie o czas\r\n");
 	atnel_AtCmdReqType = AT_GMT_REQ;
 	atnel_Mode = ATNEL_MODE_AT_CMD;
 }
@@ -162,6 +205,7 @@ void Ntp_SendRequest(void)
 void TransmitSerial_Handler(void)
 {
 	bool_t isDst = FALSE;
+
 	switch (atnel_Mode)
 	{
 	case ATNEL_MODE_AT_CMD:
@@ -182,54 +226,59 @@ void TransmitSerial_Handler(void)
 		}
 		else if (atnelInitProccess == ATNEL_INIT_DONE)
 		{
-			switch (atnel_AtCmdReqType)
+			if (atnel_wait_change_mode == FALSE)
 			{
-			case AT_GMT_REQ:
-				isDst = timeCheckDstStatus(&rtcFullDate);
-
-				if (isDst == TRUE)
+				switch (atnel_AtCmdReqType)
 				{
-					SerialPort_PutString("AT+GMT=2\r");
-					DEBUG_SendString("send AT+GMT=2\r\n");
+				case AT_GMT_REQ:
+					isDst = timeCheckDstStatus(&rtcFullDate);
+
+					if (isDst == TRUE)
+					{
+						SerialPort_PutString("AT+GMT=2\r");
+						DEBUG_SendString("send AT+GMT=2\r\n");
+					}
+					else
+					{
+						SerialPort_PutString("AT+GMT=1\r");
+						DEBUG_SendString("send AT+GMT=1\r\n");
+					}
+
+					atnel_AtCmdReqType = AT_NONE_REQ;
+					atnel_AtCmdRespType = AT_GMT_RESP;
+
+					ntp_resp_wait = TRUE;
+					break;
+
+				case AT_ENTM_REQ:
+					SerialPort_PutString("AT+ENTM\r");
+					DEBUG_SendString("send AT+ENTM\r\n");
+
+					atnel_AtCmdReqType = AT_NONE_REQ;
+					atnel_AtCmdRespType = AT_ENTM_RESP;
+					break;
+				default:
+					atnel_AtCmdReqType = AT_NONE_REQ;
+					break;
 				}
-				else
-				{
-					SerialPort_PutString("AT+GMT=1\r");
-					DEBUG_SendString("send AT+GMT=1\r\n");
-				}
-
-				atnel_AtCmdReqType = AT_NONE_REQ;
-				atnel_AtCmdRespType = AT_GMT_RESP;
-				break;
-
-			case AT_ENTM_REQ:
-				SerialPort_PutString("AT+ENTM\r");
-				DEBUG_SendString("send AT+ENTM\r\n");
-
-				atnel_AtCmdReqType = AT_NONE_REQ;
-				atnel_AtCmdRespType = AT_ENTM_RESP;
-				break;
-			default:
-				atnel_AtCmdReqType = AT_NONE_REQ;
-				break;
 			}
 		}
 
 		break;
 
 	case ATNEL_MODE_TRANSPARENT:
-	{
+
 		switch (atnel_TrCmdReqType)
 		{
 		case TRNSP_MEAS_DATA_REQ:
-    		PrepareUdpString(displayData.lux, displayData.humiditySHT2x, displayData.tempSHT2x, ds18b20_1.fTemp, ds18b20_2.fTemp, DataToSend);
-    		SerialPort_PutString(DataToSend);
+		PrepareUdpString(displayData.lux, displayData.humiditySHT2x, displayData.tempSHT2x, ds18b20_1.fTemp, ds18b20_2.fTemp, DataToSend);
+		SerialPort_PutString(DataToSend);
 
 //    		DEBUG_SendString(DataToSend);
 //    		DEBUG_SendString("\n\r");
 
-    		atnel_TrCmdReqType = TRNSP_NONE_REQ;
-			break;
+		atnel_TrCmdReqType = TRNSP_NONE_REQ;
+		break;
 
 		case TRNSP_CAL_DONE_REQ:
 			SerialPort_PutString((uint8_t*)"STA CD END");
@@ -246,7 +295,7 @@ void TransmitSerial_Handler(void)
 		DEBUG_SendString("Nieznany tryb atnel wifi\n\r");
 		break;
 	}
-}}
+}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ReceiveSerial_Handler(void)
 {
@@ -345,8 +394,8 @@ void ReceiveSerial_Handler(void)
 	#endif
 							atnel_AtCmdReqType = AT_ENTM_REQ;
 							atnel_AtCmdRespType = AT_NONE_RESP;
-//							ntpSyncProccess = FALSE;
 							memset(recvstr, 0, RX_BUFF_SIZE);
+							ntp_resp_wait = FALSE;
 						}
 					}
 
@@ -359,8 +408,8 @@ void ReceiveSerial_Handler(void)
 					if (at_entm_response != NULL)
 					{
 						DEBUG_SendString(at_entm_response);
-						DEBUG_SendString("atnel transparent mode\n\r");
 
+						atnel_Mode = ATNEL_MODE_TRANSPARENT;
 						atnel_AtCmdReqType = AT_NONE_REQ;
 						atnel_AtCmdRespType = AT_NONE_RESP;
 						atnel_wait_change_mode = TRUE;
