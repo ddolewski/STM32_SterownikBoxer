@@ -101,7 +101,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				GLCD_GoTo(47,2);
 				GLCD_WriteString((uint8_t*)"[pH]:");
 
-				if (calibrateFlags.processActive == 1 && calibrateFlags.probeType == PROBE_WATER)
+				if (calibrateFlags.processActive == TRUE && calibrateFlags.probeType == PROBE_WATER)
 				{
 					GLCD_GoTo(82,2);
 					GLCD_WriteString((uint8_t*)"-CAL-");
@@ -137,7 +137,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				GLCD_GoTo(47,3);
 				GLCD_WriteString((uint8_t*)"[pH]:");
 
-				if (calibrateFlags.processActive == 1 && calibrateFlags.probeType == PROBE_SOIL)
+				if (calibrateFlags.processActive == TRUE && calibrateFlags.probeType == PROBE_SOIL)
 				{
 					GLCD_GoTo(82,3);
 					GLCD_WriteString((uint8_t*)"-CAL-");

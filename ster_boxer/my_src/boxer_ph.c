@@ -163,7 +163,7 @@ static void ADC_ReadCalcPh(void)
     		probeData.tempSoil = 0;
     		probeData.tempWater = 0;
     		//////////////////////////////////////////////////////////////////////////
-    		if (calibrateFlags.processActive == 0)
+    		if (calibrateFlags.processActive == FALSE)
     		{
     			if (FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0)
     			{

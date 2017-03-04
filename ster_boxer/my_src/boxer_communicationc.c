@@ -548,9 +548,9 @@ void ReceiveSerial_Handler(void)
 								memset(recvstr, 0, RX_BUFF_SIZE);
 
 								calibrateFlags.probeType = (probe_type_t)ReceivedString[2];
-								calibrateFlags.processActive = 1;
-								calibrateFlags.turnOnBuzzer = 1;
-								calibrateFlags.toggleBuzzerState = 1;
+								calibrateFlags.processActive = TRUE;
+								calibrateFlags.turnOnBuzzer = TRUE;
+								calibrateFlags.toggleBuzzerState = TRUE;
 							}
 						}
 						else if (strcmp(ReceivedString[1], "SI") == 0) //set temp frame command

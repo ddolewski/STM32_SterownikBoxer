@@ -9,7 +9,7 @@ Zmiany:
 - uruchomić HSE+PLL na 48MHz
 - dorobić info o nawadnianiu na LCD
 - dodać obsługę błędów czujników na LCD (w miejscu wartości pomiarowej dać napis Error)
-
+- dodać ekran wyświetlania informacji o kalibracji sond pH
 
 WYKONANE:
 
