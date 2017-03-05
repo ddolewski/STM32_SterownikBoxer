@@ -165,6 +165,9 @@ static void ADC_ReadCalcPh(void)
     		//////////////////////////////////////////////////////////////////////////
     		if (calibrateFlags.processActive == FALSE)
     		{
+    			xLastWaterPh = pH.water;
+    			xLastSoilPh = pH.soil;
+
     			if (FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0)
     			{
     				pH.soil = 0;
@@ -176,7 +179,7 @@ static void ADC_ReadCalcPh(void)
 
     			if (FactorsEquationpH.waterFactor_A == 0 && FactorsEquationpH.waterFactor_B == 0)
     			{
-
+    				pH.water = 0;
     			}
     			else
     			{

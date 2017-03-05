@@ -232,7 +232,7 @@ void TransmitSerial_Handler(void)
 				switch (atnel_AtCmdReqType)
 				{
 				case AT_GMT_REQ:
-					isDst = timeCheckDstStatus(&rtcFullDate);
+					isDst = timeCheckDstStatus(&xRtcFullDate);
 
 					if (isDst == TRUE)
 					{
@@ -478,8 +478,8 @@ void ReceiveSerial_Handler(void)
 
 								if (timeOn + timeOff == 24)
 								{
-									lastTimeOnHour  = xLightControl.timeOnHours;
-									lastTimeOffHour = xLightControl.timeOffHours;
+									xLastTimeOnHour  = xLightControl.timeOnHours;
+									xLastTimeOffHour = xLightControl.timeOffHours;
 									xLightControl.timeOnHours  = (uint8_t)timeOn;
 									xLightControl.timeOffHours = (uint8_t)timeOff;
 
@@ -541,13 +541,14 @@ void ReceiveSerial_Handler(void)
 								}
 							}
 						}
-						else if (strcmp(ReceivedString[1], "CP") == 0) //set temp frame command
+						else if (strcmp(ReceivedString[1], "CP") == 0) //set calibrate probe command
 						{
 							if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
 							{
 								memset(recvstr, 0, RX_BUFF_SIZE);
 
-								calibrateFlags.probeType = (probe_type_t)ReceivedString[2];
+								uint8_t probeType = atoi( ReceivedString[2] );
+								calibrateFlags.probeType = (probe_type_t)probeType;
 								calibrateFlags.processActive = TRUE;
 								calibrateFlags.turnOnBuzzer = TRUE;
 								calibrateFlags.toggleBuzzerState = TRUE;

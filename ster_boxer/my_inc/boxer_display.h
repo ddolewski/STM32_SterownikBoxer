@@ -17,13 +17,15 @@
 #include "hardware/LCD_KS0108/glcd_font5x8.h"
 #include "hardware/LCD_KS0108/graphic.h"
 
-uint8_t lastTimeOnHour;
-uint8_t lastTimeOffHour;
-//date_t rtcDate;
-time_complex_t rtcFullDate;
+uint8_t xLastTimeOnHour;
+uint8_t xLastTimeOffHour;
+time_complex_t xRtcFullDate;
 
-char timeString[20];
-char dateString[20];
+float xLastWaterPh;
+float xLastSoilPh;
+
+char xTimeString[20];
+char xDateString[20];
 char weekDayString[20];
 
 

@@ -109,14 +109,14 @@ void RTC_Handler(void)
 	if (systimeTimeoutControl(&readTimeTimer, 400))
 	{
 #ifndef DEBUG_TERMINAL_USART
-		PCF8563_ReadTime(&rtcFullDate, I2C1);
+		PCF8563_ReadTime(&xRtcFullDate, I2C1);
 #endif
-		timeUtcToLocalConv(&rtcFullDate, &localTime);
-		displayMakeTimeString(timeString, &localTime);
-		displayMakeDateString(dateString, &localTime);
+		timeUtcToLocalConv(&xRtcFullDate, &localTime);
+		displayMakeTimeString(xTimeString, &localTime);
+		displayMakeDateString(xDateString, &localTime);
 		displayWeekDayConvert(localTime.wday, weekDayString);
 
-		strcpy(displayData.time, timeString);
+		strcpy(displayData.time, xTimeString);
 	}
 }
 

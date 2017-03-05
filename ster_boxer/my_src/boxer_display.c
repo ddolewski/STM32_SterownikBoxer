@@ -8,11 +8,14 @@
 #include "boxer_display.h"
 
 static systime_t displayTimer = 0;
-static float lastWaterPh = 0;
-static float lastSoilPh = 0;
+//static float sLastWaterPh = 0;
+//static float sLastSoilPh = 0;
 
 static void Display_ShowPage(lcdDisplayData_t * display);
 static void Display_ChangePage(lcdDisplayData_t * display);
+
+static uint8_t sPhWaterUnderRange = TRUE;
+static uint8_t sPhSoilUnderRange = TRUE;
 
 void Display_Handler(void)
 {
@@ -38,7 +41,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				GLCD_GoTo(0,0);
 				GLCD_WriteString((uint8_t*)display->time);
 				GLCD_GoTo(35,0);
-				GLCD_WriteString(dateString);
+				GLCD_WriteString(xDateString);
 				memset(display->time, 0, 20);
 
 				GLCD_GoTo(0,1);
@@ -87,14 +90,11 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				GLCD_GoTo(0,0);
 				GLCD_WriteString((uint8_t*)display->time);
 				GLCD_GoTo(35,0);
-				GLCD_WriteString(dateString);
+				GLCD_WriteString(xDateString);
 				memset(display->time, 0, 20);
 
 				GLCD_GoTo(0,1);
 				GLCD_WriteString((uint8_t*)"=====================");
-
-				lastWaterPh = pH.water;
-				lastSoilPh = pH.soil;
 
 				GLCD_GoTo(0,2);
 				GLCD_WriteString((uint8_t*)"pH wody");
@@ -108,24 +108,33 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				}
 				else
 				{
-					if (lastWaterPh == pH.water)
+					if (pH.water <= 1 || pH.water >= 14)
 					{
-						if (pH.water <= 1 || pH.water >= 14)
-						{
-							GLCD_GoTo(82,2);
-							GLCD_WriteString((uint8_t*)"------");
-						}
-						else
-						{
-							ftoa(pH.water, tempString, 2);
-							GLCD_GoTo(82,2);
-							GLCD_WriteString((uint8_t*)tempString);
-						}
+						GLCD_GoTo(82,2);
+						GLCD_WriteString((uint8_t*)"------");
+						sPhWaterUnderRange = TRUE;
 					}
 					else
 					{
+						if (sPhWaterUnderRange == TRUE)
+						{
+							GLCD_GoTo(82,2);
+							GLCD_WriteString((uint8_t*)"       ");
+							sPhWaterUnderRange = FALSE;
+						}
+
+						char lastPhString[10] = {0};
+						ftoa(pH.water, tempString, 2);
+						ftoa(xLastWaterPh, lastPhString, 2);
+
+						if (strcmp(tempString, lastPhString) != 0)
+						{
+							GLCD_GoTo(82,2);
+							GLCD_WriteString((uint8_t*)"       ");
+						}
+
 						GLCD_GoTo(82,2);
-						GLCD_WriteString((uint8_t*)"        ");
+						GLCD_WriteString((uint8_t*)tempString);
 					}
 				}
 
@@ -144,31 +153,39 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				}
 				else
 				{
-					if (lastSoilPh == pH.soil)
+					if (pH.soil <= 1 || pH.soil >= 14)
 					{
-						if (pH.soil <= 1 || pH.soil >= 14)
-						{
-							GLCD_GoTo(82,3);
-							GLCD_WriteString((uint8_t*)"------");
-						}
-						else
-						{
-							ftoa(pH.soil, tempString, 2);
-							GLCD_GoTo(82,3);
-							GLCD_WriteString((uint8_t*)tempString);
-						}
+						GLCD_GoTo(82,3);
+						GLCD_WriteString((uint8_t*)"------");
+						sPhSoilUnderRange = TRUE;
 					}
 					else
 					{
+						if (sPhSoilUnderRange == TRUE)
+						{
+							GLCD_GoTo(82,2);
+							GLCD_WriteString((uint8_t*)"       ");
+							sPhSoilUnderRange = FALSE;
+						}
+
+						char lastPhString[10] = {0};
+						ftoa(pH.soil, tempString, 2);
+						ftoa(xLastSoilPh, lastPhString, 2);
+
+						if (strcmp(tempString, lastPhString) != 0)
+						{
+							GLCD_GoTo(82,3);
+							GLCD_WriteString((uint8_t*)"       ");
+						}
+
 						GLCD_GoTo(82,3);
-						GLCD_WriteString((uint8_t*)"        ");
+						GLCD_WriteString((uint8_t*)tempString);
 					}
 				}
 
 				memset(tempString, 0, 10);
 				GLCD_GoTo(0,4);
 				GLCD_WriteString((uint8_t*)"Wilg. gleby: ");
-
 
 				if (soilMoisture == SOIL_DRY)
 				{
@@ -177,6 +194,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 						GLCD_GoTo(82,4);
 						GLCD_WriteString((uint8_t*)"       ");
 					}
+
 					strcat(tempString,  (char*)"SUCHA!");
 				}
 				else if(soilMoisture == SOIL_WET)
@@ -186,6 +204,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 						GLCD_GoTo(82,4);
 						GLCD_WriteString((uint8_t*)"       ");
 					}
+
 					strcat(tempString,  (char*)"OK");
 				}
 				else if (soilMoisture == SOIL_UNKNOWN_STATE)
@@ -208,7 +227,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				GLCD_GoTo(0,0);
 				GLCD_WriteString((uint8_t*)display->time);
 				GLCD_GoTo(35,0);
-				GLCD_WriteString(dateString);
+				GLCD_WriteString(xDateString);
 				memset(display->time, 0, 20);
 
 				GLCD_GoTo(0,1);
@@ -275,13 +294,13 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 
 				memset(tempString, 0, 10);
 
-				if ((lastTimeOffHour != xLightControl.timeOffHours) && (lastTimeOnHour != xLightControl.timeOnHours))
+				if ((xLastTimeOffHour != xLightControl.timeOffHours) && (xLastTimeOnHour != xLightControl.timeOnHours))
 				{
 					GLCD_GoTo(92,4);
 					GLCD_WriteString((uint8_t*)"      ");
 
-					lastTimeOffHour = xLightControl.timeOffHours;
-					lastTimeOnHour = xLightControl.timeOnHours;
+					xLastTimeOffHour = xLightControl.timeOffHours;
+					xLastTimeOnHour = xLightControl.timeOnHours;
 				}
 
 				if (xLightControl.timeOffHours < 10 && xLightControl.timeOnHours > 10)
