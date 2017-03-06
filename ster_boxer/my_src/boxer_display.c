@@ -352,6 +352,25 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				itoa(tempControl.userTemp, tempString);
 				GLCD_WriteString((uint8_t*)tempString);
 				memset(tempString, 0, 10);
+
+				GLCD_GoTo(0,6);
+				GLCD_WriteString((uint8_t*)"Tryb temp.: ");
+
+				switch(tempControl.tempCtrlMode)
+				{
+				case TEMP_AUTO:
+					GLCD_GoTo(102,6);
+					GLCD_WriteString((uint8_t*)"auto");
+					break;
+
+				case TEMP_MANUAL:
+					GLCD_GoTo(91,6);
+					GLCD_WriteString((uint8_t*)"manual");
+					break;
+
+				default:
+					break;
+				}
 			}
 		}
 	}
