@@ -267,12 +267,14 @@ static void Lightning_Core(void)
 		GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
 		xLightControl.lightingState = LIGHT_OFF;
 		xLightCounters.counterSeconds = 0;
+		xLightCounters.counterHours = 0;
 	}
 	else if (xLightControl.timeOnHours == 24 && xLightControl.timeOffHours == 0)
 	{
 		GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
 		xLightControl.lightingState = LIGHT_ON;
 		xLightCounters.counterSeconds = 0;
+		xLightCounters.counterHours = 0;
 	}
 	else
 	{

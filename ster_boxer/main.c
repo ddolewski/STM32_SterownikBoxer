@@ -10,6 +10,12 @@
 //
 
 static void PeripheralInit(void);
+static void Clock_Init(void);
+
+static void Clock_Init(void)
+{
+
+}
 
 int main(void)
 {

@@ -286,12 +286,19 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				}
 
 				itoa(xLightCounters.counterHours, tempString);
-				GLCD_WriteString((uint8_t*)tempString);
+				if (xLightControl.timeOnHours == 24 || xLightControl.timeOffHours == 24)
+				{
+					GLCD_WriteString((uint8_t*)"-");
+				}
+				else
+				{
+					GLCD_WriteString((uint8_t*)tempString);
+				}
+
 				memset(tempString, 0, 10);
 
 				GLCD_GoTo(0,4);
 				GLCD_WriteString((uint8_t*)"OFF/ON [h]:");
-
 				memset(tempString, 0, 10);
 
 				if ((xLastTimeOffHour != xLightControl.timeOffHours) && (xLastTimeOnHour != xLightControl.timeOnHours))

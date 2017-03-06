@@ -9,9 +9,15 @@ Zmiany:
 - uruchomić HSE+PLL na 48MHz
 - dorobić info o nawadnianiu na LCD
 - dodać obsługę błędów czujników na LCD (w miejscu wartości pomiarowej dać napis Error)
-- dodać ekran wyświetlania informacji o kalibracji sond pH
+- dodać ekran wyświetlania informacji o kalibracji sond pH ?
 
 WYKONANE:
+
+- poprawki wizualne  ------> OK
+
+- poprawiona dwukrotna początkowa synchronizacja czasu ------> OK
+
+- poprawki wyświetlania strony pH ------> OK
 
 - pierwsza synchronizacja czasu po włączeniu urządzenia po 10s potem co godzinę ------> OK
 

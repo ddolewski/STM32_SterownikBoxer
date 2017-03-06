@@ -36,7 +36,6 @@ static char DataToSend[TX_BUFF_SIZE] = {0};
 static char recvstr[RX_BUFF_SIZE] = {0};
 
 static bool_t ntpSyncProccess = FALSE;
-static bool_t ntpFirstReq = FALSE;
 static uint16_t ntpRequestTimer = 0; //pierwsze zapytanie o czas po 10s od wlaczenia
 static uint8_t ntp_resp_wait = FALSE;
 static uint8_t ntpRetryTimer = 0;
@@ -153,22 +152,9 @@ void Ntp_Handler(void)
 	{
 		ntpRequestTimer++;
 
-		if (ntpFirstReq == FALSE)
+		if (ntpRequestTimer == 3600) //wyslij zapytanie o czas co godzine
 		{
-			if (ntpRequestTimer == 10)
-			{
-				ntpFirstReq = TRUE;
-				Ntp_SendRequest();
-			}
-		}
-		else
-		{
-//			_printInt(ntpRequestTimer);
-//			DEBUG_SendString("\r\n");
-			if (ntpRequestTimer == 3600) //wyslij zapytanie o czas co godzine
-			{
-				Ntp_SendRequest();
-			}
+			Ntp_SendRequest();
 		}
 	}
 
@@ -488,6 +474,12 @@ void ReceiveSerial_Handler(void)
 
 									// jesli nowy stan lampy jest inny od poprzedniego to skasuj liczniki (nowy stan)
 									if (tempLightState != xLightControl.lightingState)
+									{
+										xLightCounters.counterHours   = 0;
+										xLightCounters.counterSeconds = 0;
+									}
+
+									if (timeOn == 24 || timeOff == 24)
 									{
 										xLightCounters.counterHours   = 0;
 										xLightCounters.counterSeconds = 0;
