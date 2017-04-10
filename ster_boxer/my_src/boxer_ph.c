@@ -75,7 +75,7 @@ void ADC_DMA_Init(void)
 	/* DMA1 Channel1 enable transfer complete interrupt */
 	DMA_ITConfig(DMA1_Channel1, DMA_IT_TC, ENABLE);
 
-	NVIC_SetPriority(DMA1_Channel1_IRQn, 4);
+	NVIC_SetPriority(DMA1_Channel1_IRQn, 2);
 	NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 	/* ADC DMA request in circular mode */

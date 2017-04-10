@@ -17,7 +17,7 @@ static volatile systime_t sysTimer = 0;	//timer systemowy odmierzajacy czas w ms
 void systimeInit(void)
 {
 	SysTick->LOAD = 48000 - 1; // 1ms
-	NVIC_SetPriority (SysTick_IRQn, (1<<__NVIC_PRIO_BITS) - 1);  	/* set Priority for Cortex-M0 System Interrupts */
+	NVIC_SetPriority (SysTick_IRQn, 0);  	/* set Priority for Cortex-M0 System Interrupts */
 //	NVIC_SetPriority (SysTick_IRQn, 2);//(1<<__NVIC_PRIO_BITS) - 1);  	/* set Priority for Cortex-M0 System Interrupts */
 	SysTick->VAL   = 0;                                          	/* Load the SysTick Counter Value */
 	SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |

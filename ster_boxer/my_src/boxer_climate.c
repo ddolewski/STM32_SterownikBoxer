@@ -16,46 +16,42 @@ static systime_t measureOwireTimer = 0;
 static systime_t measureI2cTimer = 0;
 static systime_t shtInitTimer = 0;
 static systime_t oWireInitTimer = 0;
-static ErrorStatus error = SUCCESS;
-
+static ErrorStatus errorSht = SUCCESS;
+static ErrorStatus errorTsl = SUCCESS;
+static ErrorStatus errorDs1 = SUCCESS;
+static ErrorStatus errorDs2 = SUCCESS;
 /////////////////////////////////////////////////////////////////////////////
 void Climate_SensorsHandler(void)
 {
 	if (systimeTimeoutControl(&oWireInitTimer, 2000))
 	{
 #ifndef OWIRE_OFF_MODE
-		initializeConversion(&ds18b20_1);
-    	initializeConversion(&ds18b20_2);
+		errorDs1 = initializeConversion(&ds18b20_1);
+		errorDs2 = initializeConversion(&ds18b20_2);
+
+#ifndef I2C_OFF_MODE
+    	errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
+#endif
 #endif
 	}
 
 	if (systimeTimeoutControl(&measureOwireTimer, 3000))
 	{
 #ifndef OWIRE_OFF_MODE
-		readTemperature(&ds18b20_1);
+		errorDs1 = readTemperature(&ds18b20_1);
 		displayData.tempDS18B20_1_t = ds18b20_1.fTemp;
-		readTemperature(&ds18b20_2);
+		errorDs2 = readTemperature(&ds18b20_2);
 		displayData.tempDS18B20_2_t = ds18b20_2.fTemp;
 #endif
-	}
 
-	if (systimeTimeoutControl(&shtInitTimer, 2500))
-	{
 #ifndef I2C_OFF_MODE
-		error = SHT21_SoftReset(I2C2, SHT21_ADDR);
-#endif
-	}
-
-	if (systimeTimeoutControl(&measureI2cTimer, 5000))
-	{
-#ifndef I2C_OFF_MODE
-		displayData.lux = TSL2561_ReadLux(&error);
+		displayData.lux = TSL2561_ReadLux(&errorTsl);
 
         uint16_t tempWord = 0;
         uint16_t humWord = 0;
 
-    	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &error);
-    	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &error);
+    	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
+    	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &errorSht);
 
     	humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
     	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
@@ -64,6 +60,32 @@ void Climate_SensorsHandler(void)
     	displayData.humiditySHT2x = SHT21_CalcRH(humWord);
 #endif
 	}
+
+//	if (systimeTimeoutControl(&shtInitTimer, 2000))
+//	{
+//#ifndef I2C_OFF_MODE
+//		errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
+//#endif
+//	}
+//
+//	if (systimeTimeoutControl(&measureI2cTimer, 4000))
+//	{
+//#ifndef I2C_OFF_MODE
+//		displayData.lux = TSL2561_ReadLux(&errorTsl);
+//
+//        uint16_t tempWord = 0;
+//        uint16_t humWord = 0;
+//
+//    	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
+//    	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &errorSht);
+//
+//    	humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
+//    	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
+//
+//    	displayData.tempSHT2x = SHT21_CalcTemp(tempWord);
+//    	displayData.humiditySHT2x = SHT21_CalcRH(humWord);
+//#endif
+//	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Climate_TempCtrl_Handler(void)

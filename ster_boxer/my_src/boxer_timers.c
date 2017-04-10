@@ -6,6 +6,7 @@
  */
 
 #include "boxer_timers.h"
+#include "boxer_communication.h"
 
 static systime_t oneSecTimer = 0;
 static systime_t softStartTimer = 0;
@@ -23,6 +24,8 @@ static uint16_t TimerPeriod = 0;
 uint8_t gFansSoftStartFlag = 0;
 
 static uint8_t atnelWaitCounter = 0;
+
+static uint8_t dataCounter = 0;
 //bool_t ntpSyncProccess = FALSE;
 //#ifdef NTP_DEBUG
 //static uint16_t ntpRequestTimer = 3590;
@@ -232,13 +235,22 @@ void MainTimer_Handler(void)
 
 	if (systimeTimeoutControl(&oneSecTimer, 1000))
 	{
-		atnel_TrCmdReqType = TRNSP_MEAS_DATA_REQ;
+		if (atnel_Mode == ATNEL_MODE_TRANSPARENT)
+		{
+			dataCounter++;
+			if (dataCounter == 3)
+			{
+				dataCounter = 0;
+				atnel_TrCmdReqType = TRNSP_MEAS_DATA_REQ;
+			}
+		}
+
 		displayData.pageCounter++;
 
 		if (atnel_wait_change_mode == TRUE)
 		{
 			atnelWaitCounter++;
-			if (atnelWaitCounter == 15)
+			if (atnelWaitCounter == 5)
 			{
 				atnelWaitCounter = 0;
 				atnel_wait_change_mode = FALSE;

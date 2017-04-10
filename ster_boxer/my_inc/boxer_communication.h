@@ -69,6 +69,7 @@ extern atnel_trnsp_cmd_resp_t atnel_TrCmdRespType;
 extern atnel_trnsp_cmd_req_t atnel_TrCmdReqType;
 
 extern bool_t ntpSendRequest;
+extern atnel_mode_t atnel_Mode;
 
 void SerialPort_PutChar(char xSendChar);
 void SerialPort_PutString(char * xString);
@@ -77,5 +78,6 @@ void SerialPort_Init(void);
 void ReceiveSerial_Handler(void);
 void TransmitSerial_Handler(void);
 void Ntp_SendRequest(void);
+void Ntp_Handler(void);
 void Atnel_SetTransparentMode(void);
 #endif /* MY_INC_BOXER_COMMUNICATION_H_ */

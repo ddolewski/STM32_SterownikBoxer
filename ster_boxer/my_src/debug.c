@@ -18,7 +18,7 @@ void DEBUG_Init(void)
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
 
-    USART_InitStructure.USART_BaudRate = 400000;
+    USART_InitStructure.USART_BaudRate = 230400;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART_InitStructure.USART_StopBits = USART_StopBits_1;
     USART_InitStructure.USART_Parity = USART_Parity_No;
@@ -31,7 +31,7 @@ void DEBUG_Init(void)
     /* Enable USART clock */
     RCC_APB2PeriphClockCmd(RCC_APB2ENR_USART1EN, ENABLE);
 //    RCC_USARTCLKConfig(RCC_USART1CLK_SYSCLK);
-
+    RCC_USARTCLKConfig(RCC_USART1CLK_SYSCLK);
     /* Connect PXx to USARTx_Tx */
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_0);
 
@@ -46,7 +46,7 @@ void DEBUG_Init(void)
     /* USART configuration */
     USART_Init(USART1, &USART_InitStructure);
 
-	NVIC_SetPriority(USART1_IRQn, 5);
+	NVIC_SetPriority(USART1_IRQn, 3);
 	NVIC_EnableIRQ(USART1_IRQn);
 
     /* Enable USART */

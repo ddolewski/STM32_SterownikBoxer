@@ -10,26 +10,21 @@
 //
 
 static void PeripheralInit(void);
-static void Clock_Init(void);
-
-static void Clock_Init(void)
-{
-
-}
 
 int main(void)
 {
 	SystemInit();
 	SystemCoreClockUpdate();
+	uint8_t sysclk_source = RCC_GetSYSCLKSource();
 	systimeInit();
 	PeripheralInit();
 
     while (TRUE)
 	{
-    	RTC_Handler();
     	MainTimer_Handler();
     	TransmitSerial_Handler();
     	ReceiveSerial_Handler();
+    	RTC_Handler();
     	Climate_SensorsHandler();
     	Climate_TempCtrl_Handler();
     	Display_Handler();

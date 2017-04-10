@@ -34,19 +34,10 @@ uint8_t uv1Wire_ReadByte(void);
 void readROM(uint8_t * buffer);
 void sendROM(uint8_t * table);
 uint8_t initializeConversion(DS18B20Sensor_t * sensor);
-void readTemperature(DS18B20Sensor_t * sensor);
+uint8_t readTemperature(DS18B20Sensor_t * sensor);
 void readTemperatureChar(DS18B20Sensor_t * sensor);
 void readTemperature_SkipRom(DS18B20Sensor_t * sensor);
 uint8_t CRC8(uint8_t *inData, uint8_t len);
-
-// method declarations
-int  OWFirst();
-int  OWNext();
-int  OWVerify();
-void OWTargetSetup(unsigned char family_code);
-void OWFamilySkipSetup();
-int  OWSearch();
-unsigned char docrc8(unsigned char value);
 
 #endif
 
