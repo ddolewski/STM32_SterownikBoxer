@@ -16,8 +16,6 @@ softstart_t softStartPWM = SOFT_START_NONE;
 
 static void Lightning_Core(void);
 static uint32_t PWM_PercentToRegister(uint8_t xPercent);
-static void PWM_IncOnePercent(pwm_dev_type_t xPwmDev);
-static void PWM_DecOnePercent(pwm_dev_type_t xPwmDev);
 static uint8_t PWM_FANSoftStart(void);
 static uint8_t PWM_PumpSoftStart(void);
 
@@ -40,7 +38,6 @@ uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 		case PWM_PUMP:
 			if (REG_PWM_PUMP < PWM_PercentToRegister(power))
 			{
-//				PWM_IncOnePercent(PWM_PUMP);
 				REG_PWM_PUMP += 1;
 			}
 			else
@@ -52,7 +49,6 @@ uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 		case PWM_FAN_PULL_AIR:
 			if (REG_PWM_PULL_AIR_FAN < PWM_PercentToRegister(power))
 			{
-//				PWM_IncOnePercent(PWM_FAN_PULL_AIR); // wentylator wyciągający powietrze
 				REG_PWM_PULL_AIR_FAN += 1;
 			}
 			else
@@ -64,7 +60,6 @@ uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 		case PWM_FAN_PUSH_AIR:
 			if (REG_PWM_PUSH_AIR_FAN < PWM_PercentToRegister(power))
 			{
-//				PWM_IncOnePercent(PWM_FAN_PUSH_AIR); // wentylator wciągający powietrze
 				REG_PWM_PUSH_AIR_FAN += 1;
 			}
 			else
@@ -89,7 +84,6 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 		case PWM_PUMP:
 			if (REG_PWM_PUMP > PWM_PercentToRegister(power))
 			{
-//				PWM_DecOnePercent(PWM_PUMP);
 				REG_PWM_PUMP -= 1;
 			}
 			else
@@ -101,7 +95,6 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 		case PWM_FAN_PULL_AIR:
 			if (REG_PWM_PULL_AIR_FAN > PWM_PercentToRegister(power))
 			{
-//				PWM_DecOnePercent(PWM_FAN_PULL_AIR); // wentylator wyciągający powietrze
 				REG_PWM_PULL_AIR_FAN -= 1;
 			}
 			else
@@ -113,7 +106,6 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 		case PWM_FAN_PUSH_AIR:
 			if (REG_PWM_PUSH_AIR_FAN > PWM_PercentToRegister(power))
 			{
-//				PWM_DecOnePercent(PWM_FAN_PUSH_AIR); // wentylator wciągający powietrze
 				REG_PWM_PUSH_AIR_FAN -= 1;
 			}
 			else
@@ -125,44 +117,6 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 			break;
 	}
 	return ret;
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void PWM_IncOnePercent(pwm_dev_type_t xPwmDev)
-{
-	uint32_t onePercent = (uint32_t)( ( (TimerPeriod + 1) * 1 / 100) - 1);
-	switch (xPwmDev)
-	{
-		case PWM_PUMP:
-			REG_PWM_PUMP += (uint16_t) (((uint32_t) 1 * (TimerPeriod - 1)) / 100);//ONE_PERCENT; // pompa
-			break;
-
-		case PWM_FAN_PULL_AIR:
-			REG_PWM_PULL_AIR_FAN += onePercent;
-			break;
-
-		case PWM_FAN_PUSH_AIR:
-			REG_PWM_PUSH_AIR_FAN += onePercent;
-			break;
-	}
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void PWM_DecOnePercent(pwm_dev_type_t xPwmDev)
-{
-	uint32_t onePercent = (uint32_t)( ( (TimerPeriod + 1) * 1 / 100) - 1);
-	switch (xPwmDev)
-	{
-		case PWM_PUMP:
-			REG_PWM_PUMP -= (uint16_t) (((uint32_t) 1 * (TimerPeriod - 1)) / 100);//ONE_PERCENT; // pompa
-			break;
-
-		case PWM_FAN_PULL_AIR:
-			REG_PWM_PULL_AIR_FAN -= onePercent;
-			break;
-
-		case PWM_FAN_PUSH_AIR:
-			REG_PWM_PUSH_AIR_FAN -= onePercent;
-			break;
-	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent)
@@ -186,18 +140,14 @@ void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent)
 static uint32_t PWM_PercentToRegister(uint8_t xPercent)
 {
 	/*
-    To get proper duty cycle, you have simple equation
+    Aby otrzymac prawidlowa wartosc rejestru CCR nalezy skorzystac z ponizszego wzoru
 
     pulse_length = ((TIM_Period + 1) * DutyCycle) / 100 - 1
-
-    where DutyCycle is in percent, between 0 and 100%
 
     25% duty cycle:     pulse_length = ((8399 + 1) * 25) / 100 - 1 = 2099
     50% duty cycle:     pulse_length = ((8399 + 1) * 50) / 100 - 1 = 4199
     75% duty cycle:     pulse_length = ((8399 + 1) * 75) / 100 - 1 = 6299
     100% duty cycle:    pulse_length = ((8399 + 1) * 100) / 100 - 1 = 8399 */
-
-//	return ((uint16_t) (((uint32_t) xPercent * (TimerPeriod - 1)) / 100));//(xPercent * ONE_PERCENT);
 
 	uint32_t reg = 0;
 
@@ -342,7 +292,6 @@ void PWM_PumpInit(void)
 
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 
-	/* GPIOA Configuration: Channel 1 as alternate function push-pull */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
@@ -352,13 +301,11 @@ void PWM_PumpInit(void)
 
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_2);
 
-	/* Compute the value to be set in ARR regiter to generate signal frequency at 12kHz */
+	/* Wzor do przeliczenia okresu PWM */
 	TimerPeriod = (SystemCoreClock / PWM_FAN_CLK) - 1;
 
-	/* TIM1 clock enable */
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 , ENABLE);
 
-	/* Time Base configuration */
 	TIM_TimeBaseStructure.TIM_Prescaler = 0;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseStructure.TIM_Period = TimerPeriod;
@@ -367,7 +314,6 @@ void PWM_PumpInit(void)
 
 	TIM_TimeBaseInit(TIM2, &TIM_TimeBaseStructure);
 
-	/* Channel 1, 2, 3 and 4 Configuration in PWM mode */
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;
@@ -376,56 +322,21 @@ void PWM_PumpInit(void)
 	TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
 	TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
 
-	TIM_OCInitStructure.TIM_Pulse = PWM_PercentToRegister(0);
+	TIM_OCInitStructure.TIM_Pulse = (TimerPeriod + 1); 	// ustawiam moc na 0%
 	TIM_OC2Init(TIM2, &TIM_OCInitStructure);
 
-	/* TIM1 counter enable */
 	TIM_Cmd(TIM2, ENABLE);
-
-	/* TIM1 Main Output Enable */
 	TIM_CtrlPWMOutputs(TIM2, ENABLE);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#define TIM_CCMR2_OC3M_PWM1	0x0060	// OC3M[2:0] - PWM mode 1
-#define TIM_CCMR2_OC4M_PWM1	0x6000	// OC4M[2:0] - PWM mode 1
 void PWM_FansInit(void)
 {
-
-  /* TIM1 Configuration ---------------------------------------------------
-   Generate 7 PWM signals with 4 different duty cycles:
-   TIM1CLK = SystemCoreClock, Prescaler = 0, TIM1 counter clock = SystemCoreClock
-   SystemCoreClock is set to 72 MHz for Low-density, Medium-density, High-density
-   and Connectivity line devices and to 24 MHz for Low-Density Value line and
-   Medium-Density Value line devices
-
-   The objective is to generate 7 PWM signal at 17.57 KHz:
-	 - TIM1_Period = (SystemCoreClock / 17570) - 1
-   The channel 1 and channel 1N duty cycle is set to 50%
-   The channel 2 and channel 2N duty cycle is set to 37.5%
-   The channel 3 and channel 3N duty cycle is set to 25%
-   The channel 4 duty cycle is set to 12.5%
-   The Timer pulse is calculated as follows:
-	 - ChannelxPulse = DutyCycle * (TIM1_Period - 1) / 100
-  ----------------------------------------------------------------------- */
-  /* Compute the value to be set in ARR regiter to generate signal frequency at 17.57 Khz */
-//  TimerPeriod = (SystemCoreClock / 17570 ) - 1;
-//  /* Compute CCR1 value to generate a duty cycle at 50% for channel 1 and 1N */
-//  Channel1Pulse = (uint16_t) (((uint32_t) 5 * (TimerPeriod - 1)) / 10);
-//  /* Compute CCR2 value to generate a duty cycle at 37.5%  for channel 2 and 2N */
-//  Channel2Pulse = (uint16_t) (((uint32_t) 375 * (TimerPeriod - 1)) / 1000);
-//  /* Compute CCR3 value to generate a duty cycle at 25%  for channel 3 and 3N */
-//  Channel3Pulse = (uint16_t) (((uint32_t) 25 * (TimerPeriod - 1)) / 100);
-//  /* Compute CCR4 value to generate a duty cycle at 12.5%  for channel 4 */
-//  Channel4Pulse = (uint16_t) (((uint32_t) 125 * (TimerPeriod- 1)) / 1000);
-
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef  TIM_OCInitStructure;
 
 	GPIO_InitTypeDef GPIO_InitStructure;
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 
-	/* GPIOA Configuration: Channel 3 and 4 as alternate function push-pull */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_Level_1;
@@ -436,9 +347,9 @@ void PWM_FansInit(void)
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource0, GPIO_AF_1);
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_1);
 
-	const uint16_t prescaler = 48; //aby zmniejszyc F taktowania z 48Mhz na 1Mhz
+	const uint16_t prescaler = 48; // aby zmniejszyc F taktowania z 48Mhz na 1Mhz
 
-	/* Compute the value to be set in ARR regiter to generate signal frequency at 30Hz */
+	/* Wzor do przeliczenia okresu PWM */
 	TimerPeriod = ((SystemCoreClock/prescaler) / PWM_FAN_CLK) - 1;
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
@@ -455,17 +366,15 @@ void PWM_FansInit(void)
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
 	TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;
-//	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
-//	TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_High;
 	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
 	TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_Low;
 	TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
 	TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
 
-	TIM_OCInitStructure.TIM_Pulse = (TimerPeriod + 1); 	// ustawiam moc na 0% //PWM_PercentToRegister(0);
+	TIM_OCInitStructure.TIM_Pulse = (TimerPeriod + 1); 	// ustawiam moc na 0%
 	TIM_OC3Init(TIM3, &TIM_OCInitStructure);
 
-	TIM_OCInitStructure.TIM_Pulse = (TimerPeriod + 1);	// ustawiam moc na 0% //PWM_PercentToRegister(0);
+	TIM_OCInitStructure.TIM_Pulse = (TimerPeriod + 1);	// ustawiam moc na 0%
 	TIM_OC4Init(TIM3, &TIM_OCInitStructure);
 
 	TIM_ARRPreloadConfig(TIM3,ENABLE);
@@ -486,11 +395,15 @@ static uint8_t PWM_FANSoftStart(void)
 	case TEMP_MANUAL:
 		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull);
 		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush);
+		lastPullPWM = tempControl.fanPull;
+		lastPushPWM = tempControl.fanPush;
 		break;
 
 	case TEMP_AUTO:
 		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, 60);
 		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30);
+		lastPullPWM = 60;
+		lastPushPWM = 30;
 		break;
 
 	default:

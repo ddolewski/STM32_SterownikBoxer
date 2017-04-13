@@ -8,13 +8,11 @@
 #include "boxer_climate.h"
 #include "boxer_timers.h"
 
-static uint8_t lastFanPull = 0;
-static uint8_t lastFanPush = 0;
-
 static systime_t measureOwireTimer = 0;
 static systime_t measureI2cTimer = 0;
 static systime_t shtInitTimer = 0;
 static systime_t oWireInitTimer = 0;
+
 static ErrorStatus errorSht = SUCCESS;
 static ErrorStatus errorTsl = SUCCESS;
 static ErrorStatus errorDs1 = SUCCESS;
@@ -80,37 +78,97 @@ void Climate_TempCtrl_Handler(void)
 				if (ds18b20_1.fTemp > (float)tempControl.userTemp)
 				{
 					//USARTx_SendString(USART_COMM, UC"fTemp > userTemp\n\r");
-					PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100); //wyciagajacy
-					PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70); //wciagajacy
+					PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100); 	//wyciagajacy
+					lastPullPWM = 100;
+					PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70); 	//wciagajacy
+					lastPushPWM = 70;
 				}
 				else
 				{
 					//USARTx_SendString(USART_COMM, UC"fTemp < userTemp\n\r");
 					PWM_DecPercentTo(PWM_FAN_PULL_AIR, 60);
+					lastPullPWM = 60;
 					PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30);
+					lastPushPWM = 30;
 				}
 			}
 			else
 			{
 	//			_printParam(UC"LightControl.LightingState", LightControl.LightingState);
-				PWM_SetPercent(PWM_FAN_PULL_AIR, 40);
-				PWM_SetPercent(PWM_FAN_PUSH_AIR, 20);
+
+				if (lastPullPWM > 40)
+				{
+					if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, 40) == 1)
+					{
+						lastPullPWM = 40;
+					}
+				}
+				else
+				{
+					if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, 40) == 1)
+					{
+						lastPullPWM = 40;
+					}
+				}
+
+				if (lastPushPWM > 30)
+				{
+					if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30) == 1)
+					{
+						lastPushPWM = 30;
+					}
+				}
+				else
+				{
+					if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30) == 1)
+					{
+						lastPushPWM = 30;
+					}
+				}
 			}
 		}
 	    else if (tempControl.tempCtrlMode == TEMP_MANUAL)
 	    {
-	    	if (lastFanPull != tempControl.fanPull)
+	    	if (lastPullPWM != tempControl.fanPull)
 			{
-				PWM_SetPercent(PWM_FAN_PULL_AIR, tempControl.fanPull);
+//				PWM_SetPercent(PWM_FAN_PULL_AIR, tempControl.fanPull);
+				if (lastPullPWM > tempControl.fanPull)
+				{
+					if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull) == 1)
+					{
+						lastPullPWM = tempControl.fanPull;
+					}
+				}
+				else
+				{
+					if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull) == 1)
+					{
+						lastPullPWM = tempControl.fanPull;
+					}
+				}
 			}
 
-			if (lastFanPush != tempControl.fanPush)
+			if (lastPushPWM != tempControl.fanPush)
 			{
-				PWM_SetPercent(PWM_FAN_PUSH_AIR, tempControl.fanPush);
+//				PWM_SetPercent(PWM_FAN_PUSH_AIR, tempControl.fanPush);
+				if (lastPushPWM > tempControl.fanPush)
+				{
+					if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush) == 1)
+					{
+						lastPushPWM = tempControl.fanPush;
+					}
+				}
+				else
+				{
+					if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush) == 1)
+					{
+						lastPushPWM = tempControl.fanPush;
+					}
+				}
 			}
 
-	    	lastFanPull = tempControl.fanPull;
-	    	lastFanPush = tempControl.fanPush;
+//			lastPullPWM = tempControl.fanPull;
+//	    	lastPushPWM = tempControl.fanPush;
 	    }
 	}
 }

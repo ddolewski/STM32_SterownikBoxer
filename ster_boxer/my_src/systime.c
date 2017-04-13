@@ -9,7 +9,6 @@
 #define SYSTIMER_HANDLER		SysTick_Handler
 
 static volatile systime_t sysTimer = 0;	//timer systemowy odmierzajacy czas w ms
-static volatile systime_t pwmChangeTimer = 0;
 //-------------------------------------------------------------------------------------------------
 // Funkcja inicjalizuj¹ca timer systemeowy
 //void
@@ -35,15 +34,10 @@ void SYSTIMER_HANDLER (void)
 	sysTimer++;
 	SoftStart_Handler();
 
-//	pwmChangeTimer++;
-//	if (pwmChangeTimer == 10)
-//	{
 	if (peripheralsInit == TRUE)
 	{
 		Climate_TempCtrl_Handler();
 	}
-//		pwmChangeTimer = 0;
-//	}
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja zwracajaca aktualny czas systemowy

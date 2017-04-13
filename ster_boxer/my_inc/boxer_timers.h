@@ -39,6 +39,8 @@ typedef enum
 	SOFT_START_FANS
 }softstart_t;
 
+uint8_t lastPullPWM;
+uint8_t lastPushPWM;
 light_state_t lastLightState;
 extern softstart_t softStartPWM;
 
