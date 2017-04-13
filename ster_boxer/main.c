@@ -154,11 +154,6 @@ static void PeripheralInit(void)
 	displayData.page = 1;
 	systimeDelayMs(1000);
 	GLCD_ClearScreen();
-//todo debug oswietlenie
-	xLightControl.lightingState = LIGHT_ON;
-	xLightControl.timeOffHours = 12;
-	xLightControl.timeOnHours = 12;
-	tempControl.userTemp = 26;
 
 	Ntp_SendRequest();
 	peripheralsInit = TRUE;
