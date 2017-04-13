@@ -12,6 +12,9 @@ Zmiany:
 - dodać ekran wyświetlania informacji o kalibracji sond pH ?
 
 WYKONANE:
+- poprawiony algorytm sterowania wentylatorami (PWM, timingi, zakresy, soft start)  ------> OK
+
+- zmiana czasów wykonywania pomiarów  ------> OK 
 
 - poprawki wizualne  ------> OK
 

@@ -17,9 +17,9 @@
 #define SYSTICKNS      (1000000000 / SYSTICKHZ)
 
 typedef uint32_t systime_t;
+uint8_t peripheralsInit;
 
 void systimeInit (void);
-//uint32_t systimeInit(uint32_t ticks);
 systime_t systimeGet (void);
 uint8_t systimeTimeoutControl(systime_t * xLastTime, systime_t xCheckTime);
 void  systimeDelayMs(uint32_t xTimeMs);

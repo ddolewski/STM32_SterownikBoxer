@@ -9,23 +9,18 @@
 #include "boxer_communication.h"
 
 static systime_t oneSecTimer = 0;
-static systime_t softStartTimer = 0;
-static uint8_t gSetPwmFAN1Flag = 0;
-static uint8_t gSetPwmFAN2Flag = 0;
-static uint8_t gSetPwmPUMPFlag = 0;
-
-static void FanSoftStart_Handler(void);
-static void Lightning_Core(void);
-static uint32_t PWM_PercentToRegister(uint32_t xPercent);
-static void PWM_IncOnePercent(uint8_t xPwmDev);
-static void PWM_DecOnePercent(uint8_t xPwmDev);
-static uint8_t PWM_FANSoftStart(bool_t xStatus);
-static uint16_t TimerPeriod = 0;
-uint8_t gFansSoftStartFlag = 0;
-
 static uint8_t atnelWaitCounter = 0;
-
 static uint8_t dataCounter = 0;
+static uint16_t TimerPeriod = 0;
+softstart_t softStartPWM = SOFT_START_NONE;
+
+static void Lightning_Core(void);
+static uint32_t PWM_PercentToRegister(uint8_t xPercent);
+static void PWM_IncOnePercent(pwm_dev_type_t xPwmDev);
+static void PWM_DecOnePercent(pwm_dev_type_t xPwmDev);
+static uint8_t PWM_FANSoftStart(void);
+static uint8_t PWM_PumpSoftStart(void);
+
 //bool_t ntpSyncProccess = FALSE;
 //#ifdef NTP_DEBUG
 //static uint16_t ntpRequestTimer = 3590;
@@ -35,62 +30,49 @@ static uint8_t dataCounter = 0;
 //#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t PWM_IncPercentTo(uint8_t xPwmDev, uint32_t xPercent)
+uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 {
 	uint8_t ret = 0;
+	uint8_t power = 100 - xPercent;
+
 	switch (xPwmDev)
 	{
 		case PWM_PUMP:
-			if (REG_PWM_PUMP < PWM_PercentToRegister(xPercent))
+			if (REG_PWM_PUMP < PWM_PercentToRegister(power))
 			{
-				PWM_IncOnePercent(PWM_PUMP);
-				gSetPwmPUMPFlag = 0;
+//				PWM_IncOnePercent(PWM_PUMP);
+				REG_PWM_PUMP += 1;
 			}
 			else
 			{
 				ret = 1;
-
-				if (gSetPwmPUMPFlag == 0)
-				{
-					gSetPwmPUMPFlag = 1;
-					REG_PWM_PUMP = PWM_PercentToRegister(xPercent);
-				}
 			}
 			break;
 
 		case PWM_FAN_PULL_AIR:
-			if (REG_PWM_PULL_AIR_FAN < PWM_PercentToRegister(xPercent))
+			if (REG_PWM_PULL_AIR_FAN < PWM_PercentToRegister(power))
 			{
-				PWM_IncOnePercent(PWM_FAN_PULL_AIR); // wentylator wyciągający powietrze
-				gSetPwmFAN1Flag = 0;
+//				PWM_IncOnePercent(PWM_FAN_PULL_AIR); // wentylator wyciągający powietrze
+				REG_PWM_PULL_AIR_FAN += 1;
 			}
 			else
 			{
 				ret = 1;
-				if (gSetPwmFAN1Flag == 0)
-				{
-					gSetPwmFAN1Flag = 1;
-					REG_PWM_PULL_AIR_FAN = PWM_PercentToRegister(xPercent);
-				}
 			}
 			break;
 
 		case PWM_FAN_PUSH_AIR:
-			if (REG_PWM_PUSH_AIR_FAN < PWM_PercentToRegister(xPercent))
+			if (REG_PWM_PUSH_AIR_FAN < PWM_PercentToRegister(power))
 			{
-				PWM_IncOnePercent(PWM_FAN_PUSH_AIR); // wentylator wciągający powietrze
-				gSetPwmFAN2Flag = 0;
+//				PWM_IncOnePercent(PWM_FAN_PUSH_AIR); // wentylator wciągający powietrze
+				REG_PWM_PUSH_AIR_FAN += 1;
 			}
 			else
 			{
 				ret = 1;
-				if (gSetPwmFAN2Flag == 0)
-				{
-					gSetPwmFAN2Flag = 1;
-					REG_PWM_PUSH_AIR_FAN = PWM_PercentToRegister(xPercent);
-				}
 			}
 			break;
+
 		default:
 			break;
 	}
@@ -98,59 +80,45 @@ uint8_t PWM_IncPercentTo(uint8_t xPwmDev, uint32_t xPercent)
 	return ret;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t PWM_DecPercentTo(uint8_t xPwmDev, uint32_t xPercent)
+uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 {
 	uint8_t ret = 0;
+	uint8_t power = 100 - xPercent;
 	switch (xPwmDev)
 	{
 		case PWM_PUMP:
-			if (REG_PWM_PUMP > PWM_PercentToRegister(xPercent))
+			if (REG_PWM_PUMP > PWM_PercentToRegister(power))
 			{
-				PWM_DecOnePercent(PWM_PUMP);
-				gSetPwmPUMPFlag = 0;
+//				PWM_DecOnePercent(PWM_PUMP);
+				REG_PWM_PUMP -= 1;
 			}
 			else
 			{
 				ret = 1;
-				if (gSetPwmPUMPFlag == 0)
-				{
-					gSetPwmPUMPFlag = 1;
-					REG_PWM_PUMP = PWM_PercentToRegister(xPercent);
-				}
 			}
 			break;
 
 		case PWM_FAN_PULL_AIR:
-			if (REG_PWM_PULL_AIR_FAN > PWM_PercentToRegister(xPercent))
+			if (REG_PWM_PULL_AIR_FAN > PWM_PercentToRegister(power))
 			{
-				PWM_DecOnePercent(PWM_FAN_PULL_AIR); // wentylator wyciągający powietrze
-				gSetPwmFAN1Flag = 0;
+//				PWM_DecOnePercent(PWM_FAN_PULL_AIR); // wentylator wyciągający powietrze
+				REG_PWM_PULL_AIR_FAN -= 1;
 			}
 			else
 			{
 				ret = 1;
-				if (gSetPwmFAN1Flag == 0)
-				{
-					gSetPwmFAN1Flag = 1;
-					REG_PWM_PULL_AIR_FAN = PWM_PercentToRegister(xPercent);
-				}
 			}
 			break;
 
 		case PWM_FAN_PUSH_AIR:
-			if (REG_PWM_PUSH_AIR_FAN > PWM_PercentToRegister(xPercent))
+			if (REG_PWM_PUSH_AIR_FAN > PWM_PercentToRegister(power))
 			{
-				PWM_DecOnePercent(PWM_FAN_PUSH_AIR); // wentylator wciągający powietrze
-				gSetPwmFAN2Flag = 0;
+//				PWM_DecOnePercent(PWM_FAN_PUSH_AIR); // wentylator wciągający powietrze
+				REG_PWM_PUSH_AIR_FAN -= 1;
 			}
 			else
 			{
 				ret = 1;
-				if (gSetPwmFAN2Flag == 0)
-				{
-					gSetPwmFAN2Flag = 1;
-					REG_PWM_PUSH_AIR_FAN = PWM_PercentToRegister(xPercent);
-				}
 			}
 			break;
 		default:
@@ -159,8 +127,9 @@ uint8_t PWM_DecPercentTo(uint8_t xPwmDev, uint32_t xPercent)
 	return ret;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void PWM_IncOnePercent(uint8_t xPwmDev)
+static void PWM_IncOnePercent(pwm_dev_type_t xPwmDev)
 {
+	uint32_t onePercent = (uint32_t)( ( (TimerPeriod + 1) * 1 / 100) - 1);
 	switch (xPwmDev)
 	{
 		case PWM_PUMP:
@@ -168,17 +137,18 @@ static void PWM_IncOnePercent(uint8_t xPwmDev)
 			break;
 
 		case PWM_FAN_PULL_AIR:
-			REG_PWM_PULL_AIR_FAN += (uint16_t) (((uint32_t) 1 * (TimerPeriod - 1)) / 100);//ONE_PERCENT; // wentylator wyciągający powietrze
+			REG_PWM_PULL_AIR_FAN += onePercent;
 			break;
 
 		case PWM_FAN_PUSH_AIR:
-			REG_PWM_PUSH_AIR_FAN += (uint16_t) (((uint32_t) 1 * (TimerPeriod - 1)) / 100);//ONE_PERCENT; // wentylator wciągający powietrze
+			REG_PWM_PUSH_AIR_FAN += onePercent;
 			break;
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void PWM_DecOnePercent(uint8_t xPwmDev)
+static void PWM_DecOnePercent(pwm_dev_type_t xPwmDev)
 {
+	uint32_t onePercent = (uint32_t)( ( (TimerPeriod + 1) * 1 / 100) - 1);
 	switch (xPwmDev)
 	{
 		case PWM_PUMP:
@@ -186,11 +156,11 @@ static void PWM_DecOnePercent(uint8_t xPwmDev)
 			break;
 
 		case PWM_FAN_PULL_AIR:
-			REG_PWM_PULL_AIR_FAN -= (uint16_t) (((uint32_t) 1 * (TimerPeriod - 1)) / 100);//ONE_PERCENT; // wentylator wyciągający powietrze
+			REG_PWM_PULL_AIR_FAN -= onePercent;
 			break;
 
 		case PWM_FAN_PUSH_AIR:
-			REG_PWM_PUSH_AIR_FAN -= (uint16_t) (((uint32_t) 1 * (TimerPeriod - 1)) / 100);//ONE_PERCENT; // wentylator wciągający powietrze
+			REG_PWM_PUSH_AIR_FAN -= onePercent;
 			break;
 	}
 }
@@ -213,26 +183,64 @@ void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent)
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static uint32_t PWM_PercentToRegister(uint32_t xPercent)
+static uint32_t PWM_PercentToRegister(uint8_t xPercent)
 {
-	return ((uint16_t) (((uint32_t) xPercent * (TimerPeriod - 1)) / 100));//(xPercent * ONE_PERCENT);
+	/*
+    To get proper duty cycle, you have simple equation
+
+    pulse_length = ((TIM_Period + 1) * DutyCycle) / 100 - 1
+
+    where DutyCycle is in percent, between 0 and 100%
+
+    25% duty cycle:     pulse_length = ((8399 + 1) * 25) / 100 - 1 = 2099
+    50% duty cycle:     pulse_length = ((8399 + 1) * 50) / 100 - 1 = 4199
+    75% duty cycle:     pulse_length = ((8399 + 1) * 75) / 100 - 1 = 6299
+    100% duty cycle:    pulse_length = ((8399 + 1) * 100) / 100 - 1 = 8399 */
+
+//	return ((uint16_t) (((uint32_t) xPercent * (TimerPeriod - 1)) / 100));//(xPercent * ONE_PERCENT);
+
+	uint32_t reg = 0;
+
+	if (xPercent >= 0 && xPercent <= 100)
+	{
+		if (xPercent == 0)
+		{
+			reg = 0;
+		}
+		else if (xPercent == 100)
+		{
+			reg = (TimerPeriod + 1);
+		}
+		else
+		{
+			reg = (uint32_t)( ( (TimerPeriod + 1) * xPercent / 100) - 1);
+		}
+	}
+
+	return reg;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void FanSoftStart_Handler(void)
+void SoftStart_Handler(void)
 {
-	if (gFansSoftStartFlag == TRUE)
+	if (softStartPWM == SOFT_START_FANS)
 	{
-		if (PWM_FANSoftStart(TRUE) == TRUE)
+		if (PWM_FANSoftStart() == TRUE)
 		{
-			gFansSoftStartFlag = FALSE;
+			softStartPWM = SOFT_START_NONE;
+		}
+	}
+
+	if (softStartPWM == SOFT_START_PUMP)
+	{
+		if (PWM_PumpSoftStart() == TRUE)
+		{
+			softStartPWM = SOFT_START_NONE;
 		}
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MainTimer_Handler(void)
 {
-	FanSoftStart_Handler();
-
 	if (systimeTimeoutControl(&oneSecTimer, 1000))
 	{
 		if (atnel_Mode == ATNEL_MODE_TRANSPARENT)
@@ -330,7 +338,6 @@ void PWM_PumpInit(void)
 {
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef  TIM_OCInitStructure;
-//	uint16_t TimerPeriod = 0;
 	GPIO_InitTypeDef GPIO_InitStructure;
 
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
@@ -415,9 +422,7 @@ void PWM_FansInit(void)
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef  TIM_OCInitStructure;
 
-
 	GPIO_InitTypeDef GPIO_InitStructure;
-
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 
 	/* GPIOA Configuration: Channel 3 and 4 as alternate function push-pull */
@@ -432,21 +437,16 @@ void PWM_FansInit(void)
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_1);
 
 	const uint16_t prescaler = 48; //aby zmniejszyc F taktowania z 48Mhz na 1Mhz
+
 	/* Compute the value to be set in ARR regiter to generate signal frequency at 30Hz */
 	TimerPeriod = ((SystemCoreClock/prescaler) / PWM_FAN_CLK) - 1;
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
 
 	/* Time Base configuration */
-//	TIM_TimeBaseStructure.TIM_Prescaler = 0;
-//	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-//	TIM_TimeBaseStructure.TIM_Period = TimerPeriod;
-//	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-//	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
-
-	TIM_TimeBaseStructure.TIM_Prescaler = prescaler; //24
+	TIM_TimeBaseStructure.TIM_Prescaler = prescaler;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
-	TIM_TimeBaseStructure.TIM_Period = TimerPeriod; //63999
+	TIM_TimeBaseStructure.TIM_Period = TimerPeriod;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
 	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
 
@@ -454,39 +454,60 @@ void PWM_FansInit(void)
 
 	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
 	TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
+	TIM_OCInitStructure.TIM_OutputNState = TIM_OutputNState_Enable;
+//	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_Low;
+//	TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_High;
 	TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
+	TIM_OCInitStructure.TIM_OCNPolarity = TIM_OCNPolarity_Low;
+	TIM_OCInitStructure.TIM_OCIdleState = TIM_OCIdleState_Set;
+	TIM_OCInitStructure.TIM_OCNIdleState = TIM_OCIdleState_Reset;
 
-	TIM_OCInitStructure.TIM_Pulse = PWM_PercentToRegister(0);
+	TIM_OCInitStructure.TIM_Pulse = (TimerPeriod + 1); 	// ustawiam moc na 0% //PWM_PercentToRegister(0);
 	TIM_OC3Init(TIM3, &TIM_OCInitStructure);
 
-	TIM_OCInitStructure.TIM_Pulse = PWM_PercentToRegister(0);
+	TIM_OCInitStructure.TIM_Pulse = (TimerPeriod + 1);	// ustawiam moc na 0% //PWM_PercentToRegister(0);
 	TIM_OC4Init(TIM3, &TIM_OCInitStructure);
 
 	TIM_ARRPreloadConfig(TIM3,ENABLE);
 	TIM_CtrlPWMOutputs(TIM3, ENABLE);
 	TIM_Cmd(TIM3, ENABLE);
 
-	gFansSoftStartFlag = 1;
+	softStartPWM = SOFT_START_FANS;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static uint8_t PWM_FANSoftStart(bool_t xStatus)
+static uint8_t PWM_FANSoftStart(void)
 {
 	uint8_t ret = 0;
-	if (systimeTimeoutControl(&softStartTimer, 100))
+	uint8_t retPull = 0;
+	uint8_t retPush = 0;
+
+	switch (tempControl.tempCtrlMode)
 	{
-		if (xStatus)
-		{
-			PWM_IncPercentTo(PWM_FAN_PULL_AIR, 90);
-			PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 90);
+	case TEMP_MANUAL:
+		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull);
+		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush);
+		break;
 
-//			_printParam("TIM3->CCR4=", TIM3->CCR4);
-		}
+	case TEMP_AUTO:
+		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, 60);
+		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30);
+		break;
 
-		if (REG_PWM_PULL_AIR_FAN >= 3600)
-		{
-			ret = 1;
-		}
+	default:
+		break;
 	}
+
+	if (retPull & retPush)
+	{
+		ret = 1;
+	}
+
+	return ret;
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+static uint8_t PWM_PumpSoftStart(void)
+{
+	uint8_t ret = 0;
 
 	return ret;
 }

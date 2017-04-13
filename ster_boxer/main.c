@@ -15,7 +15,6 @@ int main(void)
 {
 	SystemInit();
 	SystemCoreClockUpdate();
-	uint8_t sysclk_source = RCC_GetSYSCLKSource();
 	systimeInit();
 	PeripheralInit();
 
@@ -26,7 +25,6 @@ int main(void)
     	ReceiveSerial_Handler();
     	RTC_Handler();
     	Climate_SensorsHandler();
-    	Climate_TempCtrl_Handler();
     	Display_Handler();
     	PhProccess_Handler();
     	Irrigation_Handler();
@@ -156,6 +154,12 @@ static void PeripheralInit(void)
 	displayData.page = 1;
 	systimeDelayMs(1000);
 	GLCD_ClearScreen();
+//todo debug oswietlenie
+	xLightControl.lightingState = LIGHT_ON;
+	xLightControl.timeOffHours = 12;
+	xLightControl.timeOnHours = 12;
+	tempControl.userTemp = 26;
 
 	Ntp_SendRequest();
+	peripheralsInit = TRUE;
 }

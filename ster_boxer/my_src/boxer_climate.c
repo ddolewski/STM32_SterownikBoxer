@@ -8,7 +8,6 @@
 #include "boxer_climate.h"
 #include "boxer_timers.h"
 
-static systime_t speedTimer = 0;
 static uint8_t lastFanPull = 0;
 static uint8_t lastFanPush = 0;
 
@@ -23,19 +22,15 @@ static ErrorStatus errorDs2 = SUCCESS;
 /////////////////////////////////////////////////////////////////////////////
 void Climate_SensorsHandler(void)
 {
-	if (systimeTimeoutControl(&oWireInitTimer, 2000))
+	if (systimeTimeoutControl(&oWireInitTimer, 500))
 	{
 #ifndef OWIRE_OFF_MODE
 		errorDs1 = initializeConversion(&ds18b20_1);
 		errorDs2 = initializeConversion(&ds18b20_2);
-
-#ifndef I2C_OFF_MODE
-    	errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
-#endif
 #endif
 	}
 
-	if (systimeTimeoutControl(&measureOwireTimer, 3000))
+	if (systimeTimeoutControl(&measureOwireTimer, 800))
 	{
 #ifndef OWIRE_OFF_MODE
 		errorDs1 = readTemperature(&ds18b20_1);
@@ -43,7 +38,17 @@ void Climate_SensorsHandler(void)
 		errorDs2 = readTemperature(&ds18b20_2);
 		displayData.tempDS18B20_2_t = ds18b20_2.fTemp;
 #endif
+	}
 
+	if (systimeTimeoutControl(&shtInitTimer, 3000))
+	{
+#ifndef I2C_OFF_MODE
+    	errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
+#endif
+	}
+
+	if (systimeTimeoutControl(&measureI2cTimer, 5000))
+	{
 #ifndef I2C_OFF_MODE
 		displayData.lux = TSL2561_ReadLux(&errorTsl);
 
@@ -60,86 +65,52 @@ void Climate_SensorsHandler(void)
     	displayData.humiditySHT2x = SHT21_CalcRH(humWord);
 #endif
 	}
-
-//	if (systimeTimeoutControl(&shtInitTimer, 2000))
-//	{
-//#ifndef I2C_OFF_MODE
-//		errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
-//#endif
-//	}
-//
-//	if (systimeTimeoutControl(&measureI2cTimer, 4000))
-//	{
-//#ifndef I2C_OFF_MODE
-//		displayData.lux = TSL2561_ReadLux(&errorTsl);
-//
-//        uint16_t tempWord = 0;
-//        uint16_t humWord = 0;
-//
-//    	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
-//    	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &errorSht);
-//
-//    	humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
-//    	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
-//
-//    	displayData.tempSHT2x = SHT21_CalcTemp(tempWord);
-//    	displayData.humiditySHT2x = SHT21_CalcRH(humWord);
-//#endif
-//	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Climate_TempCtrl_Handler(void)
 {
-	if (systimeTimeoutControl(&speedTimer, 200))
+	if (softStartPWM == SOFT_START_NONE)
 	{
-		flagsGlobal.increaseSpeedFlag = TRUE;
-	}
-
-    if ((tempControl.tempCtrlMode == TEMP_AUTO) && (gFansSoftStartFlag == FALSE)) //sterowanie temperatura maksymalna
-	{
-//    	_printParam(UC"userParam.tempControl", userParam.tempControl);
-		if (xLightControl.lightingState == LIGHT_ON)
+	    if (tempControl.tempCtrlMode == TEMP_AUTO) //sterowanie temperatura maksymalna
 		{
-//			_printParam(UC"LightControl.LightingState", LightControl.LightingState);
-			if (flagsGlobal.increaseSpeedFlag == TRUE) //powoduje zwiekszanie PWM'a co sekunde
+	//    	_printParam(UC"userParam.tempControl", userParam.tempControl);
+			if (xLightControl.lightingState == LIGHT_ON)
 			{
+	//			_printParam(UC"LightControl.LightingState", LightControl.LightingState);
 				if (ds18b20_1.fTemp > (float)tempControl.userTemp)
 				{
 					//USARTx_SendString(USART_COMM, UC"fTemp > userTemp\n\r");
-
-					PWM_IncPercentTo(PWM_FAN_PULL_AIR, 95); //wyciagajacy
+					PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100); //wyciagajacy
 					PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70); //wciagajacy
 				}
 				else
 				{
 					//USARTx_SendString(USART_COMM, UC"fTemp < userTemp\n\r");
 					PWM_DecPercentTo(PWM_FAN_PULL_AIR, 60);
-					PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 40);
+					PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30);
 				}
-
-				flagsGlobal.increaseSpeedFlag = FALSE;
+			}
+			else
+			{
+	//			_printParam(UC"LightControl.LightingState", LightControl.LightingState);
+				PWM_SetPercent(PWM_FAN_PULL_AIR, 40);
+				PWM_SetPercent(PWM_FAN_PUSH_AIR, 20);
 			}
 		}
-		else
-		{
-//			_printParam(UC"LightControl.LightingState", LightControl.LightingState);
-			PWM_SetPercent(PWM_FAN_PULL_AIR, 50);
-			PWM_SetPercent(PWM_FAN_PUSH_AIR, 25);
-		}
+	    else if (tempControl.tempCtrlMode == TEMP_MANUAL)
+	    {
+	    	if (lastFanPull != tempControl.fanPull)
+			{
+				PWM_SetPercent(PWM_FAN_PULL_AIR, tempControl.fanPull);
+			}
+
+			if (lastFanPush != tempControl.fanPush)
+			{
+				PWM_SetPercent(PWM_FAN_PUSH_AIR, tempControl.fanPush);
+			}
+
+	    	lastFanPull = tempControl.fanPull;
+	    	lastFanPush = tempControl.fanPush;
+	    }
 	}
-    else if (tempControl.tempCtrlMode == TEMP_MANUAL)
-    {
-    	if (lastFanPull != tempControl.fanPull)
-		{
-			PWM_SetPercent(PWM_FAN_PULL_AIR, tempControl.fanPull);
-		}
-
-		if (lastFanPush != tempControl.fanPush)
-		{
-			PWM_SetPercent(PWM_FAN_PUSH_AIR, tempControl.fanPush);
-		}
-
-    	lastFanPull = tempControl.fanPull;
-    	lastFanPush = tempControl.fanPush;
-    }
 }

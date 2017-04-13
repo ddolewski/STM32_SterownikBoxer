@@ -25,8 +25,6 @@
 #define REG_PWM_PULL_AIR_FAN 				TIM3->CCR4 // wyci¹gaj¹cy powietrze TIM3_CH4 -> PB1
 #define REG_PWM_PUMP 						TIM2->CCR2 // PWM pompy TIM2_CH2 -> PA1
 
-#define ONE_PERCENT							(uint32_t)(40)
-
 typedef enum
 {
 	PWM_PUMP,
@@ -34,15 +32,23 @@ typedef enum
 	PWM_FAN_PUSH_AIR
 }pwm_dev_type_t;
 
+typedef enum
+{
+	SOFT_START_NONE,
+	SOFT_START_PUMP,
+	SOFT_START_FANS
+}softstart_t;
+
 light_state_t lastLightState;
-extern uint8_t gFansSoftStartFlag;
+extern softstart_t softStartPWM;
 
 void PWM_FansInit(void);
 void PWM_PumpInit(void);
 
+void SoftStart_Handler(void);
 void MainTimer_Handler(void);
 void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent);
-uint8_t PWM_IncPercentTo(uint8_t xPwmDev, uint32_t xPercent);
-uint8_t PWM_DecPercentTo(uint8_t xPwmDev, uint32_t xPercent);
+uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent);
+uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent);
 
 #endif /* MY_INC_BOXER_TIMERS_H_ */
