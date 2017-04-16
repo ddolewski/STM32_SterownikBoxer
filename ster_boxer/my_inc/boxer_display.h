@@ -13,9 +13,11 @@
 #include "boxer_struct.h"
 #include "string_builder.h"
 #include "timestamp.h"
-#include "hardware/LCD_KS0108/KS0108.h"
-#include "hardware/LCD_KS0108/glcd_font5x8.h"
-#include "hardware/LCD_KS0108/graphic.h"
+#include "KS0108.h"
+#include "glcd_font5x8.h"
+#include "graphic.h"
+
+volatile lcdDisplayData_t displayData;
 
 uint8_t xLastTimeOnHour;
 uint8_t xLastTimeOffHour;
@@ -27,7 +29,6 @@ float xLastSoilPh;
 char xTimeString[20];
 char xDateString[20];
 char weekDayString[20];
-
 
 void Display_Handler(void);
 #endif /* MY_INC_BOXER_DISPLAY_H_ */

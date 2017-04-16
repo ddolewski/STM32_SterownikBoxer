@@ -214,8 +214,8 @@ void FLASH_ReadLightCounters(void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void FLASH_STORAGE_TEST(void)
 {
-	flashSettings_t xBackupConfig;
 #ifdef FLASH_SAVE_TEST
+	flashSettings_t xBackupConfig;
 	xBackupConfig.backupIrrigationControl.mode = IRRIGATION_MODE_OFF;
 	xBackupConfig.backupIrrigationControl.frequency = 5;
 	xBackupConfig.backupIrrigationControl.water = 250;

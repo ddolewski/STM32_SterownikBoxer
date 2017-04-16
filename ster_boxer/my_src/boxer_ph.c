@@ -44,16 +44,10 @@ void ADC_DMA_Init(void)
 	ADC_InitTypeDef ADC_InitStructure;
 	DMA_InitTypeDef DMA_InitStructure;
 
-	/* ADC1 DeInit */
 	ADC_DeInit(ADC1);
 
-	/* ADC1 Periph clock enable */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_ADC1, ENABLE);
-
-	/* DMA1 clock enable */
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1 , ENABLE);
-
-	/* DMA1 Channel1 Config */
 	DMA_DeInit(DMA1_Channel1);
 
 	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)ADC1_DR_Address;
@@ -69,25 +63,16 @@ void ADC_DMA_Init(void)
 	DMA_InitStructure.DMA_M2M = DMA_M2M_Disable;
 	DMA_Init(DMA1_Channel1, &DMA_InitStructure);
 
-	/* DMA1 Channel1 enable */
 	DMA_Cmd(DMA1_Channel1, ENABLE);
-
-	/* DMA1 Channel1 enable transfer complete interrupt */
 	DMA_ITConfig(DMA1_Channel1, DMA_IT_TC, ENABLE);
 
 	NVIC_SetPriority(DMA1_Channel1_IRQn, 2);
 	NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
-	/* ADC DMA request in circular mode */
 	ADC_DMARequestModeConfig(ADC1, ADC_DMAMode_Circular);
-
-	/* Enable ADC_DMA */
 	ADC_DMACmd(ADC1, ENABLE);
 
-	/* Initialize ADC structure */
 	ADC_StructInit(&ADC_InitStructure);
-
-	/* Configure the ADC1 in continous mode withe a resolutuion equal to 12 bits  */
 	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
 	ADC_InitStructure.ADC_ContinuousConvMode = ENABLE;
 	ADC_InitStructure.ADC_ExternalTrigConvEdge = ADC_ExternalTrigConvEdge_None;
@@ -95,20 +80,16 @@ void ADC_DMA_Init(void)
 	ADC_InitStructure.ADC_ScanDirection = ADC_ScanDirection_Upward;
 	ADC_Init(ADC1, &ADC_InitStructure);
 
-	/* Convert the ADC1 Vref  with 55.5 Cycles as sampling time */
 	ADC_ChannelConfig(ADC1, ADC_Channel_5 , ADC_SampleTime_55_5Cycles);
 	ADC_ChannelConfig(ADC1, ADC_Channel_6 , ADC_SampleTime_55_5Cycles);
 	ADC_ChannelConfig(ADC1, ADC_Channel_Vrefint , ADC_SampleTime_55_5Cycles); //Vref
 
 	ADC_VrefintCmd(ENABLE);
-
-	/* ADC Calibration */
 	ADC_GetCalibrationFactor(ADC1);
 
-	/* Enable ADC1 */
 	ADC_Cmd(ADC1, ENABLE);
-
 	uint32_t timeout = 0xFFFFFFF;
+
 	/* Wait the ADCEN falg */
 	while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_ADEN))
     {
@@ -154,10 +135,10 @@ static void ADC_ReadCalcPh(void)
     	probeData.inWater = (float)ADC_value.water * referenceVoltage.mVFactor;
     	probeData.tempWater += probeData.inWater;
 
-    	++adcAverageMeasCounter; //todo sprawdzic czy licznik measureADCCounter faktycznie osiaga wartosc 50 probek
-    	if(adcAverageMeasCounter >= 250) //srednia z 50 pomiarow
+    	++adcAverageMeasCounter;
+    	if (adcAverageMeasCounter >= 250)
     	{
-    		probeData.inAverageSoil = (probeData.tempSoil/250);
+    		probeData.inAverageSoil  = (probeData.tempSoil/250);
     		probeData.inAverageWater = (probeData.tempWater/250);
     		adcAverageMeasCounter = 0;
     		probeData.tempSoil = 0;
@@ -306,7 +287,7 @@ void ADC_CalibrateProbes_Core(void)
 		}
 	}
 }
-
+////////////////////////////////////////////////////////////////////////////
 static void ADC_CalibrateProbess_GetFactorsFromMeasurement(pHBufferVoltage_t * xReferenceBufferVoltages, ph_factors_t * xOutPhFactors, probe_type_t xProbeType)
 {
 	float xx[3] = {0, 0, 0};
@@ -341,7 +322,6 @@ static void ADC_CalibrateProbess_GetFactorsFromMeasurement(pHBufferVoltage_t * x
 	double fac = pow(10, 2);
 	slope = round(slope*fac) / fac;
 	intercept = (sum_y - slope * sum_x)/n;
-	//reg = intercept + (slope*64);
 
 	switch (xProbeType)
 	{
@@ -359,7 +339,7 @@ static void ADC_CalibrateProbess_GetFactorsFromMeasurement(pHBufferVoltage_t * x
 			break;
 	}
 }
-
+////////////////////////////////////////////////////////////////////////////
 void PhProccess_Handler(void)
 {
 	ADC_ReadCalcPh();

@@ -7,22 +7,19 @@
 
 #include "boxer_display.h"
 
-static systime_t displayTimer = 0;
-//static float sLastWaterPh = 0;
-//static float sLastSoilPh = 0;
-
 static void Display_ShowPage(lcdDisplayData_t * display);
 static void Display_ChangePage(lcdDisplayData_t * display);
 
+static systime_t displayTimer = 0;
 static uint8_t sPhWaterUnderRange = TRUE;
 static uint8_t sPhSoilUnderRange = TRUE;
-
+////////////////////////////////////////////////////////////////////////////
 void Display_Handler(void)
 {
 	Display_ChangePage((lcdDisplayData_t*)&displayData);
 	Display_ShowPage((lcdDisplayData_t*)&displayData);
 }
-
+////////////////////////////////////////////////////////////////////////////
 static void Display_ShowPage(lcdDisplayData_t * display)
 {
 	if (!readDataFlag)
@@ -375,7 +372,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 		}
 	}
 }
-
+////////////////////////////////////////////////////////////////////////////
 static void Display_ChangePage(lcdDisplayData_t * display)
 {
 	if (display->pageCounter == 10)

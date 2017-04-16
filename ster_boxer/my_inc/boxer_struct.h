@@ -179,7 +179,7 @@ typedef struct
 {
 	irrigation_mode_t mode;
 	uint8_t frequency;
-	uint8_t water;
+	uint16_t water;
 }irrigate_control_t;
 
 //////////////////////////////////////////////////////////////////////////
@@ -246,18 +246,14 @@ typedef struct
 	uint8_t pageCounter;
 }lcdDisplayData_t;
 
-
 typedef enum
 {
 	FALSE = 0,
 	TRUE = (!FALSE)
 } bool_t;
 
-volatile lcdDisplayData_t displayData;
-volatile flag_t flagsGlobal;
 volatile light_control_t xLightControl;
 volatile light_counters_t xLightCounters;
 volatile temp_control_t tempControl;
-DS18B20Sensor_t ds18b20_1;
-DS18B20Sensor_t ds18b20_2;
+
 #endif /* MY_INC_BOXER_STRUCT_H_ */

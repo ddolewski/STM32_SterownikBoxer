@@ -1,14 +1,7 @@
 #include "global.h"
-//#include "fifo.h"
 #include "boxer_timers.h"
 #include "stm32f0xx_flash.h"
 ///////////////////////////////////////////////////////////
-// Wykorzystane peryferia:
-// USART2 - WiFi
-// ADC - pH
-// I2C1 - rtc + czujniki
-//
-
 static void PeripheralInit(void);
 
 int main(void)
@@ -120,7 +113,7 @@ static void PeripheralInit(void)
 
 	FLASH_ReadConfiguration();
 	FLASH_ReadLightCounters();
-//	FLASH_STORAGE_TEST();
+	FLASH_STORAGE_TEST();
 
 #ifndef OWIRE_OFF_MODE
 	memCopy(ds18b20_1.cROM, sensor1ROM, 8);
@@ -138,21 +131,18 @@ static void PeripheralInit(void)
 #ifndef I2C_OFF_MODE
 
 	displayData.lux = TSL2561_ReadLux(&tslError);
-    uint16_t tempWord = 0;
-    uint16_t humWord = 0;
 
-	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
-	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
+    uint16_t tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
+    uint16_t humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
 
-	humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
+	humWord  = ((uint16_t)(SHT_HumData.msb_lsb[0])  << 8) | SHT_HumData.msb_lsb[1];
 	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
 
-	displayData.tempSHT2x = SHT21_CalcTemp(tempWord);
-	displayData.humiditySHT2x = SHT21_CalcRH(humWord);
+	displayData.tempSHT2x 		= SHT21_CalcTemp(tempWord);
+	displayData.humiditySHT2x 	= SHT21_CalcRH(humWord);
 #endif
 
 	displayData.page = 1;
-	systimeDelayMs(1000);
 	GLCD_ClearScreen();
 
 	Ntp_SendRequest();

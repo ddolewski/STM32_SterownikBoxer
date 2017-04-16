@@ -11,6 +11,8 @@
 #include "string_builder.h"
 #include "fifo.h"
 
+#define RX_PIN 	GPIO_Pin_3
+#define TX_PIN	GPIO_Pin_2
 
 static void Atnel_ResetModule(void);
 
@@ -70,37 +72,19 @@ void SerialPort_Init(void)
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
 
-    /* Enable GPIO clock */
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
-
-    /* Enable USART clock */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
 
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_1);
+    GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_1);
 
-
-    /* Configure USART Tx as alternate function push-pull */
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_2;
+    GPIO_InitStructure.GPIO_Pin = TX_PIN | RX_PIN;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
-    /* Connect PXx to USARTx_Tx */
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_1);
-
-    /* Configure USART Rx as alternate function push-pull */
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_3;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_OD;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_NOPULL;
-    GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-    /* Connect PXx to USARTx_Rx */
-    GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_1);
-
-    /* USART configuration */
     USART_Init(USART2, &USART_InitStructure);
 
 	USART_ITConfig(USART2, USART_IT_TXE, DISABLE);
@@ -112,7 +96,6 @@ void SerialPort_Init(void)
 	NVIC_SetPriority(USART2_IRQn, 1);
 	NVIC_EnableIRQ(USART2_IRQn);
 
-    /* Enable USART */
     USART_Cmd(USART2, ENABLE);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -124,7 +107,6 @@ void SerialPort_PutChar(char xSendChar)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SerialPort_PutString(char * xString)
 {
-	//memset(tx_fifo.buf, 0, sizeof(&tx_fifo.buf));
 	fifo_write(&tx_fifo, xString, strlen(xString));
 	USART_ITConfig( USART2, USART_IT_TXE, ENABLE );
 }

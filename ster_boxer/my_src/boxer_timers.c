@@ -8,6 +8,9 @@
 #include "boxer_timers.h"
 #include "boxer_communication.h"
 
+#define PUMP_PIN		GPIO_Pin_1
+#define TIMER_PRESCALER	48
+
 static systime_t oneSecTimer = 0;
 static uint8_t atnelWaitCounter = 0;
 static uint8_t dataCounter = 0;
@@ -292,7 +295,7 @@ void PWM_PumpInit(void)
 
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_1;
+	GPIO_InitStructure.GPIO_Pin = PUMP_PIN;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
@@ -306,7 +309,7 @@ void PWM_PumpInit(void)
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 , ENABLE);
 
-	TIM_TimeBaseStructure.TIM_Prescaler = 0;
+	TIM_TimeBaseStructure.TIM_Prescaler = TIMER_PRESCALER;
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseStructure.TIM_Period = TimerPeriod;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
@@ -347,15 +350,12 @@ void PWM_FansInit(void)
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource0, GPIO_AF_1);
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_1);
 
-	const uint16_t prescaler = 48; // aby zmniejszyc F taktowania z 48Mhz na 1Mhz
-
 	/* Wzor do przeliczenia okresu PWM */
-	TimerPeriod = ((SystemCoreClock/prescaler) / PWM_FAN_CLK) - 1;
+	TimerPeriod = ((SystemCoreClock/TIMER_PRESCALER) / PWM_FAN_CLK) - 1;
 
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3 , ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
-	/* Time Base configuration */
-	TIM_TimeBaseStructure.TIM_Prescaler = prescaler;
+	TIM_TimeBaseStructure.TIM_Prescaler = TIMER_PRESCALER; // aby zmniejszyc F taktowania z 48Mhz na 1Mhz
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseStructure.TIM_Period = TimerPeriod;
 	TIM_TimeBaseStructure.TIM_ClockDivision = 0;

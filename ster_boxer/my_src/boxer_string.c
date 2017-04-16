@@ -68,8 +68,6 @@ void PrepareUdpString(uint32_t Lux, float humSht, float tempSht, float ds18b20Te
 	strcat(xOutString, " END");
 }
 
-
-
 void MakeDateString(char * TimeString, time_complex_t * rtc_time)
 {
     char houstr[5] = {0};
@@ -159,7 +157,6 @@ void MakeDateString(char * TimeString, time_complex_t * rtc_time)
 		strcat(TimeString,  secstr);
     }
 }
-
 //////////////////////////////////////////////////////////////////
 void displayMakeTimeString(char * TimeString, time_complex_t * xRtcTime)
 {

@@ -22,17 +22,21 @@
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="cdt.managedbuild.targetPlatform.gnu.cross.1815874362" isAbstract="false" osList="all" superClass="cdt.managedbuild.targetPlatform.gnu.cross"/>
 							<builder buildPath="${workspace_loc:/STM32_Boxer}/Debug" command="make" id="cdt.managedbuild.builder.gnu.cross.658313499" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="cdt.managedbuild.builder.gnu.cross"/>
 							<tool commandLinePattern="${COMMAND} ${FLAGS} ${OUTPUT_FLAG} ${OUTPUT_PREFIX}${OUTPUT} ${INPUTS}" id="cdt.managedbuild.tool.gnu.cross.c.compiler.1693498600" name="Cross GCC Compiler" superClass="cdt.managedbuild.tool.gnu.cross.c.compiler">
-								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.1781728216" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" value="gnu.c.optimization.level.none" valueType="enumerated"/>
+								<option defaultValue="gnu.c.optimization.level.none" id="gnu.c.compiler.option.optimization.level.1781728216" name="Optimization Level" superClass="gnu.c.compiler.option.optimization.level" useByScannerDiscovery="false" value="gnu.c.optimization.level.more" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.debugging.level.195579551" name="Debug Level" superClass="gnu.c.compiler.option.debugging.level" useByScannerDiscovery="false" value="gnu.c.debugging.level.max" valueType="enumerated"/>
 								<option id="gnu.c.compiler.option.include.paths.2002683100" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/my_inc}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/my_src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/st_inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/st_src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/startup}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/system}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/DS18B20}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/LCD_KS0108}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/PCF8563}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/SHT2x}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/TSL2561}&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.preprocessor.def.symbols.1483838921" name="Defined symbols (-D)" superClass="gnu.c.compiler.option.preprocessor.def.symbols" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="STM32F0XX"/>
@@ -59,7 +63,6 @@
 							<tool id="cdt.managedbuild.tool.gnu.cross.archiver.922995425" name="Cross GCC Archiver" superClass="cdt.managedbuild.tool.gnu.cross.archiver"/>
 							<tool id="cdt.managedbuild.tool.gnu.cross.assembler.890434360" name="Cross GCC Assembler" superClass="cdt.managedbuild.tool.gnu.cross.assembler">
 								<option id="gnu.both.asm.option.include.paths.745320029" name="Include paths (-I)" superClass="gnu.both.asm.option.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/my_inc}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/my_src}&quot;"/>
@@ -67,6 +70,11 @@
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/st_src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/startup}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/system}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/DS18B20}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/LCD_KS0108}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/PCF8563}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/SHT2x}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/ster_boxer/hardware/TSL2561}&quot;"/>
 								</option>
 								<option id="gnu.both.asm.option.flags.600281974" name="Assembler flags" superClass="gnu.both.asm.option.flags" useByScannerDiscovery="false" value="-mthumb -mcpu=cortex-m0" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.assembler.input.664486516" superClass="cdt.managedbuild.tool.gnu.assembler.input"/>

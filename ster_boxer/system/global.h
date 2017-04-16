@@ -12,9 +12,9 @@
 /* Includes ------------------------------------------------------------------*/
 // System perpipheral
 #include "system_gpio.h"
-#include "system_rcc.h"
-#include "system_exti.h"
-#include "system_timer.h"
+//#include "system_rcc.h"
+//#include "system_exti.h"
+//#include "system_timer.h"
 #include "system_flash.h"
 
 #include "boxer_ph.h"
@@ -28,10 +28,10 @@
 #include "boxer_display.h"
 
 #include "string_builder.h"
-#include "hardware/SHT2x/sht2x.h"
-#include "hardware/PCF8563/pcf8563.h"
-#include "hardware/TSL2561/tsl2561.h"
-#include "hardware/DS18B20/ds18b20.h"
+#include "sht2x.h"
+#include "pcf8563.h"
+#include "tsl2561.h"
+#include "ds18b20.h"
 #include "systime.h"
 #include "misc.h"
 
@@ -46,8 +46,6 @@
 //#define I2C_OFF_MODE
 //#define OWIRE_OFF_MODE
 //#define RTC_WRITE_TEST
-
-#define SOFTWARE_VERSION		"2.7"
 
 #define WIFI_RST_PORT			GPIOC
 #define WIFI_RST_PIN			GPIOx_Pin_3
@@ -73,42 +71,21 @@
 #define BUZZER_PORT				GPIOC
 #define BUZZER_PIN				GPIOx_Pin_11
 
-#define SYS_CLK_1MS				(uint32_t)(SystemCoreClock / 1000)
-
 #define I2C1_SCL 				GPIOx_Pin_6
 #define I2C1_SDA 				GPIOx_Pin_7
 
 #define I2C2_SCL 				GPIOx_Pin_10
 #define I2C2_SDA 				GPIOx_Pin_11
 
-#define RSTCommand 				0x01
-#define CalibrationCommand 		0x02
-#define SaveFactorsCommand 		0x03
-
-#define CHANNEL0 				0
-#define CHANNEL1 				1
-#define CHANNEL2 				2
-#define CHANNEL3 				3
-
-#define UC					(uint8_t *)
+#define UC						(uint8_t *)
 
 #define PACK_STRUCT_BEGIN
 #define PACK_STRUCT_STRUCT __attribute__ ((__packed__))
 #define PACK_STRUCT_END
 #define PACK_STRUCT_FIELD(x) x
+
 #define SIZEOF_TAB(x) (sizeof(x)/sizeof(x[0]))
 
-#define ASM_REV32	__REV
-
-#define ASM_REV16	__REV16
-
-typedef void (*fun_ptr_t)(void);
-
-#define COMMAND(NAME)  {#NAME, cmd##NAME}
-
-#define MAX(X,Y) 	((X)>(Y)?(X):(Y))
-#define MIN(X,Y) 	((X)<(Y)?(X):(Y))
-#define ABS_DIF(X,Y)(MAX(X,Y) - MIN(X,Y))
 /* Exported macro ------------------------------------------------------------*/
 #ifdef  USE_FULL_ASSERT
 
