@@ -26,7 +26,7 @@ soil_moist_t lastSoilMoistState = SOIL_UNKNOWN_STATE;
 
 static void Irrigation_WaterLevel(void);
 static void Irrigation_SoilMoisture(void);
-static uint8_t Irrigation_PumpSoftStart(bool_t xStatus);
+static uint8_t Irrigation_PumpEnable(bool_t xStatus);
 /////////////////////////////////////////////////////////////////////////////
 irrigate_control_t irrigationControl;
 void Irrigation_Handler(void)
@@ -41,11 +41,11 @@ void Irrigation_PumpControll(void)
 {
 	if (pumpOn == TRUE)
 	{
-		Irrigation_PumpSoftStart(TRUE); //slowly turn on the pump
+		Irrigation_PumpEnable(TRUE); //slowly turn on the pump
 	}
 	else
 	{
-		Irrigation_PumpSoftStart(FALSE); //slowly turn off the pump
+		Irrigation_PumpEnable(FALSE); //slowly turn off the pump
 	}
 }
 /////////////////////////////////////////////////////////////////////////////
@@ -121,7 +121,7 @@ void Irrigation_Core(void)
 	}
 }
 /////////////////////////////////////////////////////////////////////////////
-static uint8_t Irrigation_PumpSoftStart(bool_t xStatus)
+static uint8_t Irrigation_PumpEnable(bool_t xStatus)
 {
 	uint8_t ret = 0;
 

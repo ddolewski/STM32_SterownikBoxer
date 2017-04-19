@@ -197,14 +197,11 @@ void SoftStart_Handler(void)
 	{
 		if (PWM_FANSoftStart() == TRUE)
 		{
-			initFanPwm = SOFT_START_NONE;
+			initFanPwm = FALSE;
 		}
 	}
 
-	if (initPumpPwm == SOFT_START_PUMP)
-	{
-		Irrigation_PumpControll();
-	}
+	Irrigation_PumpControll();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MainTimer_Handler(void)
