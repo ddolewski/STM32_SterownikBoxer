@@ -15,12 +15,12 @@ static systime_t oneSecTimer = 0;
 static uint8_t atnelWaitCounter = 0;
 static uint8_t dataCounter = 0;
 static uint16_t TimerPeriod = 0;
-softstart_t softStartPWM = SOFT_START_NONE;
+bool_t initFanPwm = FALSE;
 
 static void Lightning_Core(void);
 static uint32_t PWM_PercentToRegister(uint8_t xPercent);
 static uint8_t PWM_FANSoftStart(void);
-static uint8_t PWM_PumpSoftStart(void);
+
 
 //bool_t ntpSyncProccess = FALSE;
 //#ifdef NTP_DEBUG
@@ -31,7 +31,7 @@ static uint8_t PWM_PumpSoftStart(void);
 //#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
+uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_speed_t xSpeed)
 {
 	uint8_t ret = 0;
 	uint8_t power = 100 - xPercent;
@@ -78,7 +78,7 @@ uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 	return ret;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
+uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_speed_t xSpeed)
 {
 	uint8_t ret = 0;
 	uint8_t power = 100 - xPercent;
@@ -87,7 +87,19 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 		case PWM_PUMP:
 			if (REG_PWM_PUMP > PWM_PercentToRegister(power))
 			{
-				REG_PWM_PUMP -= 1;
+				switch (xSpeed)
+				{
+				case PWM_CHANGE_FAST:
+					REG_PWM_PUMP -= 10;
+					break;
+
+				case PWM_CHANGE_SLOW:
+					REG_PWM_PUMP -= 1;
+					break;
+
+				default:
+					break;
+				}
 			}
 			else
 			{
@@ -98,7 +110,19 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 		case PWM_FAN_PULL_AIR:
 			if (REG_PWM_PULL_AIR_FAN > PWM_PercentToRegister(power))
 			{
-				REG_PWM_PULL_AIR_FAN -= 1;
+				switch (xSpeed)
+				{
+				case PWM_CHANGE_FAST:
+					REG_PWM_PULL_AIR_FAN -= 10;
+					break;
+
+				case PWM_CHANGE_SLOW:
+					REG_PWM_PULL_AIR_FAN -= 1;
+					break;
+
+				default:
+					break;
+				}
 			}
 			else
 			{
@@ -109,7 +133,19 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 		case PWM_FAN_PUSH_AIR:
 			if (REG_PWM_PUSH_AIR_FAN > PWM_PercentToRegister(power))
 			{
-				REG_PWM_PUSH_AIR_FAN -= 1;
+				switch (xSpeed)
+				{
+				case PWM_CHANGE_FAST:
+					REG_PWM_PUSH_AIR_FAN -= 10;
+					break;
+
+				case PWM_CHANGE_SLOW:
+					REG_PWM_PUSH_AIR_FAN -= 1;
+					break;
+
+				default:
+					break;
+				}
 			}
 			else
 			{
@@ -120,24 +156,6 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 			break;
 	}
 	return ret;
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent)
-{
-	switch (xPwmDev)
-	{
-		case PWM_PUMP:
-			REG_PWM_PUMP = PWM_PercentToRegister(xPercent); // pompa
-			break;
-
-		case PWM_FAN_PULL_AIR:
-			REG_PWM_PULL_AIR_FAN = PWM_PercentToRegister(xPercent); // wentylator wyciągający powietrze
-			break;
-
-		case PWM_FAN_PUSH_AIR:
-			REG_PWM_PUSH_AIR_FAN = PWM_PercentToRegister(xPercent); // wentylator wciągający powietrze
-			break;
-	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static uint32_t PWM_PercentToRegister(uint8_t xPercent)
@@ -175,20 +193,17 @@ static uint32_t PWM_PercentToRegister(uint8_t xPercent)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void SoftStart_Handler(void)
 {
-	if (softStartPWM == SOFT_START_FANS)
+	if (initFanPwm == TRUE)
 	{
 		if (PWM_FANSoftStart() == TRUE)
 		{
-			softStartPWM = SOFT_START_NONE;
+			initFanPwm = SOFT_START_NONE;
 		}
 	}
 
-	if (softStartPWM == SOFT_START_PUMP)
+	if (initPumpPwm == SOFT_START_PUMP)
 	{
-		if (PWM_PumpSoftStart() == TRUE)
-		{
-			softStartPWM = SOFT_START_NONE;
-		}
+		Irrigation_PumpControll();
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -305,7 +320,7 @@ void PWM_PumpInit(void)
 	GPIO_PinAFConfig(GPIOA, GPIO_PinSource1, GPIO_AF_2);
 
 	/* Wzor do przeliczenia okresu PWM */
-	TimerPeriod = (SystemCoreClock / PWM_FAN_CLK) - 1;
+	TimerPeriod = (SystemCoreClock / PWM_FAN_FREQ) - 1;
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM2 , ENABLE);
 
@@ -351,7 +366,7 @@ void PWM_FansInit(void)
 	GPIO_PinAFConfig(GPIOB, GPIO_PinSource1, GPIO_AF_1);
 
 	/* Wzor do przeliczenia okresu PWM */
-	TimerPeriod = ((SystemCoreClock/TIMER_PRESCALER) / PWM_FAN_CLK) - 1;
+	TimerPeriod = ((SystemCoreClock/TIMER_PRESCALER) / PWM_FAN_FREQ) - 1;
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
 
@@ -381,7 +396,7 @@ void PWM_FansInit(void)
 	TIM_CtrlPWMOutputs(TIM3, ENABLE);
 	TIM_Cmd(TIM3, ENABLE);
 
-	softStartPWM = SOFT_START_FANS;
+	initFanPwm = TRUE;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static uint8_t PWM_FANSoftStart(void)
@@ -393,15 +408,15 @@ static uint8_t PWM_FANSoftStart(void)
 	switch (tempControl.tempCtrlMode)
 	{
 	case TEMP_MANUAL:
-		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull);
-		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush);
+		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull, PWM_CHANGE_SLOW);
+		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush, PWM_CHANGE_SLOW);
 		lastPullPWM = tempControl.fanPull;
 		lastPushPWM = tempControl.fanPush;
 		break;
 
 	case TEMP_AUTO:
-		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, 60);
-		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30);
+		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, 60, PWM_CHANGE_SLOW);
+		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30, PWM_CHANGE_SLOW);
 		lastPullPWM = 60;
 		lastPushPWM = 30;
 		break;
@@ -414,13 +429,6 @@ static uint8_t PWM_FANSoftStart(void)
 	{
 		ret = 1;
 	}
-
-	return ret;
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static uint8_t PWM_PumpSoftStart(void)
-{
-	uint8_t ret = 0;
 
 	return ret;
 }

@@ -68,7 +68,7 @@ static void PeripheralInit(void)
 #endif
 
 	PWM_FansInit();
-	//PWM_PumpInit();
+	PWM_PumpInit();
 
     ADC_DMA_Init();
 
@@ -141,6 +141,8 @@ static void PeripheralInit(void)
 	displayData.tempSHT2x 		= SHT21_CalcTemp(tempWord);
 	displayData.humiditySHT2x 	= SHT21_CalcRH(humWord);
 #endif
+
+	Irrigation_CheckSoilMoisture();
 
 	displayData.page = 1;
 	GLCD_ClearScreen();

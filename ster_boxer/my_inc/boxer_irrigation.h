@@ -17,5 +17,7 @@ extern irrigate_control_t irrigationControl;
 
 void Irrigation_Core(void);
 void Irrigation_Handler(void);
+void Irrigation_PumpControll(void);
+void Irrigation_CheckSoilMoisture(void);
 
 #endif /* MY_INC_BOXER_IRRIGATION_H_ */

@@ -8,62 +8,50 @@
 #include "boxer_irrigation.h"
 #include "boxer_timers.h"
 
+const uint32_t SOIL_MEASURE_TIMEOUT = 300000;
+const uint32_t DAY_IN_SEC = 86400;
+
 static systime_t waterLvlCheckTimer = 0;
 static systime_t softStartTimer = 0;
 static systime_t soilMoistTimer = 0;
 static uint32_t SecondIrr;
 static uint8_t DayIrr;
-static uint8_t pumpCounter;
-static uint8_t flagTurnOnPump;
-static uint8_t flagSoftStartOff;
-static uint8_t WaterToSecond;
+
+
+static bool_t pumpOn = FALSE;
+
+
 soil_moist_t soilMoisture = SOIL_UNKNOWN_STATE;
 soil_moist_t lastSoilMoistState = SOIL_UNKNOWN_STATE;
 
 static void Irrigation_WaterLevel(void);
-static void Irrigation_PumpControll(void);
-static void Irrigation_SoilMoisture_Handler(void);
+static void Irrigation_SoilMoisture(void);
 static uint8_t Irrigation_PumpSoftStart(bool_t xStatus);
 /////////////////////////////////////////////////////////////////////////////
 irrigate_control_t irrigationControl;
 void Irrigation_Handler(void)
 {
-//	Irrigation_PumpControll();
-//	Irrigation_WaterLevel();
-	Irrigation_SoilMoisture_Handler();
+	Irrigation_PumpControll();
+	Irrigation_WaterLevel();
+	Irrigation_SoilMoisture();
+	Irrigation_Core();
 }
 /////////////////////////////////////////////////////////////////////////////
-static void Irrigation_PumpControll(void)
+void Irrigation_PumpControll(void)
 {
-	if (flagTurnOnPump == 1)
+	if (pumpOn == TRUE)
 	{
-		if (pumpCounter == WaterToSecond)
-		{
-			flagSoftStartOff = 1;
-			WaterToSecond = 0;
-		}
-
-		if (flagSoftStartOff)
-		{
-			uint8_t state = Irrigation_PumpSoftStart(FALSE);
-
-			if (state)
-			{
-				flagTurnOnPump = 0;
-				pumpCounter = 0;
-				flagSoftStartOff = 0;
-			}
-		}
-		else
-		{
-			Irrigation_PumpSoftStart(TRUE);
-		}
+		Irrigation_PumpSoftStart(TRUE); //slowly turn on the pump
+	}
+	else
+	{
+		Irrigation_PumpSoftStart(FALSE); //slowly turn off the pump
 	}
 }
 /////////////////////////////////////////////////////////////////////////////
 static void Irrigation_WaterLevel(void)
 {
-	if (systimeTimeoutControl(&waterLvlCheckTimer, 250))
+	if (systimeTimeoutControl(&waterLvlCheckTimer, 1000))
 	{
 		if (GPIOx_ReadInputPin(WATER_LEVEL_PORT, WATER_LEVEL_PIN))
 		{
@@ -78,97 +66,92 @@ static void Irrigation_WaterLevel(void)
 	}
 }
 /////////////////////////////////////////////////////////////////////////////
-static void Irrigation_SoilMoisture_Handler(void)
+static void Irrigation_SoilMoisture(void)
 {
-	if (systimeTimeoutControl(&soilMoistTimer, 60000))
+	if (systimeTimeoutControl(&soilMoistTimer, SOIL_MEASURE_TIMEOUT)) //co 5 min
 	{
-		//wlaczam na chwile +5V na sonde i robie pomiar wilgotnosci
-		//po wykonanym pomiarze wylaczam sonde aby nie rdzewiala
-		GPIOx_SetPin(SOIL_MOIST_EN, SOIL_MOIST_EN_PIN);
-		systimeDelayMs(50);
-		lastSoilMoistState = soilMoisture;
-		if (GPIOx_ReadInputPin(SOIL_MOIST_PORT, SOIL_MOIST_PIN)) //stan wysoki
-		{
-			soilMoisture = SOIL_DRY;
-		}
-		else
-		{
-			soilMoisture = SOIL_WET;
-		}
-
-		GPIOx_ResetPin(SOIL_MOIST_EN, SOIL_MOIST_EN_PIN);
+		Irrigation_CheckSoilMoisture();
 	}
 }
 /////////////////////////////////////////////////////////////////////////////
 void Irrigation_Core(void)
 {
-	if (flagTurnOnPump != 1)
+	if (pumpOn == FALSE)
 	{
 		switch (irrigationControl.mode)
 		{
 			case IRRIGATION_MODE_AUTO_TIME:
-				SecondIrr++;			// increment seconds
-				if(SecondIrr == 86400)	// 24 * 3600s = 1 day [s]
+				if (irrigationControl.frequency != 0)
 				{
-					DayIrr++;			// increment days
-					SecondIrr = 0;		// clear seconds
-					if (irrigationControl.frequency == DayIrr)
+					SecondIrr++;
+					if(SecondIrr == DAY_IN_SEC)	// 24 * 3600s = 1 day [s]
 					{
-						WaterToSecond = (irrigationControl.water*10)/100; // iloœæ w ml / 100ml (1s) np.
-						flagTurnOnPump = 1;
-						flagSoftStartOff = 0;
-						DayIrr = 0;	// clear days
+						DayIrr++;
+						SecondIrr = 0;
+						if (irrigationControl.frequency == DayIrr)
+						{
+							pumpOn = TRUE;
+							DayIrr = 0;
+							SecondIrr = 0;
+						}
 					}
 				}
 			break;
 
-//			case IRRIGATION_MODE_AUTO_SOIL:
-//				if (soilMoisture == SOIL_WET || soilMoisture == SOIL_UNKNOWN_STATE) //stan wysoki
-//				{
-//					flagTurnOnPump = 0;
-//					flagSoftStartOff = 0;
-//				}
-//				else
-//				{
-//					WaterToSecond = (irrigationControl.water*10)/100; //todo iloœæ w ml / 100ml (1s) np.
-//					flagTurnOnPump = 1;
-//				}
-//			break;
+			case IRRIGATION_MODE_AUTO_SOIL:
+				if (soilMoisture == SOIL_WET || soilMoisture == SOIL_UNKNOWN_STATE) //stan wysoki
+				{
+					pumpOn = FALSE;
+				}
+				else
+				{
+					pumpOn = TRUE;
+				}
+			break;
 
 			case IRRIGATION_MODE_MANUAL:
-				flagTurnOnPump = 1;
-				flagSoftStartOff = 0;
-				irrigationControl.mode = 0;
+				pumpOn = TRUE;
+				irrigationControl.mode = IRRIGATION_MODE_OFF;
 			break;
 
 			default:
 				irrigationControl.mode = IRRIGATION_MODE_OFF;
-				flagSoftStartOff = 0;
-				flagTurnOnPump = 0;
 				break;
 		}
-	}
-
-	if (flagTurnOnPump == 1 && flagSoftStartOff != 1)
-	{
-		pumpCounter++;
 	}
 }
 /////////////////////////////////////////////////////////////////////////////
 static uint8_t Irrigation_PumpSoftStart(bool_t xStatus)
 {
 	uint8_t ret = 0;
-	if (systimeTimeoutControl(&softStartTimer, 20))
+
+	if (xStatus)
 	{
-		if (xStatus)
-		{
-			ret = PWM_IncPercentTo(PWM_PUMP, 95);
-		}
-		else
-		{
-			ret = PWM_DecPercentTo(PWM_PUMP, 0);
-		}
+		ret = PWM_IncPercentTo(PWM_PUMP, 100, PWM_CHANGE_FAST);
+	}
+	else
+	{
+		ret = PWM_DecPercentTo(PWM_PUMP, 0, PWM_CHANGE_FAST);
 	}
 
 	return ret;
+}
+
+void Irrigation_CheckSoilMoisture(void)
+{
+	//wlaczam na chwile +5V na sonde i robie pomiar wilgotnosci
+	//po wykonanym pomiarze wylaczam sonde aby nie rdzewiala
+	GPIOx_SetPin(SOIL_MOIST_EN, SOIL_MOIST_EN_PIN);
+	systimeDelayMs(10);
+	lastSoilMoistState = soilMoisture;
+	if (GPIOx_ReadInputPin(SOIL_MOIST_PORT, SOIL_MOIST_PIN)) //stan wysoki
+	{
+		soilMoisture = SOIL_DRY;
+	}
+	else
+	{
+		soilMoisture = SOIL_WET;
+	}
+
+	GPIOx_ResetPin(SOIL_MOIST_EN, SOIL_MOIST_EN_PIN);
 }
