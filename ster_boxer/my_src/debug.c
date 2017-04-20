@@ -28,11 +28,11 @@ void DEBUG_Init(void)
 	DMA_DeInit(DMA1_Channel2);
 	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&USART1->TDR;
 	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&DebugBuffer;
-	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralSRC;
+	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
 	DMA_InitStructure.DMA_BufferSize = DEBUG_BUFF_SIZE;
 	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
 	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_HalfWord;
+	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
 	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
 	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
 	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
@@ -45,6 +45,10 @@ void DEBUG_Init(void)
 	NVIC_SetPriority(DMA1_Channel2_3_IRQn, 1); //to samo co uart2
 	NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
+    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2ENR_USART1EN, ENABLE);
+    RCC_USARTCLKConfig(RCC_USART1CLK_SYSCLK);
+
     USART_InitStructure.USART_BaudRate = 230400;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
     USART_InitStructure.USART_StopBits = USART_StopBits_1;
@@ -52,13 +56,6 @@ void DEBUG_Init(void)
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode = USART_Mode_Tx;
 
-    /* Enable GPIO clock */
-    RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
-
-    /* Enable USART clock */
-    RCC_APB2PeriphClockCmd(RCC_APB2ENR_USART1EN, ENABLE);
-//    RCC_USARTCLKConfig(RCC_USART1CLK_SYSCLK);
-    RCC_USARTCLKConfig(RCC_USART1CLK_SYSCLK);
     /* Connect PXx to USARTx_Tx */
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_0);
 
@@ -69,7 +66,6 @@ void DEBUG_Init(void)
     GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
     GPIO_Init(GPIOB, &GPIO_InitStructure);
 
-    /* USART configuration */
     USART_Init(USART1, &USART_InitStructure);
 
 //	NVIC_SetPriority(USART1_IRQn, 3);
@@ -80,7 +76,7 @@ void DEBUG_Init(void)
 
 }
 
-void DMA1_Channel2_IRQHandler(void)
+void DMA1_Channel2_3_IRQnHandler(void)
 {
 	/* Test on DMA Transfer Complete interrupt */
 	if (DMA_GetITStatus(DMA1_IT_TC2) != RESET)
