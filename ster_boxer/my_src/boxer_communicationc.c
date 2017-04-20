@@ -14,7 +14,7 @@
 #define RX_PIN 	GPIO_Pin_3
 #define TX_PIN	GPIO_Pin_2
 
-static void Atnel_ResetModule(void);
+
 
 volatile char RxBuffer[RX_BUFF_SIZE] = {0};
 volatile fifo_t rx_fifo;
@@ -23,7 +23,7 @@ volatile char TxBuffer[TX_BUFF_SIZE] = {0};
 volatile fifo_t tx_fifo;
 
 static atnel_init_state_t atnelInitProccess = ATNEL_UNINITIALISE;
-atnel_mode_t atnel_Mode = ATNEL_MODE_UNKNOWN;//ATNEL_MODE_TRANSPARENT;
+atnel_mode_t atnel_Mode = ATNEL_MODE_TRANSPARENT;//ATNEL_MODE_UNKNOWN;
 
 atnel_at_cmd_resp_t atnel_AtCmdRespType = AT_NONE_RESP;
 atnel_at_cmd_req_t atnel_AtCmdReqType = AT_NONE_REQ;
@@ -50,7 +50,7 @@ void Atnel_SetTransparentMode(void)
 //#endif
 	atnel_Mode = ATNEL_MODE_TRANSPARENT;
 	atnelInitProccess = ATNEL_UNINITIALISE;
-	fifo_flush(&rx_fifo);
+//	fifo_flush(&rx_fifo);
 	memset(recvstr, 0, RX_BUFF_SIZE);
 	atnel_wait_change_mode = FALSE;
 	ntpSyncProccess = FALSE;
@@ -273,7 +273,7 @@ void TransmitSerial_Handler(void)
 		}
 		break;
 	default:
-		DEBUG_SendString("Nieznany tryb atnel wifi\n\r");
+//		DEBUG_SendString("Nieznany tryb atnel wifi\n\r");
 		break;
 	}
 }
@@ -295,6 +295,7 @@ void ReceiveSerial_Handler(void)
 					DEBUG_SendString("recv 'a'\r\n");
 
 					memset(recvstr, 0, RX_BUFF_SIZE);
+					fifo_flush(&rx_fifo);
 				}
 			}
 			else if (atnelInitProccess == ATNEL_SEND_A)
@@ -307,6 +308,7 @@ void ReceiveSerial_Handler(void)
 					atnelInitProccess = ATNEL_INIT_DONE;
 					DEBUG_SendString("recv +ok\r\n");
 					memset(recvstr, 0, RX_BUFF_SIZE);
+					fifo_flush(&rx_fifo);
 				}
 			}
 			else if (atnelInitProccess == ATNEL_INIT_DONE)
@@ -376,6 +378,7 @@ void ReceiveSerial_Handler(void)
 							atnel_AtCmdReqType = AT_ENTM_REQ;
 							atnel_AtCmdRespType = AT_NONE_RESP;
 							memset(recvstr, 0, RX_BUFF_SIZE);
+							fifo_flush(&rx_fifo);
 							ntp_resp_wait = FALSE;
 						}
 					}
@@ -394,6 +397,7 @@ void ReceiveSerial_Handler(void)
 						atnel_AtCmdRespType = AT_NONE_RESP;
 						atnel_wait_change_mode = TRUE;
 						memset(recvstr, 0, RX_BUFF_SIZE);
+						fifo_flush(&rx_fifo);
 					}
 
 					break;
@@ -410,175 +414,181 @@ void ReceiveSerial_Handler(void)
 			{
 				append(recvstr, recvChar);
 				char * startStrAddr  = strstr(recvstr, "STA");
-				char * endStrAddr    = strstr(recvstr, "END");
-
 				DEBUG_SendString(recvstr);
 				DEBUG_SendString("\r\n");
 
 //				DEBUG_SendString(rx_fifo.buf);
 //				DEBUG_SendString("\r\n");
 
-				if ((startStrAddr != NULL) && (endStrAddr != NULL))
+				if (startStrAddr != NULL)
 				{
-					char ReceivedString [8][32] = {0};
-					char * splitStr = 0;
-					int i = 0;
-					splitStr = strtok (recvstr, " ");
-					strcpy(ReceivedString[i], splitStr);
-
-//					DEBUG_SendString(recvstr);
-
-					while (splitStr != NULL)
+					char * endStrAddr    = strstr(recvstr, "END");
+					if (endStrAddr != NULL)
 					{
-						if (i < RX_BUFF_SIZE)
-						{
-							i++;
-						}
-						else
-						{
-							break;
-						}
-
-						splitStr = strtok (NULL, " ");
+						char ReceivedString [8][32] = {0};
+						char * splitStr = 0;
+						int i = 0;
+						splitStr = strtok (recvstr, " ");
 						strcpy(ReceivedString[i], splitStr);
-					}
 
-					if (strcmp(ReceivedString[0], "STA") == 0) //start frame preffix
-					{
-						DEBUG_SendString("STA recv\n\r");
-						if (strcmp(ReceivedString[1], "SL") == 0) //set lamp frame command
+						DEBUG_SendString(recvstr);
+
+						while (splitStr != NULL)
 						{
-							DEBUG_SendString("SL recv\n\r");
-							if (strcmp(ReceivedString[5], "END") == 0) //end frame suffix
+							if (i < RX_BUFF_SIZE)
 							{
-								DEBUG_SendString("END recv\n\r");
-								memset(recvstr, 0, RX_BUFF_SIZE);
+								i++;
+							}
+							else
+							{
+								break;
+							}
 
-								char timeOn   = atoi(ReceivedString[2]);
-								char timeOff  = atoi(ReceivedString[3]);
-								char newState = *ReceivedString[4];
+							splitStr = strtok (NULL, " ");
+							strcpy(ReceivedString[i], splitStr);
+						}
 
-								if (timeOn + timeOff == 24)
+						if (strcmp(ReceivedString[0], "STA") == 0) //start frame preffix
+						{
+							DEBUG_SendString("STA recv\n\r");
+							if (strcmp(ReceivedString[1], "SL") == 0) //set lamp frame command
+							{
+								DEBUG_SendString("SL recv\n\r");
+								if (strcmp(ReceivedString[5], "END") == 0) //end frame suffix
 								{
-									xLastTimeOnHour  = xLightControl.timeOnHours;
-									xLastTimeOffHour = xLightControl.timeOffHours;
-									xLightControl.timeOnHours  = (uint8_t)timeOn;
-									xLightControl.timeOffHours = (uint8_t)timeOff;
+									DEBUG_SendString("END recv\n\r");
+									memset(recvstr, 0, RX_BUFF_SIZE);
+									fifo_flush(&rx_fifo);
 
-									light_state_t tempLightState = xLightControl.lightingState;
-									xLightControl.lightingState  = newState;
+									char timeOn   = atoi(ReceivedString[2]);
+									char timeOff  = atoi(ReceivedString[3]);
+									char newState = *ReceivedString[4];
 
-									// jesli nowy stan lampy jest inny od poprzedniego to skasuj liczniki (nowy stan)
-									if (tempLightState != xLightControl.lightingState)
+									if (timeOn + timeOff == 24)
 									{
-										xLightCounters.counterHours   = 0;
-										xLightCounters.counterSeconds = 0;
+										xLastTimeOnHour  = xLightControl.timeOnHours;
+										xLastTimeOffHour = xLightControl.timeOffHours;
+										xLightControl.timeOnHours  = (uint8_t)timeOn;
+										xLightControl.timeOffHours = (uint8_t)timeOff;
+
+										light_state_t tempLightState = xLightControl.lightingState;
+										xLightControl.lightingState  = newState;
+
+										// jesli nowy stan lampy jest inny od poprzedniego to skasuj liczniki (nowy stan)
+										if (tempLightState != xLightControl.lightingState)
+										{
+											xLightCounters.counterHours   = 0;
+											xLightCounters.counterSeconds = 0;
+										}
+
+										if (timeOn == 24 || timeOff == 24)
+										{
+											xLightCounters.counterHours   = 0;
+											xLightCounters.counterSeconds = 0;
+										}
+
+										FLASH_SaveConfiguration();
 									}
-
-									if (timeOn == 24 || timeOff == 24)
-									{
-										xLightCounters.counterHours   = 0;
-										xLightCounters.counterSeconds = 0;
-									}
-
-									FLASH_SaveConfiguration();
 								}
 							}
-						}
-						else if (strcmp(ReceivedString[1], "ST") == 0) //set temp frame command
-						{
-							DEBUG_SendString("ST recv\n\r");
-							if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
+							else if (strcmp(ReceivedString[1], "ST") == 0) //set temp frame command
 							{
-								memset(recvstr, 0, RX_BUFF_SIZE);
-
-								uint8_t temp = atoi( ReceivedString[2] );
-
-								tempControl.tempCtrlMode = TEMP_AUTO;
-								if (tempControl.userTemp >= TEMP_MIN && tempControl.userTemp <= TEMP_MAX)
-								{
-									tempControl.userTemp = temp;
-									FLASH_SaveConfiguration();
-								}
-							}
-						}
-						else if (strcmp(ReceivedString[1], "SF") == 0) //set fans frame command
-						{
-							DEBUG_SendString("SF recv\n\r");
-							if (strcmp(ReceivedString[4], "END") == 0) //end frame suffix
-							{
-								memset(recvstr, 0, RX_BUFF_SIZE);
-								uint8_t isProper = TRUE;
-								uint8_t fanPull = atoi( ReceivedString[2] );
-								uint8_t fanPush = atoi( ReceivedString[3] );
-
-								tempControl.tempCtrlMode = TEMP_MANUAL;
-
-								if ( (fanPull >= PWM_MIN_PERCENT && fanPull <= PWM_MAX_PERCENT) &&
-									 (fanPush >= PWM_MIN_PERCENT && fanPush <= PWM_MAX_PERCENT) )
-								{
-									tempControl.fanPull = fanPull;
-									tempControl.fanPush = fanPush;
-								}
-								else
-								{
-									isProper = FALSE;
-								}
-
-								if (isProper == TRUE)
-								{
-									FLASH_SaveConfiguration();
-								}
-							}
-						}
-						else if (strcmp(ReceivedString[1], "CP") == 0) //set calibrate probe command
-						{
-							DEBUG_SendString("CP recv\n\r");
-							if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
-							{
-								memset(recvstr, 0, RX_BUFF_SIZE);
-
-								uint8_t probeType = atoi( ReceivedString[2] );
-								calibrateFlags.probeType = (probe_type_t)probeType;
-								calibrateFlags.processActive = TRUE;
-								calibrateFlags.turnOnBuzzer = TRUE;
-								calibrateFlags.toggleBuzzerState = TRUE;
-							}
-						}
-						else if (strcmp(ReceivedString[1], "SI") == 0) //set temp frame command
-						{
-							DEBUG_SendString("SI recv\n\r");
-							if (strcmp(ReceivedString[5], "END") == 0) //end frame suffix
-							{
-								memset(recvstr, 0, RX_BUFF_SIZE);
-
-	//							irrigationControl.mode = (irrigation_mode_t)ReceivedString[2];
-	//							irrigationControl.frequency = (uint8_t)ReceivedString[3];
-	//							irrigationControl.water = (uint8_t)ReceivedString[4];
-	//
-	//							FLASH_SaveConfiguration();
-							}
-						}
-						else if (strcmp(ReceivedString[1], "R") == 0) //reset frame command
-						{
-							DEBUG_SendString("Reset recv\n\r");
-							if (strcmp(ReceivedString[2], "END") == 0) //end frame suffix
-							{
-								memset(recvstr, 0, RX_BUFF_SIZE);
-								MISC_ResetARM();
-							}
-						}
-						else if (strcmp(ReceivedString[1], "DEF") == 0) //default first command word
-						{
-							DEBUG_SendString("DEF recv\n\r");
-							if (strcmp(ReceivedString[2], "SETT") == 0) //settings second command word
-							{
+								DEBUG_SendString("ST recv\n\r");
 								if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
 								{
 									memset(recvstr, 0, RX_BUFF_SIZE);
-									FLASH_RestoreDefaultConfig();
-									FLASH_ClearLightState();
+									fifo_flush(&rx_fifo);
+									uint8_t temp = atoi( ReceivedString[2] );
+
+									tempControl.tempCtrlMode = TEMP_AUTO;
+									if (tempControl.userTemp >= TEMP_MIN && tempControl.userTemp <= TEMP_MAX)
+									{
+										tempControl.userTemp = temp;
+										FLASH_SaveConfiguration();
+									}
+								}
+							}
+							else if (strcmp(ReceivedString[1], "SF") == 0) //set fans frame command
+							{
+								DEBUG_SendString("SF recv\n\r");
+								if (strcmp(ReceivedString[4], "END") == 0) //end frame suffix
+								{
+									memset(recvstr, 0, RX_BUFF_SIZE);
+									fifo_flush(&rx_fifo);
+									uint8_t isProper = TRUE;
+									uint8_t fanPull = atoi( ReceivedString[2] );
+									uint8_t fanPush = atoi( ReceivedString[3] );
+
+									tempControl.tempCtrlMode = TEMP_MANUAL;
+
+									if ( (fanPull >= PWM_MIN_PERCENT && fanPull <= PWM_MAX_PERCENT) &&
+										 (fanPush >= PWM_MIN_PERCENT && fanPush <= PWM_MAX_PERCENT) )
+									{
+										tempControl.fanPull = fanPull;
+										tempControl.fanPush = fanPush;
+									}
+									else
+									{
+										isProper = FALSE;
+									}
+
+									if (isProper == TRUE)
+									{
+										FLASH_SaveConfiguration();
+									}
+								}
+							}
+							else if (strcmp(ReceivedString[1], "CP") == 0) //set calibrate probe command
+							{
+								DEBUG_SendString("CP recv\n\r");
+								if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
+								{
+									memset(recvstr, 0, RX_BUFF_SIZE);
+									fifo_flush(&rx_fifo);
+									uint8_t probeType = atoi( ReceivedString[2] );
+									calibrateFlags.probeType = (probe_type_t)probeType;
+									calibrateFlags.processActive = TRUE;
+									calibrateFlags.turnOnBuzzer = TRUE;
+									calibrateFlags.toggleBuzzerState = TRUE;
+								}
+							}
+							else if (strcmp(ReceivedString[1], "SI") == 0) //set temp frame command
+							{
+								DEBUG_SendString("SI recv\n\r");
+								if (strcmp(ReceivedString[5], "END") == 0) //end frame suffix
+								{
+									memset(recvstr, 0, RX_BUFF_SIZE);
+									fifo_flush(&rx_fifo);
+		//							irrigationControl.mode = (irrigation_mode_t)ReceivedString[2];
+		//							irrigationControl.frequency = (uint8_t)ReceivedString[3];
+		//							irrigationControl.water = (uint8_t)ReceivedString[4];
+		//
+		//							FLASH_SaveConfiguration();
+								}
+							}
+							else if (strcmp(ReceivedString[1], "R") == 0) //reset frame command
+							{
+								DEBUG_SendString("Reset recv\n\r");
+								if (strcmp(ReceivedString[2], "END") == 0) //end frame suffix
+								{
+									memset(recvstr, 0, RX_BUFF_SIZE);
+									fifo_flush(&rx_fifo);
 									MISC_ResetARM();
+								}
+							}
+							else if (strcmp(ReceivedString[1], "DEF") == 0) //default first command word
+							{
+								DEBUG_SendString("DEF recv\n\r");
+								if (strcmp(ReceivedString[2], "SETT") == 0) //settings second command word
+								{
+									if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
+									{
+										memset(recvstr, 0, RX_BUFF_SIZE);
+										fifo_flush(&rx_fifo);
+										FLASH_RestoreDefaultConfig();
+										FLASH_ClearLightState();
+										MISC_ResetARM();
+									}
 								}
 							}
 						}
@@ -589,16 +599,11 @@ void ReceiveSerial_Handler(void)
 			break;
 
 		default:
-			atnel_Mode = ATNEL_MODE_UNKNOWN;
+//			atnel_Mode = ATNEL_MODE_UNKNOWN;
 			break;
 		}
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void Atnel_ResetModule(void)
-{
-	GPIOx_ResetPin(WIFI_RST_PORT, WIFI_RST_PIN);
-	systimeDelayMs(3500);
-	GPIOx_SetPin(WIFI_RST_PORT, WIFI_RST_PIN);
-}
+

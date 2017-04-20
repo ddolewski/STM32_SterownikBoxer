@@ -74,7 +74,7 @@ uint16_t SHT21_MeasureTempCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSt
 		}
 	}
 
-	TimeOut = 10000;
+	TimeOut = 100000;
 	SHT_TempData.msb_lsb[1] = I2C_ReceiveData(I2Cx);
 
 	I2C_GenerateSTOP(I2Cx, ENABLE);

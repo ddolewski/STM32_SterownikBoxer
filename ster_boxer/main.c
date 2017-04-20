@@ -3,6 +3,7 @@
 #include "stm32f0xx_flash.h"
 ///////////////////////////////////////////////////////////
 static void PeripheralInit(void);
+static void Atnel_ResetModule(void);
 
 int main(void)
 {
@@ -121,7 +122,7 @@ static void PeripheralInit(void)
 
 	initializeConversion(&ds18b20_1);
 	initializeConversion(&ds18b20_2);
-	systimeDelayMs(1000);
+	systimeDelayMs(800);
 	readTemperature(&ds18b20_1);
 	displayData.tempDS18B20_1_t = ds18b20_1.fTemp;
 	readTemperature(&ds18b20_2);
@@ -131,9 +132,11 @@ static void PeripheralInit(void)
 #ifndef I2C_OFF_MODE
 
 	displayData.lux = TSL2561_ReadLux(&tslError);
+	uint16_t tempWord = 0;
+	uint16_t humWord = 0;
 
-    uint16_t tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
-    uint16_t humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
+//    tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
+//    humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
 
 	humWord  = ((uint16_t)(SHT_HumData.msb_lsb[0])  << 8) | SHT_HumData.msb_lsb[1];
 	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
@@ -145,8 +148,17 @@ static void PeripheralInit(void)
 	Irrigation_CheckSoilMoisture();
 
 	displayData.page = 1;
+//	Atnel_ResetModule();
 	GLCD_ClearScreen();
 
 	Ntp_SendRequest();
+
 	peripheralsInit = TRUE;
+}
+
+static void Atnel_ResetModule(void)
+{
+	GPIOx_ResetPin(WIFI_RST_PORT, WIFI_RST_PIN);
+	systimeDelayMs(4000);
+	GPIOx_SetPin(WIFI_RST_PORT, WIFI_RST_PIN);
 }

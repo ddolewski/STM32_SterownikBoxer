@@ -38,14 +38,14 @@ void Climate_SensorsHandler(void)
 #endif
 	}
 
-	if (systimeTimeoutControl(&shtInitTimer, 3000))
-	{
-#ifndef I2C_OFF_MODE
-    	errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
-#endif
-	}
+//	if (systimeTimeoutControl(&shtInitTimer, 800))
+//	{
+//#ifndef I2C_OFF_MODE
+//    	errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
+//#endif
+//	}
 
-	if (systimeTimeoutControl(&measureI2cTimer, 5000))
+	if (systimeTimeoutControl(&measureI2cTimer, 2000))
 	{
 #ifndef I2C_OFF_MODE
 		displayData.lux = TSL2561_ReadLux(&errorTsl);
@@ -53,8 +53,8 @@ void Climate_SensorsHandler(void)
         uint16_t tempWord = 0;
         uint16_t humWord = 0;
 
-    	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
-    	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &errorSht);
+//    	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
+//    	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &errorSht);
 
     	humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
     	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
