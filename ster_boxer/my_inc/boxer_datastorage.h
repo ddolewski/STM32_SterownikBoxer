@@ -1,16 +1,12 @@
-/*
- * boxer_datastorage.h
- *
- *  Created on: 29 lip 2015
- *      Author: Doles
- */
-
 #ifndef MY_INC_BOXER_DATASTORAGE_H_
 #define MY_INC_BOXER_DATASTORAGE_H_
 
 #include "system_flash.h"
 #include "stdint.h"
-#include "boxer_struct.h"
+#include "boxer_climate.h"
+#include "boxer_ph.h"
+#include "boxer_irrigation.h"
+#include "boxer_light.h"
 
 #define SIGNATURE_A 				((uint32_t)0x01234567)
 #define SIGNATURE_B 				((uint32_t)0x89ABCDEF)
@@ -37,7 +33,6 @@ typedef struct
 }flashLampCounters_t;
 
 extern flashSettings_t currentFlashConfig;
-//extern flashCopy_t backupConfig;// __attribute__((section(".STORAGE_REGION")));
 
 void FLASH_ReadConfiguration(void);
 void FLASH_SaveConfiguration(void);

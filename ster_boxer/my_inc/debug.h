@@ -1,10 +1,3 @@
-/*
- * debug.h
- *
- *  Created on: 29 maj 2015
- *      Author: Doles
- */
-
 #ifndef MY_INC_DEBUG_H_
 #define MY_INC_DEBUG_H_
 
@@ -18,13 +11,13 @@ void _printString(char * xString);
 void _printLine(void);
 void _printInt(int32_t xValue);
 void _printHex(uint8_t xByte);
-void _printParam(uint8_t * xString, int32_t xValue);
+void _printParam(char * xString, int32_t xValue);
 
-void _error(const uint8_t * xString);
-void _errorc(const uint8_t * xString);
+void _error(char * xString);
+void _errorc(char * xString);
 
-void _info(const uint8_t * xString);
-void _infoc(const uint8_t * xString);
+void _info(char * xString);
+void _infoc(char * xString);
 
 
 #define _paramPrint(X)			do{_info(UC(#X));\

@@ -1,4 +1,6 @@
+#include <boxer_bool.h>
 #include "string_builder.h"
+#include "string.h"
 
 static int mod10(int xNumber);
 
@@ -12,7 +14,7 @@ void append(char* s, char c)
 char* ftoa(float xNumber, char * xBuffer, uint8_t xAccuracy)
 {
 	int tmp, i;
-	uint8_t minus = False;
+	bool_t minus = FALSE;
 	uint8_t offset = 0;
 	float xValueF;
 
@@ -20,7 +22,7 @@ char* ftoa(float xNumber, char * xBuffer, uint8_t xAccuracy)
 
 	if(xNumber < 0)
 	{
-		minus = True;
+		minus = TRUE;
 		xNumber = -xNumber;		//przypisanie - pozniejsze operacje na liczbach dodatnich
 	}
 
@@ -68,17 +70,17 @@ char* ftoa(float xNumber, char * xBuffer, uint8_t xAccuracy)
 char* itoa(int xNumber, char* xBuffer)
 {
 	uint8_t itoaxBufferSize = 15;
-	unsigned char tmp[itoaxBufferSize];
-	uint8_t minus = False;
-	char i, k;
+	int tmp[itoaxBufferSize];
+	bool_t minus = FALSE;
+	unsigned char i, k;
 
 	if (xNumber <0)
 	{
-		minus = True;
+		minus = TRUE;
 		xNumber = -xNumber;
 	}
 
-	i= itoaxBufferSize-1;
+	i = itoaxBufferSize-1;
 	for( ; i >= 0; i--)
 	{
 		tmp[i] = mod10(xNumber);
@@ -107,72 +109,16 @@ char* itoa(int xNumber, char* xBuffer)
 	return xBuffer +i-k;
 }
 
-uint32_t atoi(uint8_t *str)
+uint32_t atoi(char *str)
 {
-	uint32_t res = 0; // Initialize result
+	uint32_t res = 0;
     uint32_t i;
-    // Iterate through all characters of input string and update result
     for (i = 0; str[i] != '\0'; ++i)
         res = res*10 + str[i] - '0';
 
-    // return result.
     return res;
 }
 
-//-----------------------------------------------------------------------------
-// Funkcja konwertujaca liczbe int na string
-// xValue/in: liczba do konwersji na string
-// xString/in: wskaznik do skonwertowanego stringa
-// xRadix/in: system liczbowy, 2 - binarnie, 10 - decymalnie, itd.
-//-----------------------------------------------------------------------------
-/*
-int itoa(int xValue, char *xString, int xRadix)
-{
-    char tmp[16];
-    char *tp = tmp;
-    int i;
-    unsigned v;
-
-    int sign = ((xRadix == 10) && (xValue < 0));
-    if (sign)
-    {
-    	 v = -xValue;
-    }
-    else
-    {
-        v = (unsigned)xValue;
-    }
-
-    while (v || tp == tmp)
-    {
-        i = v % xRadix;
-        v /= xRadix;
-        if (i < 10)
-        {
-        	*tp++ = i + '0';
-        }
-        else
-        {
-        	*tp++ = i + 'a' - 10;
-        }
-    }
-
-    int len = tp - tmp;
-
-    if (sign)
-    {
-        *xString++ = '-';
-        len++;
-    }
-
-    while (tp > tmp)
-    {
-        *xString++ = *--tp;
-    }
-
-    return len;
-}
-*/
 static int mod10(int xNumber)
 {
 	int data;

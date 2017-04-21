@@ -163,8 +163,7 @@ uint32_t Data1High_uint;
 uint32_t Channel0_uint;
 uint32_t Channel1_uint;
 
-ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr);
-ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr);
+ErrorStatus TSL2561_Init(void);
 uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error);
 uint32_t TSL2561_ReadLux(ErrorStatus * Error);
 uint32_t CalculateLux(uint32_t iGain, uint32_t tInt, uint32_t ch0, uint32_t ch1, int32_t iType);

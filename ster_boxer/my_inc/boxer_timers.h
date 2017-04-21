@@ -1,15 +1,9 @@
-/*
- * boxer_timers.h
- *
- *  Created on: 3 sie 2015
- *      Author: Doles
- */
-
 #ifndef MY_INC_BOXER_TIMERS_H_
 #define MY_INC_BOXER_TIMERS_H_
 
 #include "stm32f0xx_tim.h"
 #include "stm32f0xx_syscfg.h"
+#include "boxer_bool.h"
 
 #define PWM_FAN_FREQ 30
 
@@ -30,9 +24,15 @@ typedef enum
 	PWM_CHANGE_SLOW
 }pwm_change_speed_t;
 
+typedef enum
+{
+	PWM_MIN_PERCENT = 0,
+	PWM_MAX_PERCENT = 100
+}pwm_range_t;
+
 uint8_t lastPullPWM;
 uint8_t lastPushPWM;
-light_state_t lastLightState;
+
 extern bool_t initFanPwm;
 
 void PWM_FansInit(void);

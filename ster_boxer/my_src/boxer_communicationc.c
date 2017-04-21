@@ -6,7 +6,12 @@
  */
 
 #include "boxer_communication.h"
-#include "boxer_struct.h"
+#include "boxer_climate.h"
+#include "boxer_ph.h"
+#include "boxer_display.h"
+#include "boxer_light.h"
+#include "boxer_datastorage.h"
+#include "boxer_string.h"
 #include "misc.h"
 #include "string_builder.h"
 #include "fifo.h"
@@ -334,7 +339,7 @@ void ReceiveSerial_Handler(void)
 								}
 							}
 
-							char splitedString [8][8] = {0};
+							char splitedString [8][8] = {{0},{0}};
 							char * splitStr = 0;
 							int i = 0;
 							splitStr = strtok (strCopy, ";");
@@ -419,7 +424,7 @@ void ReceiveSerial_Handler(void)
 					char * endStrAddr    = strstr(recvstr, "END");
 					if (endStrAddr != NULL)
 					{
-						char ReceivedString [8][32] = {0};
+						char ReceivedString [8][32] = {{0},{0}};
 						char * splitStr = 0;
 						int i = 0;
 						splitStr = strtok (recvstr, " ");

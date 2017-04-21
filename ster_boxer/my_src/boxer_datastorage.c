@@ -6,6 +6,8 @@
  */
 
 #include "boxer_datastorage.h"
+#include "boxer_light.h"
+#include "boxer_climate.h"
 
 flashSettings_t	currentFlashConfig;				//ustawienia obecne
 

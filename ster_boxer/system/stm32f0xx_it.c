@@ -29,7 +29,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f0xx_it.h"
-
+#include "boxer_bool.h"
+#include "debug.h"
 /******************************************************************************/
 /*            Cortex-M0 Processor Exceptions Handlers                         */
 /******************************************************************************/
@@ -53,7 +54,7 @@ void HardFault_Handler(void)
 	/* Go to infinite loop when Hard Fault exception occurs */
 	while (TRUE)
 	{
-		SerialPort_PutString("HARD FAULT ERROR!\n\r");
+		_error("HARD FAULT ERROR!\n\r");
 	}
 }
 

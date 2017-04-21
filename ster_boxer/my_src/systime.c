@@ -3,6 +3,8 @@
 #include "stm32f0xx.h"
 #include "systime.h"
 #include "debug.h"
+#include "boxer_climate.h"
+#include "boxer_timers.h"
 
 //Timer systemowy
 #define SYSTIMER 				SysTick
@@ -10,7 +12,7 @@
 
 static volatile systime_t sysTimer = 0;	//timer systemowy odmierzajacy czas w ms
 //-------------------------------------------------------------------------------------------------
-// Funkcja inicjalizuj¹ca timer systemeowy
+// Funkcja inicjalizujï¿½ca timer systemeowy
 //void
 //return:		void
 //-------------------------------------------------------------------------------------------------
@@ -50,7 +52,7 @@ systime_t systimeGet (void)
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja zwracajaca aktualny czas systemowy
-//xLastTime		/inOut: wskaznik na zmienna reprezentujac¹ czas ostatniego wywolania danego timeouta
+//xLastTime		/inOut: wskaznik na zmienna reprezentujacï¿½ czas ostatniego wywolania danego timeouta
 //xCheckTime	/in:	interwal czasu sprawdzenia
 //return:	timeElapsed	TRUE  -  czas minal, FALSE - czas nie minal
 //-------------------------------------------------------------------------------------------------

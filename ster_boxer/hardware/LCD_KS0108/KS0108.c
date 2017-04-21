@@ -1,22 +1,28 @@
 //-------------------------------------------------------------------------------------------------
 // Graphic LCD C library
-// (c) Rados³aw Kwiecieñ, radek@dxp.pl
+// (c) Radosï¿½aw Kwiecieï¿½, radek@dxp.pl
 //-------------------------------------------------------------------------------------------------
 #include "KS0108.h"
 #include "glcd_font5x8.h"
-//#include "KS0108-STM32.c"
+#include "system_gpio.h"
 //-------------------------------------------------------------------------------------------------
 // Reference to MCU-specific external functions
 //-------------------------------------------------------------------------------------------------
-//extern void GLCD_InitializePorts(void);
 extern void GLCD_WriteData(uint8_t);
 extern void GLCD_WriteCommand(uint8_t, uint8_t);
 extern uint8_t GLCD_ReadData(void);
-//extern uint8_t GLCD_ReadStatus(uint8_t);
 //-------------------------------------------------------------------------------------------------
 // screen coordinates
 uint8_t screen_x = 0;
 uint8_t screen_y = 0;
+
+void GLCD_Init(void)
+{
+	GLCD_Initialize();
+	GLCD_ClearScreen();
+	GLCD_GoTo(0,0);
+	GLCD_WriteString("Inicjalizacja...");
+}
 //-------------------------------------------------------------------------------------------------
 // Initialization interface and LCD controller
 //-------------------------------------------------------------------------------------------------
@@ -95,7 +101,7 @@ void GLCD_WriteChar(uint8_t charToWrite)
 //-------------------------------------------------------------------------------------------------
 // Write null-terminated string to screen memory
 //-------------------------------------------------------------------------------------------------
-void GLCD_WriteString(uint8_t * stringToWrite)
+void GLCD_WriteString(char * stringToWrite)
 {
 	while(*stringToWrite)
 	{

@@ -7,6 +7,8 @@
 
 #include <timestamp.h>
 #include "pcf8563.h"
+#include "boxer_display.h"
+#include "boxer_string.h"
 
 static uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error);
 static ErrorStatus PCF8563_RegWrite(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, uint8_t data);

@@ -7,6 +7,9 @@
 
 #include "boxer_climate.h"
 #include "boxer_timers.h"
+#include "boxer_display.h"
+#include "boxer_light.h"
+#include "hardware/TSL2561/tsl2561.h"
 
 static systime_t measureOwireTimer = 0;
 static systime_t measureI2cTimer = 0;

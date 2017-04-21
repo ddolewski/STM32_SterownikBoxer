@@ -6,6 +6,9 @@
  */
 
 #include "boxer_display.h"
+#include "boxer_ph.h"
+#include "boxer_light.h"
+#include "boxer_climate.h"
 
 static void Display_ShowPage(lcdDisplayData_t * display);
 static void Display_ChangePage(lcdDisplayData_t * display);
@@ -32,79 +35,79 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 			float tempds18b20_1 = display->tempDS18B20_1_t;
 			float tempds18b20_2 = display->tempDS18B20_2_t;
 			GLCD_GoTo(0,0);
-			GLCD_WriteString((uint8_t*)display->time);
+			GLCD_WriteString(display->time);
 			GLCD_GoTo(35,0);
 			GLCD_WriteString(xDateString);
 			memset(display->time, 0, 20);
 
 			GLCD_GoTo(0,1);
-			GLCD_WriteString((uint8_t*)"=====================");
+			GLCD_WriteString("=====================");
 /////////////////////////////////////////////////////
 			GLCD_GoTo(0,2);
-			GLCD_WriteString((uint8_t*)"T. dolna [*C]:");
+			GLCD_WriteString("T. dolna [*C]:");
 			GLCD_GoTo(90,2);
 			ftoa(tempSHT2x, tempString, 1);
-			GLCD_WriteString((uint8_t*)tempString);
+			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 ///////////////////////////////////////////////////////
 			GLCD_GoTo(0,3);
-			GLCD_WriteString((uint8_t*)"T. lampa [*C]:");
+			GLCD_WriteString("T. lampa [*C]:");
 
 			GLCD_GoTo(90,3);
 			ftoa(tempds18b20_1, tempString, 1);
-			GLCD_WriteString((uint8_t*)tempString);
+			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 
 /////////////////////////////////////////////////////
 			GLCD_GoTo(0,4);
-			GLCD_WriteString((uint8_t*)"T. srodek[*C]:");
+			GLCD_WriteString("T. srodek[*C]:");
 
 			GLCD_GoTo(90,4);
 			ftoa(tempds18b20_2, tempString, 1);
-			GLCD_WriteString((uint8_t*)tempString);
+			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 
 			itoa(display->humiditySHT2x, tempString);
 			GLCD_GoTo(0,5);
-			GLCD_WriteString((uint8_t*)"Wilg. [%RH]:");
+			GLCD_WriteString("Wilg. [%RH]:");
 			GLCD_GoTo(90,5);
-			GLCD_WriteString((uint8_t*)tempString);
+			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 
 			itoa(display->lux, tempString);
 			GLCD_GoTo(0,6);
-			GLCD_WriteString((uint8_t*)"Nat.lampy [lx]:");
+			GLCD_WriteString("Nat.lampy [lx]:");
 			GLCD_GoTo(90,6);
-			GLCD_WriteString((uint8_t*)tempString);
+			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 		}
 		else if (display->page == 2)
 		{
 			GLCD_GoTo(0,0);
-			GLCD_WriteString((uint8_t*)display->time);
+			GLCD_WriteString(display->time);
 			GLCD_GoTo(35,0);
 			GLCD_WriteString(xDateString);
 			memset(display->time, 0, 20);
 
 			GLCD_GoTo(0,1);
-			GLCD_WriteString((uint8_t*)"=====================");
+			GLCD_WriteString("=====================");
 
 			GLCD_GoTo(0,2);
-			GLCD_WriteString((uint8_t*)"pH wody");
+			GLCD_WriteString("pH wody");
 			GLCD_GoTo(47,2);
-			GLCD_WriteString((uint8_t*)"[pH]:");
+			GLCD_WriteString("[pH]:");
 
 			if (calibrateFlags.processActive == TRUE && calibrateFlags.probeType == PROBE_WATER)
 			{
 				GLCD_GoTo(82,2);
-				GLCD_WriteString((uint8_t*)"-CAL-");
+				GLCD_WriteString("-CAL-");
 			}
 			else
 			{
 				if (pH.water <= 1 || pH.water >= 14)
 				{
 					GLCD_GoTo(82,2);
-					GLCD_WriteString((uint8_t*)"------");
+					GLCD_WriteString("------");
 					sPhWaterUnderRange = TRUE;
 				}
 				else
@@ -112,7 +115,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 					if (sPhWaterUnderRange == TRUE)
 					{
 						GLCD_GoTo(82,2);
-						GLCD_WriteString((uint8_t*)"       ");
+						GLCD_WriteString("       ");
 						sPhWaterUnderRange = FALSE;
 					}
 
@@ -123,11 +126,11 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 					if (strcmp(tempString, lastPhString) != 0)
 					{
 						GLCD_GoTo(82,2);
-						GLCD_WriteString((uint8_t*)"       ");
+						GLCD_WriteString("       ");
 					}
 
 					GLCD_GoTo(82,2);
-					GLCD_WriteString((uint8_t*)tempString);
+					GLCD_WriteString(tempString);
 				}
 			}
 
@@ -135,21 +138,21 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 
 			ftoa(pH.soil, tempString, 2);
 			GLCD_GoTo(0,3);
-			GLCD_WriteString((uint8_t*)"pH gleby");
+			GLCD_WriteString("pH gleby");
 			GLCD_GoTo(47,3);
-			GLCD_WriteString((uint8_t*)"[pH]:");
+			GLCD_WriteString("[pH]:");
 
 			if (calibrateFlags.processActive == TRUE && calibrateFlags.probeType == PROBE_SOIL)
 			{
 				GLCD_GoTo(82,3);
-				GLCD_WriteString((uint8_t*)"-CAL-");
+				GLCD_WriteString("-CAL-");
 			}
 			else
 			{
 				if (pH.soil <= 1 || pH.soil >= 14)
 				{
 					GLCD_GoTo(82,3);
-					GLCD_WriteString((uint8_t*)"------");
+					GLCD_WriteString("------");
 					sPhSoilUnderRange = TRUE;
 				}
 				else
@@ -157,7 +160,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 					if (sPhSoilUnderRange == TRUE)
 					{
 						GLCD_GoTo(82,2);
-						GLCD_WriteString((uint8_t*)"       ");
+						GLCD_WriteString("       ");
 						sPhSoilUnderRange = FALSE;
 					}
 
@@ -168,24 +171,24 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 					if (strcmp(tempString, lastPhString) != 0)
 					{
 						GLCD_GoTo(82,3);
-						GLCD_WriteString((uint8_t*)"       ");
+						GLCD_WriteString("       ");
 					}
 
 					GLCD_GoTo(82,3);
-					GLCD_WriteString((uint8_t*)tempString);
+					GLCD_WriteString(tempString);
 				}
 			}
 
 			memset(tempString, 0, 10);
 			GLCD_GoTo(0,4);
-			GLCD_WriteString((uint8_t*)"Wilg. gleby: ");
+			GLCD_WriteString("Wilg. gleby: ");
 
 			if (soilMoisture == SOIL_DRY)
 			{
 				if (lastSoilMoistState != soilMoisture)
 				{
 					GLCD_GoTo(82,4);
-					GLCD_WriteString((uint8_t*)"       ");
+					GLCD_WriteString("       ");
 				}
 
 				strcat(tempString,  (char*)"SUCHA!");
@@ -195,7 +198,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				if (lastSoilMoistState != soilMoisture)
 				{
 					GLCD_GoTo(82,4);
-					GLCD_WriteString((uint8_t*)"       ");
+					GLCD_WriteString("       ");
 				}
 
 				strcat(tempString,  (char*)"OK");
@@ -205,57 +208,57 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 				if (lastSoilMoistState != soilMoisture)
 				{
 					GLCD_GoTo(82,4);
-					GLCD_WriteString((uint8_t*)"       ");
+					GLCD_WriteString("       ");
 				}
 				strcat(tempString,  (char*)"BLAD!");
 			}
 
 
 			GLCD_GoTo(82,4);
-			GLCD_WriteString((uint8_t*)tempString);
+			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 		}
 		else if (display->page == 3)
 		{
 			GLCD_GoTo(0,0);
-			GLCD_WriteString((uint8_t*)display->time);
+			GLCD_WriteString(display->time);
 			GLCD_GoTo(35,0);
 			GLCD_WriteString(xDateString);
 			memset(display->time, 0, 20);
 
 			GLCD_GoTo(0,1);
-			GLCD_WriteString((uint8_t*)"=====================");
+			GLCD_WriteString("=====================");
 
 			GLCD_GoTo(0,2);
-			GLCD_WriteString((uint8_t*)"Stan lampy:");
+			GLCD_WriteString("Stan lampy:");
 
 			if (xLightControl.lightingState == LIGHT_ON)
 			{
 				if (lastLightState != xLightControl.lightingState)
 				{
 					GLCD_GoTo(72,2);
-					GLCD_WriteString((uint8_t*)"        ");
+					GLCD_WriteString("        ");
 				}
 
 				GLCD_GoTo(78,2);
-				GLCD_WriteString((uint8_t*)"wlaczona");
+				GLCD_WriteString("wlaczona");
 			}
 			else if (xLightControl.lightingState == LIGHT_OFF)
 			{
 				if (lastLightState != xLightControl.lightingState)
 				{
 					GLCD_GoTo(78,2);
-					GLCD_WriteString((uint8_t*)"         ");
+					GLCD_WriteString("         ");
 				}
 
 				GLCD_GoTo(72,2);
-				GLCD_WriteString((uint8_t*)"wylaczona");
+				GLCD_WriteString("wylaczona");
 			}
 
 			memset(tempString, 0, 10);
 
 			GLCD_GoTo(0,3);
-			GLCD_WriteString((uint8_t*)"Licznik czasu [h]:");
+			GLCD_WriteString("Licznik czasu [h]:");
 
 			if (xLightCounters.counterHours < 10 && xLightCounters.counterHours != 1)
 			{
@@ -281,23 +284,23 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 			itoa(xLightCounters.counterHours, tempString);
 			if (xLightControl.timeOnHours == 24 || xLightControl.timeOffHours == 24)
 			{
-				GLCD_WriteString((uint8_t*)"-");
+				GLCD_WriteString("-");
 			}
 			else
 			{
-				GLCD_WriteString((uint8_t*)tempString);
+				GLCD_WriteString(tempString);
 			}
 
 			memset(tempString, 0, 10);
 
 			GLCD_GoTo(0,4);
-			GLCD_WriteString((uint8_t*)"OFF/ON [h]:");
+			GLCD_WriteString("OFF/ON [h]:");
 			memset(tempString, 0, 10);
 
 			if ((xLastTimeOffHour != xLightControl.timeOffHours) && (xLastTimeOnHour != xLightControl.timeOnHours))
 			{
 				GLCD_GoTo(92,4);
-				GLCD_WriteString((uint8_t*)"      ");
+				GLCD_WriteString("      ");
 
 				xLastTimeOffHour = xLightControl.timeOffHours;
 				xLastTimeOnHour = xLightControl.timeOnHours;
@@ -307,58 +310,58 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 			{
 				GLCD_GoTo(102,4);
 				itoa(xLightControl.timeOffHours, tempString);
-				GLCD_WriteString((uint8_t*)tempString);
+				GLCD_WriteString(tempString);
 				GLCD_GoTo(108,4);
-				GLCD_WriteString((uint8_t*)"/");
+				GLCD_WriteString("/");
 				GLCD_GoTo(114,4);
 				itoa(xLightControl.timeOnHours, tempString);
-				GLCD_WriteString((uint8_t*)tempString);
+				GLCD_WriteString(tempString);
 			}
 			else if (xLightControl.timeOffHours > 10 && xLightControl.timeOnHours < 10)
 			{
 				GLCD_GoTo(102,4);
 				itoa(xLightControl.timeOffHours, tempString);
-				GLCD_WriteString((uint8_t*)tempString);
+				GLCD_WriteString(tempString);
 				GLCD_GoTo(114,4);
-				GLCD_WriteString((uint8_t*)"/");
+				GLCD_WriteString("/");
 				GLCD_GoTo(120,4);
 				itoa(xLightControl.timeOnHours, tempString);
-				GLCD_WriteString((uint8_t*)tempString);
+				GLCD_WriteString(tempString);
 			}
 			else if ((xLightControl.timeOffHours >= 10 && xLightControl.timeOffHours <= 14) &&
 					(xLightControl.timeOnHours >= 10 && xLightControl.timeOnHours <= 14))
 			{
 				GLCD_GoTo(95,4);
 				itoa(xLightControl.timeOffHours, tempString);
-				GLCD_WriteString((uint8_t*)tempString);
+				GLCD_WriteString(tempString);
 				GLCD_GoTo(108,4);
-				GLCD_WriteString((uint8_t*)"/");
+				GLCD_WriteString("/");
 				GLCD_GoTo(114,4);
 				itoa(xLightControl.timeOnHours, tempString);
-				GLCD_WriteString((uint8_t*)tempString);
+				GLCD_WriteString(tempString);
 			}
 
 			GLCD_GoTo(0,5);
-			GLCD_WriteString((uint8_t*)"Temp. max [*C]: ");
+			GLCD_WriteString("Temp. max [*C]: ");
 			GLCD_GoTo(114,5);
 
 			itoa(tempControl.userTemp, tempString);
-			GLCD_WriteString((uint8_t*)tempString);
+			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 
 			GLCD_GoTo(0,6);
-			GLCD_WriteString((uint8_t*)"Tryb temp.: ");
+			GLCD_WriteString("Tryb temp.: ");
 
 			switch(tempControl.tempCtrlMode)
 			{
 			case TEMP_AUTO:
 				GLCD_GoTo(102,6);
-				GLCD_WriteString((uint8_t*)"auto");
+				GLCD_WriteString("auto");
 				break;
 
 			case TEMP_MANUAL:
 				GLCD_GoTo(91,6);
-				GLCD_WriteString((uint8_t*)"manual");
+				GLCD_WriteString("manual");
 				break;
 
 			default:

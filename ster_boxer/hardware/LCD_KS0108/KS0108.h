@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------------------
 // Graphic LCD C library
 // http://glcd-libc.dxp.pl
-// (c) Rados³aw Kwiecieñ, radek@dxp.pl
+// (c) Radosï¿½aw Kwiecieï¿½, radek@dxp.pl
 //-------------------------------------------------------------------------------------------------
 #ifndef __KS0108
 #define __KS0108
@@ -54,15 +54,15 @@
 //-------------------------------------------------------------------------------------------------
 //
 //-------------------------------------------------------------------------------------------------
+void GLCD_Init(void);
 void GLCD_Initialize(void);
 void GLCD_WriteData(uint8_t data);
 void GLCD_ClearScreen(void);
 void GLCD_TextGoTo(uint8_t x, uint8_t y);
 void GLCD_GoTo(uint8_t x, uint8_t y);
-void GLCD_WriteString(uint8_t * stringToWrite);
+void GLCD_WriteString(char * stringToWrite);
 uint8_t GLCD_ReadByteFromROMMemory(uint8_t * RomByte);
 void GLCD_InitializeDataPin(uint8_t mode);
 void GLCD_InitializeCtrlPin(void);
-//uint8_t GLCD_CheckBitVal(uint8_t bitNum, uint8_t byteToCheck);
 
 #endif

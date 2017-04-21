@@ -1,6 +1,21 @@
 #include "tsl2561.h"
+#include "systime.h"
+
+static ErrorStatus TSL2561_Initialize(I2C_TypeDef* I2Cx, uint16_t SlaveAddr);
+static ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
+ErrorStatus TSL2561_Init(void)
+{
+	ErrorStatus tslError = SUCCESS;
+	tslError = TSL2561_Initialize(I2C2, TSL2561_GND_ADDR);
+	systimeDelayMs(30);
+	tslError = TSL2561_Config(I2C2, TSL2561_GND_ADDR);
+	systimeDelayMs(20);
+
+	return tslError;
+}
+
+static ErrorStatus TSL2561_Initialize(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 {
 	uint32_t TimeOut = 10000;
 
@@ -71,7 +86,7 @@ ErrorStatus TSL2561_Init(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 	return SUCCESS;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
+static ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 {
 	uint32_t TimeOut = 10000;
 

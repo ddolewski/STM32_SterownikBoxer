@@ -2,24 +2,29 @@
 #define MY_INC_DS18B20_H_
 
 #include "stm32f0xx_gpio.h"
-
+#include "system_gpio.h"
 #include <stdint.h>
 #include "string_builder.h"
-#include "boxer_struct.h"
 
 #define DS18B20_PORT			GPIOF
 #define DS18B20_PIN				GPIOx_Pin_5
 
+typedef struct
+{
+	uint8_t cTempH;
+	uint8_t cTempL;
+	uint8_t cROM[8];
+	uint8_t cAtempH[5];
+	uint8_t cAtempL[5];
+	uint8_t cAtemp[10];
+	float fTemp;
+}DS18B20Sensor_t;
+
+DS18B20Sensor_t ds18b20_1;
+DS18B20Sensor_t ds18b20_2;
+
 extern const uint8_t sensor1ROM[8];
 extern const uint8_t sensor2ROM[8];
-
-
-// global search state
-unsigned char ROM_NO[8];
-int LastDiscrepancy;
-int LastFamilyDiscrepancy;
-int LastDeviceFlag;
-unsigned char crc8;
 
 void OneWire_Low(void);
 void OneWire_High(void);

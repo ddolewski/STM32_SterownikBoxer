@@ -7,6 +7,7 @@
 
 #include "boxer_irrigation.h"
 #include "boxer_timers.h"
+#include "boxer_bool.h"
 
 const uint32_t SOIL_MEASURE_TIMEOUT = 300000;
 const uint32_t DAY_IN_SEC = 86400;

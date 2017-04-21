@@ -7,6 +7,12 @@
 
 #include "boxer_timers.h"
 #include "boxer_communication.h"
+#include "boxer_display.h"
+#include "boxer_light.h"
+#include "boxer_climate.h"
+#include "boxer_irrigation.h"
+#include "boxer_ph.h"
+#include "boxer_datastorage.h"
 
 #define PUMP_PIN		GPIO_Pin_1
 #define TIMER_PRESCALER	48

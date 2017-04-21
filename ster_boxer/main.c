@@ -1,6 +1,14 @@
 #include "global.h"
 #include "boxer_timers.h"
+#include "boxer_display.h"
+#include "boxer_climate.h"
+#include "boxer_ph.h"
+#include "boxer_irrigation.h"
 #include "stm32f0xx_flash.h"
+#include "boxer_datastorage.h"
+#include "hardware/TSL2561/tsl2561.h"
+#include "hardware/PCF8563/pcf8563.h"
+#include "misc.h"
 ///////////////////////////////////////////////////////////
 static void PeripheralInit(void);
 static void I2C1_Init(void);
@@ -35,10 +43,7 @@ static void PeripheralInit(void)
 	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
 	RCC->AHBENR |= RCC_AHBENR_GPIOFEN;
 
-	GLCD_Initialize();
-	GLCD_ClearScreen();
-	GLCD_GoTo(0,0);
-	GLCD_WriteString(UC"Inicjalizacja...");
+	GLCD_Init();
 	SerialPort_Init();
 
 	GPIOx_PinConfig(SOIL_MOIST_PORT, Mode_In, OSpeed_50MHz, OType_OD, OState_PU, SOIL_MOIST_PIN);
@@ -65,7 +70,7 @@ static void PeripheralInit(void)
 
 #ifndef BUZZER_OFF_MODE
 	GPIOx_ResetPin(BUZZER_PORT, BUZZER_PIN);
-	systimeDelayMs(1000);
+	systimeDelayMs(400);
 	GPIOx_SetPin(BUZZER_PORT, BUZZER_PIN);
 #endif
 
@@ -103,13 +108,7 @@ static void PeripheralInit(void)
 
 #ifndef I2C_OFF_MODE
 	I2C2_Init();
-
-	ErrorStatus tslError = SUCCESS;
-	tslError = TSL2561_Init(I2C2, TSL2561_GND_ADDR); // tutaj sa bledy i2c
-	systimeDelayMs(30);
-	tslError = TSL2561_Config(I2C2, TSL2561_GND_ADDR); // tutaj sa bledy i2c
-	systimeDelayMs(10);
-
+	ErrorStatus tslError = TSL2561_Init();
 	ErrorStatus shtError = SHT21_SoftReset(I2C2, SHT21_ADDR);
 #endif
 

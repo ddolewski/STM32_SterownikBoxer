@@ -21,8 +21,8 @@ void DEBUG_Init(void)
 {
     fifo_init(&debug_fifo, (void *)DebugBuffer, TX_BUFF_SIZE);
 
-    GPIO_InitTypeDef GPIO_InitStructure;
-    USART_InitTypeDef USART_InitStructure;
+    GPIO_InitTypeDef GPIO_InitStrture;
+    USART_InitTypeDef USART_InitStrture;
 
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1 , ENABLE);
 
@@ -30,23 +30,23 @@ void DEBUG_Init(void)
     RCC_APB2PeriphClockCmd(RCC_APB2ENR_USART1EN, ENABLE);
     RCC_USARTCLKConfig(RCC_USART1CLK_SYSCLK);
 
-    USART_InitStructure.USART_BaudRate = 230400;
-    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-    USART_InitStructure.USART_StopBits = USART_StopBits_1;
-    USART_InitStructure.USART_Parity = USART_Parity_No;
-    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    USART_InitStructure.USART_Mode = USART_Mode_Tx;
+    USART_InitStrture.USART_BaudRate = 230400;
+    USART_InitStrture.USART_WordLength = USART_WordLength_8b;
+    USART_InitStrture.USART_StopBits = USART_StopBits_1;
+    USART_InitStrture.USART_Parity = USART_Parity_No;
+    USART_InitStrture.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    USART_InitStrture.USART_Mode = USART_Mode_Tx;
 
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_0);
 
-    GPIO_InitStructure.GPIO_Pin = DEBUG_TX; //PB6
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
-    GPIO_Init(GPIOB, &GPIO_InitStructure);
+    GPIO_InitStrture.GPIO_Pin = DEBUG_TX; //PB6
+    GPIO_InitStrture.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_InitStrture.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_InitStrture.GPIO_OType = GPIO_OType_PP;
+    GPIO_InitStrture.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_Init(GPIOB, &GPIO_InitStrture);
 
-    USART_Init(USART1, &USART_InitStructure);
+    USART_Init(USART1, &USART_InitStrture);
 
 	NVIC_SetPriority(USART1_IRQn, 3);
 	NVIC_EnableIRQ(USART1_IRQn);
@@ -107,7 +107,7 @@ void _printString(char * xString)
 //-----------------------------------------------------------------------------
 void _printLine(void)
 {
-	_printString(UC"_________________________________________________________________\r\n");
+	_printString("_________________________________________________________________\r\n");
 }
 //-----------------------------------------------------------------------------
 // Wypisanie wartosci dziesietnej ze znakiem xValue na konsole
@@ -143,7 +143,7 @@ void _printInt(int32_t xValue)
 		DEBUG_SendByte('0');
 	}
 
-//	_print(UC"\n\r");
+//	_print("\n\r");
 }
 //-----------------------------------------------------------------------------
 // Wypisanie bajtu xByte szesnastkowo
@@ -162,27 +162,27 @@ void _printHex(uint8_t xByte)
 //-----------------------------------------------------------------------------
 // Wypisanie parametu na konsole: stringu xString i wartosci xValue
 //-----------------------------------------------------------------------------
-void _printParam(uint8_t * xString, int32_t xValue)
+void _printParam(char * xString, int32_t xValue)
 {
-	_printString(UC"\r\n");
+	_printString("\r\n");
 	_printString(xString);
-	_printString(UC": ");
+	_printString(": ");
 	_printInt(xValue);
 }
 
 //-----------------------------------------------------------------------------
 // Wypisanie bledu w formacie "e: " + xString
 //-----------------------------------------------------------------------------
-void _error(const uint8_t * xString)
+void _error(char * xString)
 {
-	_printString(UC"\r\ne: ");
+	_printString("\r\ne: ");
 	_printString(xString);
 }
 
 //-----------------------------------------------------------------------------
 // Kontynuacja wypisywania bledu
 //-----------------------------------------------------------------------------
-void _errorc(const uint8_t * xString)
+void _errorc(char * xString)
 {
 	_printString(xString);
 }
@@ -190,16 +190,16 @@ void _errorc(const uint8_t * xString)
 //-----------------------------------------------------------------------------
 // Wypisanie informacji w formacie "i: " + xString
 //-----------------------------------------------------------------------------
-void _info(const uint8_t * xString)
+void _info(char * xString)
 {
-	_printString(UC"\r\ni: ");
+	_printString("\r\ni: ");
 	_printString(xString);
 }
 
 //-----------------------------------------------------------------------------
 // Kontynuacja wypisywania informacji
 //-----------------------------------------------------------------------------
-void _infoc(const uint8_t * xString)
+void _infoc(char * xString)
 {
 	_printString(xString);
 }

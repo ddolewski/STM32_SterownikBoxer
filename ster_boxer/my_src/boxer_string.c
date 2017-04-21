@@ -6,7 +6,11 @@
  */
 
 #include "boxer_string.h"
+#include "boxer_ph.h"
+#include "boxer_light.h"
 #include "fifo.h"
+#include "timestamp.h"
+#include "string_builder.h"
 
 static char TempString[20] = {0};
 

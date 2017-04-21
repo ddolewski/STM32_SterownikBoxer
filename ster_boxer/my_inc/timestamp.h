@@ -2,29 +2,28 @@
 #define TIMESTAMP_H_
 
 //#include "global.h"
+#include <boxer_bool.h>
 #include "stdint.h"
-#include "boxer_struct.h"
 
 #define TIME_DST_BASE_YEAR 	2016
 #define TIME_DST_MAX_YEAR	2036
 
-//typedef struct
-//{
-//	uint16_t 	year;
-//	uint8_t 	month;
-//	uint8_t 	mday;
-//	uint8_t 	wday;
-//	uint8_t 	hour;
-//	uint8_t 	min;
-//	uint8_t 	sec;
-//
-//}time_complex_t;
-//
-//typedef struct
-//{
-//	uint8_t 	hour;
-//	uint8_t 	min;
-//}time_simple_t;
+typedef struct
+{
+	uint8_t hour;
+	uint8_t min;
+}time_simple_t;
+
+typedef struct
+{
+	uint16_t 	year;
+	uint8_t 	month;
+	uint8_t 	mday;
+	uint8_t 	wday;
+	uint8_t 	hour;
+	uint8_t 	min;
+	uint8_t 	sec;
+}time_complex_t;
 
 typedef struct
 {

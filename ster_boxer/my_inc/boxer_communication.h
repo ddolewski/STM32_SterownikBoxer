@@ -1,18 +1,11 @@
-/*
- * boxer_uart.h
- *
- *  Created on: 29 lip 2015
- *      Author: Doles
- */
-
 #ifndef MY_INC_BOXER_COMMUNICATION_H_
 #define MY_INC_BOXER_COMMUNICATION_H_
 
 #include "stm32f0xx_gpio.h"
 #include "stm32f0xx_usart.h"
-#include "boxer_struct.h"
 #include "stm32f0xx_rcc.h"
 #include "stdint.h"
+#include "boxer_bool.h"
 
 #define countof(a)             (uint8_t)(sizeof(a) / sizeof(*(a)))
 

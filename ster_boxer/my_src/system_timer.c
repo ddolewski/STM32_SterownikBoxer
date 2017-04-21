@@ -1,5 +1,5 @@
 /*******************************************************************************
-Biblioteka obslugi i konfiguracji timerów
+Biblioteka obslugi i konfiguracji timerï¿½w
 mikrokontroler: STM32F051R8T6, 48MHz
 data utworzenia: 2015-04-23
 data modyfikacji: 2014-04-23
@@ -11,7 +11,8 @@ Biblioteka zawierajace funkcje obslugi
 ********************************************************************************/
 
 #include "system_timer.h"
-
+#include "system_gpio.h"
+#include "stm32f0xx_rcc.h"
 //-----------------------------------------------------------------------------
 // Funkcja wlaczajaca zegar RCC dla wybranego timera
 // RCC_APBPeriph/in: maska wybranego timera
@@ -100,7 +101,7 @@ void TIMx_ConfigPWMMode(TIM_TypeDef *TIMx)
 
 	TIMx->PSC = (uint16_t)((APB1_CLK / TIM_CLK) - 1); 	// preskaler
 	TIMx->ARR = (uint16_t)(TIM_CLK / PWM_CLK); 			// okres
-	TIMx->CCR4 = 25; // wype³nienie
+	TIMx->CCR4 = 25; // wypeï¿½nienie
 	TIMx->CCMR2 |= TIM_CCMR2_OC4M; // PWM Mode 2 "111"
 	TIMx->CCER |= TIM_CCER_CC4NP | TIM_CCER_CC4E; // ch4 out polarity low(active) | ch4 out enable
 	TIMx->CR1 |= TIM_CR1_ARPE;
@@ -130,8 +131,8 @@ void TIMx_ConfigOutputCompareMode(TIM_TypeDef *TIMx)
 
 	// timer ustawiony na 1MHz (zmierzone: ? MHz)
 #ifdef SEG_SLOW
-	TIMx->PSC = 60000; 	// testowe oko³o 1Hz
-	TIMx->ARR = 1000; 	// testowe oko³o 1Hz
+	TIMx->PSC = 60000; 	// testowe okoï¿½o 1Hz
+	TIMx->ARR = 1000; 	// testowe okoï¿½o 1Hz
 //	TIMx->PSC = 1000; 	// testowe
 //	TIMx->ARR = 120; 	// testowe
 #else

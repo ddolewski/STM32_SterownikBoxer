@@ -1,18 +1,10 @@
-/*
- * pcf8583.h
- *
- * Created: 2016-05-04 19:00:08
- *  Author: Doles
- */ 
-
-
 #ifndef PCF8563_H_
 #define PCF8563_H_
 
 #include <timestamp.h>
 #include "stm32f0xx.h"
 #include "stm32f0xx_i2c.h"
-#include "boxer_struct.h"
+#include "systime.h"
 #include "global.h"
 
 #define PCF8563_ADDR 				(uint8_t)0xA2

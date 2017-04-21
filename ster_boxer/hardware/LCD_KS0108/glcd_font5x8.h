@@ -2,7 +2,7 @@
  * glcd_font5x8.h
  *
  *  Created on: 28 lis 2015
- *      Author: Doles
+ *      Author: Damian Dolewski
  */
 
 #ifndef LCD_KS0108_GLCD_FONT5X8_H_

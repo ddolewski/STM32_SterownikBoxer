@@ -6,19 +6,60 @@
  */
 
 #include "boxer_ph.h"
+#include "boxer_datastorage.h"
 #include <stdio.h>
 #include <math.h>
+#include "string.h"
 
+typedef struct adcRef_t
+{
+	float vRefValueADC;
+	float refVoltage;
+	float mVFactor;
+}adcRef_t;
+
+typedef struct ADC_value_t
+{
+	uint16_t soil;
+	uint16_t water;
+	soil_moist_t soilMoisture;
+	uint16_t waterLevel;
+} ADC_value_t;
+
+typedef struct probe_t
+{
+	float tempSoil;
+	float inAverageSoil;
+	float inSoil;
+	float tempWater;
+	float inAverageWater;
+	float inWater;
+}probe_adc_t;
+
+typedef struct
+{
+	float pH4;
+	float pH7;
+	float pH9;
+}pHBufferVoltage_t;
+
+typedef enum
+{
+	BUFFER_PH4 = 1,
+	BUFFER_PH7 = 2,
+	BUFFER_PH9 = 3
+}buffer_type_t;
+
+static ADC_value_t ADC_value = {0};
 static adcRef_t referenceVoltage;
 static probe_adc_t probeData;
 static uint8_t adcAverageMeasCounter;
 static uint16_t ADC_ConvertedData[3];
-
-ADC_value_t ADC_value;
-pH_t pH;
-pHBufferVoltage_t pHBufferVoltage;
+static pHBufferVoltage_t pHBufferVoltage;
 
 static volatile uint8_t adcDataReady = FALSE;
+pH_t pH;
+
 
 #define SOIL_PH_INPUT 	GPIO_Pin_5
 #define WATER_PH_INPUT 	GPIO_Pin_6

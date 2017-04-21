@@ -2,38 +2,7 @@
 #ifndef __GLOBAL_H
 #define __GLOBAL_H
 
-// STM32F051 Core M0 library
-#include <timestamp.h>
-#include "string.h"
 #include "stm32f0xx.h"
-#include "debug.h"
-#include "misc.h"
-
-/* Includes ------------------------------------------------------------------*/
-// System perpipheral
-#include "system_gpio.h"
-//#include "system_rcc.h"
-//#include "system_exti.h"
-//#include "system_timer.h"
-#include "system_flash.h"
-
-#include "boxer_ph.h"
-#include "boxer_string.h"
-#include "boxer_struct.h"
-#include "boxer_climate.h"
-#include "boxer_datastorage.h"
-#include "boxer_communication.h"
-#include "boxer_irrigation.h"
-#include "boxer_timers.h"
-#include "boxer_display.h"
-
-#include "string_builder.h"
-#include "sht2x.h"
-#include "pcf8563.h"
-#include "tsl2561.h"
-#include "ds18b20.h"
-#include "systime.h"
-#include "misc.h"
 
 //#define FLASH_SAVE_TEST
 //#define FLASH_READ_TEST
@@ -76,8 +45,6 @@
 
 #define I2C2_SCL 				GPIOx_Pin_10
 #define I2C2_SDA 				GPIOx_Pin_11
-
-#define UC						(uint8_t *)
 
 #define PACK_STRUCT_BEGIN
 #define PACK_STRUCT_STRUCT __attribute__ ((__packed__))
