@@ -11,9 +11,11 @@
 #define DEBUG_TX			GPIO_Pin_6
 #define DEBUG_BUFF_SIZE		128
 
+static void DEBUG_SendString(char * xString);
+static void DEBUG_SendByte(uint8_t xData);
 
 volatile fifo_t debug_fifo;
-volatile char DebugBuffer[DEBUG_BUFF_SIZE] = "DMA Transmit test (UART1)\r\n";
+volatile char DebugBuffer[DEBUG_BUFF_SIZE] = {0};
 
 void DEBUG_Init(void)
 {
@@ -21,29 +23,8 @@ void DEBUG_Init(void)
 
     GPIO_InitTypeDef GPIO_InitStructure;
     USART_InitTypeDef USART_InitStructure;
-//    DMA_InitTypeDef DMA_InitStructure;
 
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_DMA1 , ENABLE);
-
-//	DMA_DeInit(DMA1_Channel2);
-//	DMA_InitStructure.DMA_PeripheralBaseAddr = (uint32_t)&USART1->TDR;
-//	DMA_InitStructure.DMA_MemoryBaseAddr = (uint32_t)&DebugBuffer;
-//	DMA_InitStructure.DMA_DIR = DMA_DIR_PeripheralDST;
-//	DMA_InitStructure.DMA_BufferSize = DEBUG_BUFF_SIZE;
-//	DMA_InitStructure.DMA_PeripheralInc = DMA_PeripheralInc_Disable;
-//	DMA_InitStructure.DMA_MemoryInc = DMA_MemoryInc_Enable;
-//	DMA_InitStructure.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte;
-//	DMA_InitStructure.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte;
-//	DMA_InitStructure.DMA_Mode = DMA_Mode_Normal;
-//	DMA_InitStructure.DMA_Priority = DMA_Priority_High;
-//	DMA_InitStructure.DMA_M2M = DMA_M2M_Enable;
-//	DMA_Init(DMA1_Channel2, &DMA_InitStructure);
-//
-//	DMA_Cmd(DMA1_Channel2, ENABLE);
-//	DMA_ITConfig(DMA1_Channel2, DMA_IT_TC, ENABLE);
-
-//	NVIC_SetPriority(DMA1_Channel2_3_IRQn, 1); //to samo co uart2
-//	NVIC_EnableIRQ(DMA1_Channel2_3_IRQn);
 
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
     RCC_APB2PeriphClockCmd(RCC_APB2ENR_USART1EN, ENABLE);
@@ -56,7 +37,6 @@ void DEBUG_Init(void)
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode = USART_Mode_Tx;
 
-    /* Connect PXx to USARTx_Tx */
     GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_0);
 
     GPIO_InitStructure.GPIO_Pin = DEBUG_TX; //PB6
@@ -70,23 +50,10 @@ void DEBUG_Init(void)
 
 	NVIC_SetPriority(USART1_IRQn, 3);
 	NVIC_EnableIRQ(USART1_IRQn);
-//	USART_DMACmd(USART1, USART_DMAReq_Tx, ENABLE);
-    /* Enable USART */
     USART_Cmd(USART1, ENABLE);
-
 }
 
-void DMA1_Channel2_3_IRQnHandler(void)
-{
-	/* Test on DMA Transfer Complete interrupt */
-	if (DMA_GetITStatus(DMA1_IT_TC2) != RESET)
-	{
-		/* Clear DMA Transfer Complete interrupt pending bit */
-		DMA_ClearITPendingBit(DMA1_IT_TC2);
-	}
-}
-
-void DEBUG_SendString(char * xString)
+static void DEBUG_SendString(char * xString)
 {
 #ifdef DEBUG_TERMINAL_USART
 	fifo_write(&debug_fifo, xString, strlen(xString));
@@ -94,7 +61,7 @@ void DEBUG_SendString(char * xString)
 #endif
 }
 
-void DEBUG_SendByte(uint8_t xData)
+static void DEBUG_SendByte(uint8_t xData)
 {
 #ifdef DEBUG_TERMINAL_USART
 	fifo_write(&debug_fifo, &xData, 1);
@@ -131,7 +98,7 @@ void _printChar(uint8_t xTxByte)
 //-----------------------------------------------------------------------------
 // Wypisanie stringu xString na konsole
 //-----------------------------------------------------------------------------
-void _printString(const uint8_t * xString)
+void _printString(char * xString)
 {
 	DEBUG_SendString(xString);
 }

@@ -14,8 +14,6 @@
 #define RX_PIN 	GPIO_Pin_3
 #define TX_PIN	GPIO_Pin_2
 
-
-
 volatile char RxBuffer[RX_BUFF_SIZE] = {0};
 volatile fifo_t rx_fifo;
 
@@ -23,7 +21,7 @@ volatile char TxBuffer[TX_BUFF_SIZE] = {0};
 volatile fifo_t tx_fifo;
 
 static atnel_init_state_t atnelInitProccess = ATNEL_UNINITIALISE;
-atnel_mode_t atnel_Mode = ATNEL_MODE_TRANSPARENT;//ATNEL_MODE_UNKNOWN;
+atnel_mode_t atnel_Mode = ATNEL_MODE_TRANSPARENT;
 
 atnel_at_cmd_resp_t atnel_AtCmdRespType = AT_NONE_RESP;
 atnel_at_cmd_req_t atnel_AtCmdReqType = AT_NONE_REQ;
@@ -50,11 +48,11 @@ void Atnel_SetTransparentMode(void)
 //#endif
 	atnel_Mode = ATNEL_MODE_TRANSPARENT;
 	atnelInitProccess = ATNEL_UNINITIALISE;
-//	fifo_flush(&rx_fifo);
 	memset(recvstr, 0, RX_BUFF_SIZE);
+	fifo_flush(&rx_fifo);
 	atnel_wait_change_mode = FALSE;
 	ntpSyncProccess = FALSE;
-	DEBUG_SendString("\r\ntryb transparentny wlaczony\n\r");
+	_printString("\r\ntryb transparentny wlaczony\n\r");
 }
 
 void SerialPort_Init(void)
@@ -157,18 +155,18 @@ void Ntp_Handler(void)
 		ntpRetryTimer++;
 		if (ntpRetryTimer == 5) //czekaj maksymalnie 5s na odpowiedz
 		{
-			DEBUG_SendString("timeout odpowiedzi ntp\r\n");
+			_printString("timeout odpowiedzi ntp\r\n");
 			ntpRetryTimer = 0;
 			Ntp_SendRequest();
 
 			ntpRetryCounter++;
-			DEBUG_SendString("ponowne zapytanie o czas\r\n");
+			_printString("ponowne zapytanie o czas\r\n");
 			if (ntpRetryCounter == 3) //do 3 prob potem wylacz komendy AT
 			{
 				atnel_AtCmdReqType = AT_ENTM_REQ;
 				atnel_AtCmdRespType = AT_NONE_RESP;
 				ntp_resp_wait = FALSE;
-				DEBUG_SendString("BLAD! serwer nie odpowiedzial 3x\r\n");
+				_printString("BLAD! serwer nie odpowiedzial 3x\r\n");
 			}
 		}
 	}
@@ -178,7 +176,6 @@ void Ntp_SendRequest(void)
 {
 	ntpSyncProccess = TRUE;
 	ntpRequestTimer = 0;
-//	DEBUG_SendString("wysylam zapytanie o czas\r\n");
 	atnel_AtCmdReqType = AT_GMT_REQ;
 	atnel_Mode = ATNEL_MODE_AT_CMD;
 }
@@ -196,14 +193,14 @@ void TransmitSerial_Handler(void)
 			SerialPort_PutString("+++");
 			atnelInitProccess = ATNEL_SEND_3PLUS;
 
-			DEBUG_SendString("send '+++'\r\n");
+			_printString("send '+++'\r\n");
 		}
 		else if (atnelInitProccess == ATNEL_RECV_A)
 		{
 			SerialPort_PutChar('a');
 			atnelInitProccess = ATNEL_SEND_A;
 
-			DEBUG_SendString("send 'a'\r\n");
+			_printString("send 'a'\r\n");
 		}
 		else if (atnelInitProccess == ATNEL_INIT_DONE)
 		{
@@ -217,12 +214,12 @@ void TransmitSerial_Handler(void)
 					if (isDst == TRUE)
 					{
 						SerialPort_PutString("AT+GMT=2\r");
-						DEBUG_SendString("send AT+GMT=2\r\n");
+						_printString("send AT+GMT=2\r\n");
 					}
 					else
 					{
 						SerialPort_PutString("AT+GMT=1\r");
-						DEBUG_SendString("send AT+GMT=1\r\n");
+						_printString("send AT+GMT=1\r\n");
 					}
 
 					atnel_AtCmdReqType = AT_NONE_REQ;
@@ -233,7 +230,7 @@ void TransmitSerial_Handler(void)
 
 				case AT_ENTM_REQ:
 					SerialPort_PutString("AT+ENTM\r");
-					DEBUG_SendString("send AT+ENTM\r\n");
+					_printString("send AT+ENTM\r\n");
 
 					atnel_AtCmdReqType = AT_NONE_REQ;
 					atnel_AtCmdRespType = AT_ENTM_RESP;
@@ -252,17 +249,17 @@ void TransmitSerial_Handler(void)
 		switch (atnel_TrCmdReqType)
 		{
 		case TRNSP_MEAS_DATA_REQ:
-		PrepareUdpString(displayData.lux, displayData.humiditySHT2x, displayData.tempSHT2x, ds18b20_1.fTemp, ds18b20_2.fTemp, DataToSend);
-		SerialPort_PutString(DataToSend);
+			PrepareUdpString(displayData.lux, displayData.humiditySHT2x, displayData.tempSHT2x, ds18b20_1.fTemp, ds18b20_2.fTemp, DataToSend);
+			SerialPort_PutString(DataToSend);
 
-//		DEBUG_SendString(DataToSend);
-//		DEBUG_SendString("\n\r");
+	//		DEBUG_SendString(DataToSend);
+	//		DEBUG_SendString("\n\r");
 
-		atnel_TrCmdReqType = TRNSP_NONE_REQ;
+			atnel_TrCmdReqType = TRNSP_NONE_REQ;
 		break;
 
 		case TRNSP_CAL_DONE_REQ:
-			SerialPort_PutString((uint8_t*)"STA CD END");
+			SerialPort_PutString("STA CD END");
 			atnel_TrCmdReqType = TRNSP_NONE_REQ;
 			calibrateFlags.calibrateDone = FALSE;
 			break;
@@ -273,7 +270,6 @@ void TransmitSerial_Handler(void)
 		}
 		break;
 	default:
-//		DEBUG_SendString("Nieznany tryb atnel wifi\n\r");
 		break;
 	}
 }
@@ -292,7 +288,7 @@ void ReceiveSerial_Handler(void)
 				if (recvChar == 'a')
 				{
 					atnelInitProccess = ATNEL_RECV_A;
-					DEBUG_SendString("recv 'a'\r\n");
+					_printString("recv 'a'\r\n");
 
 					memset(recvstr, 0, RX_BUFF_SIZE);
 					fifo_flush(&rx_fifo);
@@ -301,12 +297,12 @@ void ReceiveSerial_Handler(void)
 			else if (atnelInitProccess == ATNEL_SEND_A)
 			{
 				append(recvstr, recvChar);
-				char * atnelResponse = strstr(recvstr, "+ok\r\n\r\n"); //\r\n\r\n
+				char * atnelResponse = strstr(recvstr, "+ok\r\n\r\n");
 
 				if (atnelResponse != NULL)
 				{
 					atnelInitProccess = ATNEL_INIT_DONE;
-					DEBUG_SendString("recv +ok\r\n");
+					_printString("recv +ok\r\n");
 					memset(recvstr, 0, RX_BUFF_SIZE);
 					fifo_flush(&rx_fifo);
 				}
@@ -317,7 +313,7 @@ void ReceiveSerial_Handler(void)
 				{
 				case AT_GMT_RESP:
 					append(recvstr, recvChar);
-					char * at_gmt_response = strstr(recvstr, "+ok=20"); //first digits of year - constans ;)
+					char * at_gmt_response = strstr(recvstr, "+ok=20");
 
 					if (at_gmt_response != NULL)
 					{
@@ -325,8 +321,8 @@ void ReceiveSerial_Handler(void)
 
 						if (text_length >= 23)
 						{
-							DEBUG_SendString(at_gmt_response);
-							DEBUG_SendString("\n\r");
+							_printString(at_gmt_response);
+							_printString("\n\r");
 
 							char strCopy[32] = {0};
 							strcpy(strCopy, at_gmt_response);
@@ -391,7 +387,7 @@ void ReceiveSerial_Handler(void)
 
 					if (at_entm_response != NULL)
 					{
-						DEBUG_SendString(at_entm_response);
+						_printString(at_entm_response);
 
 						atnel_AtCmdReqType = AT_NONE_REQ;
 						atnel_AtCmdRespType = AT_NONE_RESP;
@@ -414,11 +410,9 @@ void ReceiveSerial_Handler(void)
 			{
 				append(recvstr, recvChar);
 				char * startStrAddr  = strstr(recvstr, "STA");
-				DEBUG_SendString(recvstr);
-				DEBUG_SendString("\r\n");
 
-//				DEBUG_SendString(rx_fifo.buf);
-//				DEBUG_SendString("\r\n");
+				_printString(recvstr);
+				_printString("\r\n");
 
 				if (startStrAddr != NULL)
 				{
@@ -431,7 +425,7 @@ void ReceiveSerial_Handler(void)
 						splitStr = strtok (recvstr, " ");
 						strcpy(ReceivedString[i], splitStr);
 
-						DEBUG_SendString(recvstr);
+						_printString(recvstr);
 
 						while (splitStr != NULL)
 						{
@@ -448,15 +442,15 @@ void ReceiveSerial_Handler(void)
 							strcpy(ReceivedString[i], splitStr);
 						}
 
-						if (strcmp(ReceivedString[0], "STA") == 0) //start frame preffix
+						if (strcmp(ReceivedString[0], "STA") == 0)
 						{
-							DEBUG_SendString("STA recv\n\r");
-							if (strcmp(ReceivedString[1], "SL") == 0) //set lamp frame command
+							_printString("STA recv\n\r");
+							if (strcmp(ReceivedString[1], "SL") == 0)
 							{
-								DEBUG_SendString("SL recv\n\r");
-								if (strcmp(ReceivedString[5], "END") == 0) //end frame suffix
+								_printString("SL recv\n\r");
+								if (strcmp(ReceivedString[5], "END") == 0)
 								{
-									DEBUG_SendString("END recv\n\r");
+									_printString("END recv\n\r");
 									memset(recvstr, 0, RX_BUFF_SIZE);
 									fifo_flush(&rx_fifo);
 
@@ -491,13 +485,14 @@ void ReceiveSerial_Handler(void)
 									}
 								}
 							}
-							else if (strcmp(ReceivedString[1], "ST") == 0) //set temp frame command
+							else if (strcmp(ReceivedString[1], "ST") == 0)
 							{
-								DEBUG_SendString("ST recv\n\r");
-								if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
+								_printString("ST recv\n\r");
+								if (strcmp(ReceivedString[3], "END") == 0)
 								{
 									memset(recvstr, 0, RX_BUFF_SIZE);
 									fifo_flush(&rx_fifo);
+
 									uint8_t temp = atoi( ReceivedString[2] );
 
 									tempControl.tempCtrlMode = TEMP_AUTO;
@@ -508,13 +503,14 @@ void ReceiveSerial_Handler(void)
 									}
 								}
 							}
-							else if (strcmp(ReceivedString[1], "SF") == 0) //set fans frame command
+							else if (strcmp(ReceivedString[1], "SF") == 0)
 							{
-								DEBUG_SendString("SF recv\n\r");
-								if (strcmp(ReceivedString[4], "END") == 0) //end frame suffix
+								_printString("SF recv\n\r");
+								if (strcmp(ReceivedString[4], "END") == 0)
 								{
 									memset(recvstr, 0, RX_BUFF_SIZE);
 									fifo_flush(&rx_fifo);
+
 									uint8_t isProper = TRUE;
 									uint8_t fanPull = atoi( ReceivedString[2] );
 									uint8_t fanPush = atoi( ReceivedString[3] );
@@ -538,10 +534,10 @@ void ReceiveSerial_Handler(void)
 									}
 								}
 							}
-							else if (strcmp(ReceivedString[1], "CP") == 0) //set calibrate probe command
+							else if (strcmp(ReceivedString[1], "CP") == 0)
 							{
-								DEBUG_SendString("CP recv\n\r");
-								if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
+								_printString("CP recv\n\r");
+								if (strcmp(ReceivedString[3], "END") == 0)
 								{
 									memset(recvstr, 0, RX_BUFF_SIZE);
 									fifo_flush(&rx_fifo);
@@ -552,10 +548,10 @@ void ReceiveSerial_Handler(void)
 									calibrateFlags.toggleBuzzerState = TRUE;
 								}
 							}
-							else if (strcmp(ReceivedString[1], "SI") == 0) //set temp frame command
+							else if (strcmp(ReceivedString[1], "SI") == 0)
 							{
-								DEBUG_SendString("SI recv\n\r");
-								if (strcmp(ReceivedString[5], "END") == 0) //end frame suffix
+								_printString("SI recv\n\r");
+								if (strcmp(ReceivedString[5], "END") == 0)
 								{
 									memset(recvstr, 0, RX_BUFF_SIZE);
 									fifo_flush(&rx_fifo);
@@ -566,22 +562,22 @@ void ReceiveSerial_Handler(void)
 		//							FLASH_SaveConfiguration();
 								}
 							}
-							else if (strcmp(ReceivedString[1], "R") == 0) //reset frame command
+							else if (strcmp(ReceivedString[1], "R") == 0)
 							{
-								DEBUG_SendString("Reset recv\n\r");
-								if (strcmp(ReceivedString[2], "END") == 0) //end frame suffix
+								_printString("Reset recv\n\r");
+								if (strcmp(ReceivedString[2], "END") == 0)
 								{
 									memset(recvstr, 0, RX_BUFF_SIZE);
 									fifo_flush(&rx_fifo);
 									MISC_ResetARM();
 								}
 							}
-							else if (strcmp(ReceivedString[1], "DEF") == 0) //default first command word
+							else if (strcmp(ReceivedString[1], "DEF") == 0)
 							{
-								DEBUG_SendString("DEF recv\n\r");
-								if (strcmp(ReceivedString[2], "SETT") == 0) //settings second command word
+								_printString("DEF recv\n\r");
+								if (strcmp(ReceivedString[2], "SETT") == 0)
 								{
-									if (strcmp(ReceivedString[3], "END") == 0) //end frame suffix
+									if (strcmp(ReceivedString[3], "END") == 0)
 									{
 										memset(recvstr, 0, RX_BUFF_SIZE);
 										fifo_flush(&rx_fifo);
@@ -599,7 +595,6 @@ void ReceiveSerial_Handler(void)
 			break;
 
 		default:
-//			atnel_Mode = ATNEL_MODE_UNKNOWN;
 			break;
 		}
 	}

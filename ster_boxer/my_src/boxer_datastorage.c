@@ -61,7 +61,7 @@ void FLASH_ReadConfiguration(void)
 
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad odczytu flash\r\n");
+		_printString("blad odczytu flash\r\n");
 	}
 
 	if ((xBackupConfig.signatureA == SIGNATURE_A) && (xBackupConfig.signatureB == SIGNATURE_B))
@@ -81,14 +81,14 @@ void FLASH_ReadConfiguration(void)
 		flashError = SYSTEM_FLASH_ErasePage(CONFIG_PAGE_NUMBER);
 		if (flashError == ERROR)
 		{
-			DEBUG_SendString("blad kasowania flash\r\n");
+			_printString("blad kasowania flash\r\n");
 		}
 
 		flashError = SYSTEM_FLASH_WritePage((uint16_t*)&defFlashConfig, CONFIG_PAGE_NUMBER, sizeof(defFlashConfig));
 
 		if (flashError == ERROR)
 		{
-			DEBUG_SendString("blad zapisu flash\r\n");
+			_printString("blad zapisu flash\r\n");
 		}
 	}
 }
@@ -100,7 +100,7 @@ void FLASH_SaveConfiguration(void)
 
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad kasowania flash\r\n");
+		_printString("blad kasowania flash\r\n");
 	}
 
 	xBackupConfig.signatureA = SIGNATURE_A;
@@ -115,7 +115,7 @@ void FLASH_SaveConfiguration(void)
 
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad zapisu flash\r\n");
+		_printString("blad zapisu flash\r\n");
 	}
 }
 
@@ -129,14 +129,14 @@ void FLASH_RestoreDefaultConfig(void)
 	ErrorStatus flashError = SYSTEM_FLASH_ErasePage(CONFIG_PAGE_NUMBER);
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad kasowania flash\r\n");
+		_printString("blad kasowania flash\r\n");
 	}
 
 	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&defFlashConfig, CONFIG_PAGE_NUMBER, sizeof(defFlashConfig));
 
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad zapisu flash\r\n");
+		_printString("blad zapisu flash\r\n");
 	}
 }
 
@@ -146,14 +146,14 @@ void FLASH_ClearLightState(void)
 	ErrorStatus flashError = SYSTEM_FLASH_ErasePage(LIGHT_COUNTERS_PAGE_NUMBER);
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad kasowania flash\r\n");
+		_printString("blad kasowania flash\r\n");
 	}
 
 	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&defFlashLightCounters, LIGHT_COUNTERS_PAGE_NUMBER, sizeof(defFlashLightCounters));
 
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad zapisu flash\r\n");
+		_printString("blad zapisu flash\r\n");
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -164,7 +164,7 @@ void FLASH_SaveLightCounters(void)
 
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad kasowania flash\r\n");
+		_printString("blad kasowania flash\r\n");
 	}
 
 	xBackupLightCounters.signatureC = SIGNATURE_C;
@@ -175,7 +175,7 @@ void FLASH_SaveLightCounters(void)
 	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&xBackupLightCounters, LIGHT_COUNTERS_PAGE_NUMBER, sizeof(xBackupLightCounters));
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad kasowania flash\r\n");
+		_printString("blad kasowania flash\r\n");
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -187,7 +187,7 @@ void FLASH_ReadLightCounters(void)
 
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad odczytu flash\r\n");
+		_printString("blad odczytu flash\r\n");
 	}
 
 	if ((xBackupLightCounters.signatureC == SIGNATURE_C) && (xBackupLightCounters.signatureD == SIGNATURE_D))
@@ -201,13 +201,13 @@ void FLASH_ReadLightCounters(void)
 		flashError = SYSTEM_FLASH_ErasePage(LIGHT_COUNTERS_PAGE_NUMBER);
 		if (flashError == ERROR)
 		{
-			DEBUG_SendString("blad kasowania flash\r\n");
+			_printString("blad kasowania flash\r\n");
 		}
 
 		flashError = SYSTEM_FLASH_WritePage((uint16_t*)&defFlashLightCounters, LIGHT_COUNTERS_PAGE_NUMBER, sizeof(defFlashLightCounters));
 		if (flashError == ERROR)
 		{
-			DEBUG_SendString("blad zapisu flash\r\n");
+			_printString("blad zapisu flash\r\n");
 		}
 	}
 }
@@ -241,13 +241,13 @@ void FLASH_STORAGE_TEST(void)
 	ErrorStatus flashError = SYSTEM_FLASH_ErasePage(CONFIG_PAGE_NUMBER);
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad kasowania flash\r\n");
+		_printString("blad kasowania flash\r\n");
 	}
 
 	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&xBackupConfig, PAGE_NUMBER, sizeof(xBackupConfig));
 	if (flashError == ERROR)
 	{
-		DEBUG_SendString("blad zapisu flash\r\n");
+		_printString("blad zapisu flash\r\n");
 	}
 
 #endif

@@ -8,47 +8,13 @@
 #include <timestamp.h>
 #include "pcf8563.h"
 
+static uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error);
+static ErrorStatus PCF8563_RegWrite(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, uint8_t data);
+static int BcdToDec(int data);
+static int DecToBcd(int data);
+
 static systime_t readTimeTimer = 0;
 static time_complex_t localTime;
-//-----------------------------------------------------------------------------
-// Funkcja konwertujaca bin na bcd
-// byte_to_conv/in: konwertowany bajt
-// return: wartosc bcd
-//-----------------------------------------------------------------------------
-uint8_t miscBin2bcd(uint8_t byte_to_conv)
-{
-	uint8_t byte_converted;
-	byte_converted = byte_to_conv/10;
-	byte_converted <<= 4;
-	byte_to_conv %= 10;
-	byte_converted += byte_to_conv;
-	return byte_converted;
-}
-
-//-----------------------------------------------------------------------------
-// Funkcja konwertujaca bcd na bin
-// byte_to_conv/in: konwertowana wartocd bcd
-// return: wartosc bajtu
-//-----------------------------------------------------------------------------
-uint8_t miscBcd2bin(uint8_t byte_to_conv)
-{
-	uint8_t byte_converted;
-	byte_converted = byte_to_conv & 0x0F;
-	byte_to_conv >>= 4;
-	byte_to_conv *= 10;
-	byte_converted += byte_to_conv;
-	return byte_converted;
-}
-	
-ErrorStatus PCF8563_Init(I2C_TypeDef * I2Cx)
-{
-	ErrorStatus error = SUCCESS;
-	uint8_t temp = ((1<<7) | (0x03<<0));
-
-	error = PCF8563_RegWrite(I2Cx, PCF8563_ADDR, 0x0D, temp);
-	error = PCF8563_RegWrite(I2Cx, PCF8563_ADDR, PCF8563_CTRL_STAT_REG1, 0x08);
-	return error;
-}
 
 ErrorStatus PCF8563_ReadTime(time_complex_t * xTime, I2C_TypeDef* I2Cx)
 {
@@ -119,77 +85,11 @@ void RTC_Handler(void)
 		strcpy(displayData.time, xTimeString);
 	}
 }
-
-void I2C1_Init(void)
-{
-	GPIOx_ClockConfig(RCC_AHBPeriph_GPIOB, ENABLE);
-	GPIOx_PinAFConfig(GPIOB, GPIOx_PinSource6, GPIOx_AF_1); //scl
-	GPIOx_PinAFConfig(GPIOB, GPIOx_PinSource7, GPIOx_AF_1); //sda
-	GPIOx_PinConfig(GPIOB, Mode_AF, OSpeed_50MHz, OType_OD, OState_PU, I2C1_SCL);
-	GPIOx_PinConfig(GPIOB, Mode_AF, OSpeed_50MHz, OType_OD, OState_PU, I2C1_SDA);
-
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, DISABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
-
-	I2C_InitTypeDef  I2C_InitStructure;
-	RCC_I2CCLKConfig(RCC_I2C1CLK_SYSCLK);
-
-	I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
-	I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
-	I2C_InitStructure.I2C_AnalogFilter = I2C_AnalogFilter_Enable;
-	I2C_InitStructure.I2C_DigitalFilter = 0;
-	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
-	I2C_InitStructure.I2C_OwnAddress1 = 0x00;
-	I2C_InitStructure.I2C_Timing = 0x40B22536;//0x00701863;//0x10805E89; //0x40B22536; //100khz
-	I2C_Init(I2C1, &I2C_InitStructure);
-
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, DISABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, ENABLE);
-
-	I2C_SoftwareResetCmd(I2C1, ENABLE);
-	I2C_SoftwareResetCmd(I2C1, DISABLE);
-}
-
-void I2C2_Init(void)
-{
-	GPIOx_ClockConfig(RCC_AHBPeriph_GPIOB, ENABLE);
-	GPIOx_PinAFConfig(GPIOB, GPIOx_PinSource10, GPIOx_AF_1); //scl
-	GPIOx_PinAFConfig(GPIOB, GPIOx_PinSource11, GPIOx_AF_1); //sda
-	GPIOx_PinConfig(GPIOB, Mode_AF, OSpeed_50MHz, OType_OD, OState_PU, I2C2_SCL);
-	GPIOx_PinConfig(GPIOB, Mode_AF, OSpeed_50MHz, OType_OD, OState_PU, I2C2_SDA);
-
-	I2C_InitTypeDef  I2C_InitStructure;
-
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, DISABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
-
-	I2C_InitStructure.I2C_Ack = I2C_Ack_Enable;
-	I2C_InitStructure.I2C_AcknowledgedAddress = I2C_AcknowledgedAddress_7bit;
-	I2C_InitStructure.I2C_AnalogFilter = I2C_AnalogFilter_Enable;
-	I2C_InitStructure.I2C_DigitalFilter = 0x00;
-	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
-	I2C_InitStructure.I2C_OwnAddress1 = 0x00;
-	I2C_InitStructure.I2C_Timing = 0x40B22536;//0x502044F3;//0x10805E89; //0x40B22536; //100khz
-	I2C_Init(I2C2, &I2C_InitStructure);
-
-	I2C_SoftwareResetCmd(I2C2, ENABLE);
-	I2C_SoftwareResetCmd(I2C2, DISABLE);
-
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, DISABLE);
-	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C2, ENABLE);
-
-	I2C_Cmd(I2C2, ENABLE);
-
-	I2C_SoftwareResetCmd(I2C2, ENABLE);
-	I2C_SoftwareResetCmd(I2C2, DISABLE);
-}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error)
+static uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error)
 {
 	uint32_t TimeOut = 10000;
-
 	uint8_t ReadValue = 0;
-	uint8_t ConvertValue = 0;
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
@@ -266,7 +166,7 @@ uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterA
 	return ReadValue;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-ErrorStatus PCF8563_RegWrite(I2C_TypeDef * I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, uint8_t data)
+static ErrorStatus PCF8563_RegWrite(I2C_TypeDef * I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, uint8_t data)
 {
 	uint32_t TimeOut = 10000;
 	uint8_t TimeBCD = 0;
@@ -338,12 +238,12 @@ ErrorStatus PCF8563_RegWrite(I2C_TypeDef * I2Cx, uint16_t SlaveAddr, uint8_t Reg
 	return SUCCESS;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int DecToBcd(int data)
+static int DecToBcd(int data)
 {
 	return ((data / 10) << 4) + (data % 10);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-int BcdToDec(int data)
+static int BcdToDec(int data)
 {
 	return (10 * (data >> 4) + (data & 0x0F));
 }
