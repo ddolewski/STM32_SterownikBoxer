@@ -18,6 +18,16 @@ static int DecToBcd(int data);
 static systime_t readTimeTimer = 0;
 static time_complex_t localTime;
 
+ErrorStatus PCF8563_Init(I2C_TypeDef * I2Cx)
+{
+	ErrorStatus error = SUCCESS;
+	uint8_t temp = ((1<<7) | (0x03<<0));
+
+	error = PCF8563_RegWrite(I2Cx, PCF8563_ADDR, 0x0D, temp);
+	error = PCF8563_RegWrite(I2Cx, PCF8563_ADDR, PCF8563_CTRL_STAT_REG1, 0x08);
+	return error;
+}
+
 ErrorStatus PCF8563_ReadTime(time_complex_t * xTime, I2C_TypeDef* I2Cx)
 {
 	ErrorStatus error = SUCCESS;

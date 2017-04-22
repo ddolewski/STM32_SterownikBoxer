@@ -6,7 +6,7 @@
 
 //#define FLASH_SAVE_TEST
 //#define FLASH_READ_TEST
-//#define DISPLAY_PAGE1_TEST
+#define DISPLAY_PAGE1_TEST
 //#define DISPLAY_PAGE2_TEST
 //#define NTP_DEBUG
 #define DEBUG_TERMINAL_USART

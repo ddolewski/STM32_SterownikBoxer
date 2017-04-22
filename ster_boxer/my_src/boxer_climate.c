@@ -12,58 +12,92 @@
 #include "hardware/TSL2561/tsl2561.h"
 
 static systime_t measureOwireTimer = 0;
-static systime_t measureI2cTimer = 0;
-static systime_t shtInitTimer = 0;
+static systime_t luxMeasureTimer = 0;
+static systime_t shtMeasurementTimer = 0;
 static systime_t oWireInitTimer = 0;
 
 static ErrorStatus errorSht = SUCCESS;
 static ErrorStatus errorTsl = SUCCESS;
-static ErrorStatus errorDs1 = SUCCESS;
-static ErrorStatus errorDs2 = SUCCESS;
+static ErrorStatus errorDsUp = SUCCESS;
+static ErrorStatus errorDsDown = SUCCESS;
 /////////////////////////////////////////////////////////////////////////////
 void Climate_SensorsHandler(void)
 {
 	if (systimeTimeoutControl(&oWireInitTimer, 500))
 	{
 #ifndef OWIRE_OFF_MODE
-		errorDs1 = initializeConversion(&ds18b20_1);
-		errorDs2 = initializeConversion(&ds18b20_2);
+		errorDsUp = initializeConversion(&sensorTempUp);
+		errorDsDown = initializeConversion(&sensorTempDown);
 #endif
 	}
 
 	if (systimeTimeoutControl(&measureOwireTimer, 800))
 	{
 #ifndef OWIRE_OFF_MODE
-		errorDs1 = readTemperature(&ds18b20_1);
-		displayData.tempDS18B20_1_t = ds18b20_1.fTemp;
-		errorDs2 = readTemperature(&ds18b20_2);
-		displayData.tempDS18B20_2_t = ds18b20_2.fTemp;
+		errorDsUp = readTemperature(&sensorTempUp);
+		displayData.temp_up_t = sensorTempUp.fTemp;
+		errorDsDown = readTemperature(&sensorTempDown);
+		displayData.temp_down_t = sensorTempDown.fTemp;
 #endif
 	}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (systimeTimeoutControl(&shtMeasurementTimer, 10000))
+	{
+#ifndef I2C_OFF_MODE
+		errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
+		if (errorSht == ERROR)
+		{
+			_error("SHT21 reset error (loop)");
+		}
+		else
+		{
+			_printString("SHT21 reset ok (loop)\r\n");
+		}
 
-//	if (systimeTimeoutControl(&shtInitTimer, 800))
-//	{
-//#ifndef I2C_OFF_MODE
-//    	errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
-//#endif
-//	}
+		uint16_t tempWord = 0;
+		uint16_t humWord = 0;
 
-	if (systimeTimeoutControl(&measureI2cTimer, 2000))
+		systimeDelayMs(20);
+		tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
+		if (errorSht == ERROR)
+		{
+			_error("SHT21 meas temp error (loop)");
+		}
+		else
+		{
+			_printString("SHT21 meas temp ok (loop)\r\n");
+		}
+
+		humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &errorSht);
+		if (errorSht == ERROR)
+		{
+			_error("SHT21 meas hum error (loop)");
+		}
+		else
+		{
+			_printString("SHT21 meas hum ok (loop)\r\n");
+		}
+
+		humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
+		tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
+
+		displayData.temp_middle_t = SHT21_CalcTemp(tempWord);
+		displayData.humiditySHT2x = SHT21_CalcRH(humWord);
+#endif
+	}
+////////////////////////////////////////////////////////////////////////////////////////////////////
+	if (systimeTimeoutControl(&luxMeasureTimer, 5000))
 	{
 #ifndef I2C_OFF_MODE
 		displayData.lux = TSL2561_ReadLux(&errorTsl);
-
-        uint16_t tempWord = 0;
-        uint16_t humWord = 0;
-
-//    	tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
-//    	humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &errorSht);
-
-    	humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
-    	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
-
-    	displayData.tempSHT2x = SHT21_CalcTemp(tempWord);
-    	displayData.humiditySHT2x = SHT21_CalcRH(humWord);
+		if (errorTsl == ERROR)
+		{
+			_error("TSL2561 read lux error (loop)");
+		}
+		else
+		{
+			_printString("TSL2561 read lux ok (loop)\r\n");
+		}
 #endif
 	}
 }
@@ -78,20 +112,20 @@ void Climate_TempCtrl_Handler(void)
 			if (xLightControl.lightingState == LIGHT_ON)
 			{
 	//			_printParam(UC"LightControl.LightingState", LightControl.LightingState);
-				if (ds18b20_1.fTemp > (float)tempControl.userTemp)
+				if (sensorTempUp.fTemp > (float)tempControl.userTemp)
 				{
 					//USARTx_SendString(USART_COMM, UC"fTemp > userTemp\n\r");
-					PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100, PWM_CHANGE_SLOW); 	//wyciagajacy
+					PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100);//, PWM_CHANGE_SLOW); 	//wyciagajacy
 					lastPullPWM = 100;
-					PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70, PWM_CHANGE_SLOW); 	//wciagajacy
+					PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70);//, PWM_CHANGE_SLOW); 	//wciagajacy
 					lastPushPWM = 70;
 				}
 				else
 				{
 					//USARTx_SendString(USART_COMM, UC"fTemp < userTemp\n\r");
-					PWM_DecPercentTo(PWM_FAN_PULL_AIR, 60, PWM_CHANGE_SLOW);
+					PWM_DecPercentTo(PWM_FAN_PULL_AIR, 60);//, PWM_CHANGE_SLOW);
 					lastPullPWM = 60;
-					PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30, PWM_CHANGE_SLOW);
+					PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30);//, PWM_CHANGE_SLOW);
 					lastPushPWM = 30;
 				}
 			}
@@ -101,14 +135,14 @@ void Climate_TempCtrl_Handler(void)
 
 				if (lastPullPWM > 40)
 				{
-					if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, 40, PWM_CHANGE_SLOW) == 1)
+					if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, 40))//, 40, PWM_CHANGE_SLOW) == 1)
 					{
 						lastPullPWM = 40;
 					}
 				}
 				else
 				{
-					if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, 40, PWM_CHANGE_SLOW) == 1)
+					if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, 40))//, 40, PWM_CHANGE_SLOW) == 1)
 					{
 						lastPullPWM = 40;
 					}
@@ -116,14 +150,14 @@ void Climate_TempCtrl_Handler(void)
 
 				if (lastPushPWM > 30)
 				{
-					if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30, PWM_CHANGE_SLOW) == 1)
+					if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30))//, 30, PWM_CHANGE_SLOW) == 1)
 					{
 						lastPushPWM = 30;
 					}
 				}
 				else
 				{
-					if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30, PWM_CHANGE_SLOW) == 1)
+					if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30))//, 30, PWM_CHANGE_SLOW) == 1)
 					{
 						lastPushPWM = 30;
 					}
@@ -136,14 +170,14 @@ void Climate_TempCtrl_Handler(void)
 			{
 				if (lastPullPWM > tempControl.fanPull)
 				{
-					if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull, PWM_CHANGE_SLOW) == 1)
+					if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))//, PWM_CHANGE_SLOW) == 1)
 					{
 						lastPullPWM = tempControl.fanPull;
 					}
 				}
 				else
 				{
-					if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull, PWM_CHANGE_SLOW) == 1)
+					if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))//, PWM_CHANGE_SLOW) == 1)
 					{
 						lastPullPWM = tempControl.fanPull;
 					}
@@ -154,14 +188,14 @@ void Climate_TempCtrl_Handler(void)
 			{
 				if (lastPushPWM > tempControl.fanPush)
 				{
-					if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush, PWM_CHANGE_SLOW) == 1)
+					if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))//, PWM_CHANGE_SLOW) == 1)
 					{
 						lastPushPWM = tempControl.fanPush;
 					}
 				}
 				else
 				{
-					if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush, PWM_CHANGE_SLOW) == 1)
+					if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))//, PWM_CHANGE_SLOW) == 1)
 					{
 						lastPushPWM = tempControl.fanPush;
 					}

@@ -70,7 +70,7 @@ static void PeripheralInit(void)
 
 #ifndef BUZZER_OFF_MODE
 	GPIOx_ResetPin(BUZZER_PORT, BUZZER_PIN);
-	systimeDelayMs(400);
+	systimeDelayMs(800);
 	GPIOx_SetPin(BUZZER_PORT, BUZZER_PIN);
 #endif
 
@@ -85,7 +85,7 @@ static void PeripheralInit(void)
 
 	if (rtcError == ERROR)
 	{
-		DEBUG_SendString("blad inicjalizacji RTC\r\n");
+		_error("blad inicjalizacji RTC\r\n");
 	}
 #else
 	DEBUG_Init();
@@ -109,7 +109,24 @@ static void PeripheralInit(void)
 #ifndef I2C_OFF_MODE
 	I2C2_Init();
 	ErrorStatus tslError = TSL2561_Init();
+	if (tslError == ERROR)
+	{
+		_error("TSL2561 init error");
+	}
+	else
+	{
+		_printString("TSL2561 init ok\r\n");
+	}
+
 	ErrorStatus shtError = SHT21_SoftReset(I2C2, SHT21_ADDR);
+	if (tslError == ERROR)
+	{
+		_error("SHT21 reset error");
+	}
+	else
+	{
+		_printString("SHT21 reset ok\r\n");
+	}
 #endif
 
 	FLASH_ReadConfiguration();
@@ -117,31 +134,57 @@ static void PeripheralInit(void)
 	FLASH_STORAGE_TEST();
 
 #ifndef OWIRE_OFF_MODE
-	memCopy(ds18b20_1.cROM, sensor1ROM, 8);
-	memCopy(ds18b20_2.cROM, sensor2ROM, 8);
+	memCopy(sensorTempUp.cROM, sensor1ROM, 8);
+	memCopy(sensorTempDown.cROM, sensor2ROM, 8);
 
-	initializeConversion(&ds18b20_1);
-	initializeConversion(&ds18b20_2);
-	systimeDelayMs(800);
-	readTemperature(&ds18b20_1);
-	displayData.tempDS18B20_1_t = ds18b20_1.fTemp;
-	readTemperature(&ds18b20_2);
-	displayData.tempDS18B20_2_t = ds18b20_2.fTemp;
+	initializeConversion(&sensorTempUp);
+	initializeConversion(&sensorTempDown);
+	systimeDelayMs(1000);
+	readTemperature(&sensorTempUp);
+	displayData.temp_up_t = sensorTempUp.fTemp;
+	readTemperature(&sensorTempDown);
+	displayData.temp_down_t = sensorTempDown.fTemp;
 #endif
 
 #ifndef I2C_OFF_MODE
 
 	displayData.lux = TSL2561_ReadLux(&tslError);
+	if (tslError == ERROR)
+	{
+		_error("TSL2561 read lux error");
+	}
+	else
+	{
+		_printString("TSL2561 read lux ok\r\n");
+	}
+
 	uint16_t tempWord = 0;
 	uint16_t humWord = 0;
 
-//    tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
-//    humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
+    tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
+	if (shtError == ERROR)
+	{
+		_error("SHT21 meas temp error");
+	}
+	else
+	{
+		_printString("SHT21 meas temp ok\r\n");
+	}
+
+    humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
+	if (shtError == ERROR)
+	{
+		_error("SHT21 meas hum error");
+	}
+	else
+	{
+		_printString("SHT21 meas hum ok\r\n");
+	}
 
 	humWord  = ((uint16_t)(SHT_HumData.msb_lsb[0])  << 8) | SHT_HumData.msb_lsb[1];
 	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
 
-	displayData.tempSHT2x 		= SHT21_CalcTemp(tempWord);
+	displayData.temp_middle_t 	= SHT21_CalcTemp(tempWord);
 	displayData.humiditySHT2x 	= SHT21_CalcRH(humWord);
 #endif
 
@@ -175,7 +218,7 @@ static void I2C1_Init(void)
 	I2C_InitStructure.I2C_DigitalFilter = 0;
 	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
 	I2C_InitStructure.I2C_OwnAddress1 = 0x00;
-	I2C_InitStructure.I2C_Timing = 0x40B22536;//0x00701863;//0x10805E89; //0x40B22536; //100khz
+	I2C_InitStructure.I2C_Timing = 0x00C0CDE9;//0x00701863;//0x10805E89; //0x40B22536; //100khz
 	I2C_Init(I2C1, &I2C_InitStructure);
 
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_I2C1, DISABLE);
@@ -204,7 +247,7 @@ static void I2C2_Init(void)
 	I2C_InitStructure.I2C_DigitalFilter = 0x00;
 	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
 	I2C_InitStructure.I2C_OwnAddress1 = 0x00;
-	I2C_InitStructure.I2C_Timing = 0x40B22536;//0x502044F3;//0x10805E89; //0x40B22536; //100khz
+	I2C_InitStructure.I2C_Timing = 0x00C0CDE9;//0x502044F3;//0x10805E89; //0x40B22536; //100khz
 	I2C_Init(I2C2, &I2C_InitStructure);
 
 	I2C_SoftwareResetCmd(I2C2, ENABLE);

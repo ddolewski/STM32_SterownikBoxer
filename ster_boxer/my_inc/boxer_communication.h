@@ -23,13 +23,15 @@ typedef enum
 	AT_NONE_REQ,
 	AT_GMT_REQ,
 	AT_ENTM_REQ,
+	AT_E_REQ,
 }atnel_at_cmd_req_t;
 
 typedef enum
 {
 	AT_NONE_RESP,
 	AT_GMT_RESP,
-	AT_ENTM_RESP
+	AT_ENTM_RESP,
+	AT_E_RESP
 }atnel_at_cmd_resp_t;
 
 typedef enum

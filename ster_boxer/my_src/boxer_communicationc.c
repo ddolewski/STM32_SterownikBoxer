@@ -19,6 +19,8 @@
 #define RX_PIN 	GPIO_Pin_3
 #define TX_PIN	GPIO_Pin_2
 
+volatile static bool_t echoOff = FALSE;
+
 volatile char RxBuffer[RX_BUFF_SIZE] = {0};
 volatile fifo_t rx_fifo;
 
@@ -57,6 +59,7 @@ void Atnel_SetTransparentMode(void)
 	fifo_flush(&rx_fifo);
 	atnel_wait_change_mode = FALSE;
 	ntpSyncProccess = FALSE;
+
 	_printString("\r\ntryb transparentny wlaczony\n\r");
 }
 
@@ -68,9 +71,9 @@ void SerialPort_Init(void)
     fifo_init(&rx_fifo, (void *)RxBuffer, RX_BUFF_SIZE);
     fifo_init(&tx_fifo, (void *)TxBuffer, TX_BUFF_SIZE);
 
-    USART_InitStructure.USART_BaudRate = 115200;
+    USART_InitStructure.USART_BaudRate = 9600;
     USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-    USART_InitStructure.USART_StopBits = USART_StopBits_1;
+    USART_InitStructure.USART_StopBits = USART_StopBits_2;
     USART_InitStructure.USART_Parity = USART_Parity_No;
     USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
@@ -119,6 +122,7 @@ void USART2_IRQHandler(void)
 	char txChar = 0;
 	char rxChar = 0;
 
+
 	if ( USART_GetITStatus( USART2, USART_IT_TXE ) != RESET )
 	{
 		USART_ClearITPendingBit(USART2, USART_IT_TXE);
@@ -134,6 +138,7 @@ void USART2_IRQHandler(void)
 
 	if ( USART_GetITStatus( USART2, USART_IT_RXNE ) != RESET )
 	{
+//		_info("usart2_irq");
 		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 		rxChar = (char)USART_ReceiveData( USART2 );
 		fifo_write(&rx_fifo, &rxChar, 1);
@@ -181,7 +186,15 @@ void Ntp_SendRequest(void)
 {
 	ntpSyncProccess = TRUE;
 	ntpRequestTimer = 0;
-	atnel_AtCmdReqType = AT_GMT_REQ;
+	if (echoOff == FALSE)
+	{
+		atnel_AtCmdReqType = AT_E_REQ;
+	}
+	else
+	{
+		atnel_AtCmdReqType = AT_GMT_REQ;
+	}
+
 	atnel_Mode = ATNEL_MODE_AT_CMD;
 }
 
@@ -219,12 +232,12 @@ void TransmitSerial_Handler(void)
 					if (isDst == TRUE)
 					{
 						SerialPort_PutString("AT+GMT=2\r");
-						_printString("send AT+GMT=2\r\n");
+						_printString("\r\nsend AT+GMT=2\r\n");
 					}
 					else
 					{
 						SerialPort_PutString("AT+GMT=1\r");
-						_printString("send AT+GMT=1\r\n");
+						_printString("\r\nsend AT+GMT=1\r\n");
 					}
 
 					atnel_AtCmdReqType = AT_NONE_REQ;
@@ -240,6 +253,15 @@ void TransmitSerial_Handler(void)
 					atnel_AtCmdReqType = AT_NONE_REQ;
 					atnel_AtCmdRespType = AT_ENTM_RESP;
 					break;
+
+				case AT_E_REQ:
+					SerialPort_PutString("AT+E=off\r");
+					_printString("send AT+E=off\r\n");
+
+					atnel_AtCmdReqType = AT_NONE_REQ;
+					atnel_AtCmdRespType = AT_E_RESP;
+					break;
+
 				default:
 					atnel_AtCmdReqType = AT_NONE_REQ;
 					break;
@@ -254,7 +276,7 @@ void TransmitSerial_Handler(void)
 		switch (atnel_TrCmdReqType)
 		{
 		case TRNSP_MEAS_DATA_REQ:
-			PrepareUdpString(displayData.lux, displayData.humiditySHT2x, displayData.tempSHT2x, ds18b20_1.fTemp, ds18b20_2.fTemp, DataToSend);
+			PrepareUdpString(displayData.lux, displayData.humiditySHT2x, displayData.temp_middle_t, sensorTempUp.fTemp, sensorTempDown.fTemp, DataToSend);
 			SerialPort_PutString(DataToSend);
 
 	//		DEBUG_SendString(DataToSend);
@@ -307,6 +329,7 @@ void ReceiveSerial_Handler(void)
 				if (atnelResponse != NULL)
 				{
 					atnelInitProccess = ATNEL_INIT_DONE;
+					atnel_AtCmdRespType = AT_ENTM_REQ;
 					_printString("recv +ok\r\n");
 					memset(recvstr, 0, RX_BUFF_SIZE);
 					fifo_flush(&rx_fifo);
@@ -397,6 +420,24 @@ void ReceiveSerial_Handler(void)
 						atnel_AtCmdReqType = AT_NONE_REQ;
 						atnel_AtCmdRespType = AT_NONE_RESP;
 						atnel_wait_change_mode = TRUE;
+						echoOff = FALSE;
+						memset(recvstr, 0, RX_BUFF_SIZE);
+						fifo_flush(&rx_fifo);
+					}
+
+					break;
+
+				case AT_E_RESP:
+					append(recvstr, recvChar);
+					char * at_echo_response = strstr(recvstr, "+ok");
+
+					if (at_echo_response != NULL)
+					{
+						_printString(at_echo_response);
+						echoOff = TRUE;
+						atnel_AtCmdReqType = AT_GMT_REQ;
+						atnel_AtCmdRespType = AT_NONE_RESP;
+						atnel_wait_change_mode = FALSE;
 						memset(recvstr, 0, RX_BUFF_SIZE);
 						fifo_flush(&rx_fifo);
 					}

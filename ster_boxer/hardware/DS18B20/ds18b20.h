@@ -20,8 +20,8 @@ typedef struct
 	float fTemp;
 }DS18B20Sensor_t;
 
-DS18B20Sensor_t ds18b20_1;
-DS18B20Sensor_t ds18b20_2;
+DS18B20Sensor_t sensorTempUp;
+DS18B20Sensor_t sensorTempDown;
 
 extern const uint8_t sensor1ROM[8];
 extern const uint8_t sensor2ROM[8];

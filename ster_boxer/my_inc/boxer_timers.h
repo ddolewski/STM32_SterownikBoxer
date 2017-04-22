@@ -34,14 +34,14 @@ uint8_t lastPullPWM;
 uint8_t lastPushPWM;
 
 extern bool_t initFanPwm;
-
+uint8_t shtTimer;
 void PWM_FansInit(void);
 void PWM_PumpInit(void);
 
 void SoftStart_Handler(void);
 void MainTimer_Handler(void);
 void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent);
-uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_speed_t xSpeed);
-uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_speed_t xSpeed);
+uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent);//, pwm_change_speed_t xSpeed);
+uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent);//, pwm_change_speed_t xSpeed);
 
 #endif /* MY_INC_BOXER_TIMERS_H_ */

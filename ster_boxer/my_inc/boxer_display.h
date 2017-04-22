@@ -11,9 +11,9 @@
 
 typedef struct
 {
-	float tempSHT2x;
-	float tempDS18B20_1_t;
-	float tempDS18B20_2_t;
+	float temp_middle_t;
+	float temp_up_t;
+	float temp_down_t;
 	uint32_t lux;
 	float humiditySHT2x;
 	char time[20];

@@ -37,7 +37,7 @@ static uint8_t PWM_FANSoftStart(void);
 //#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_speed_t xSpeed)
+uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)//, pwm_change_speed_t xSpeed)
 {
 	uint8_t ret = 0;
 	uint8_t power = 100 - xPercent;
@@ -84,7 +84,7 @@ uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_sp
 	return ret;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_speed_t xSpeed)
+uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)//, pwm_change_speed_t xSpeed)
 {
 	uint8_t ret = 0;
 	uint8_t power = 100 - xPercent;
@@ -93,19 +93,19 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_sp
 		case PWM_PUMP:
 			if (REG_PWM_PUMP > PWM_PercentToRegister(power))
 			{
-				switch (xSpeed)
-				{
-				case PWM_CHANGE_FAST:
-					REG_PWM_PUMP -= 10;
-					break;
-
-				case PWM_CHANGE_SLOW:
+//				switch (xSpeed)
+//				{
+//				case PWM_CHANGE_FAST:
+//					REG_PWM_PUMP -= 10;
+//					break;
+//
+//				case PWM_CHANGE_SLOW:
 					REG_PWM_PUMP -= 1;
-					break;
-
-				default:
-					break;
-				}
+//					break;
+//
+//				default:
+//					break;
+//				}
 			}
 			else
 			{
@@ -116,19 +116,19 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_sp
 		case PWM_FAN_PULL_AIR:
 			if (REG_PWM_PULL_AIR_FAN > PWM_PercentToRegister(power))
 			{
-				switch (xSpeed)
-				{
-				case PWM_CHANGE_FAST:
-					REG_PWM_PULL_AIR_FAN -= 10;
-					break;
-
-				case PWM_CHANGE_SLOW:
+//				switch (xSpeed)
+//				{
+//				case PWM_CHANGE_FAST:
+//					REG_PWM_PULL_AIR_FAN -= 10;
+//					break;
+//
+//				case PWM_CHANGE_SLOW:
 					REG_PWM_PULL_AIR_FAN -= 1;
-					break;
-
-				default:
-					break;
-				}
+//					break;
+//
+//				default:
+//					break;
+//				}
 			}
 			else
 			{
@@ -139,19 +139,19 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent, pwm_change_sp
 		case PWM_FAN_PUSH_AIR:
 			if (REG_PWM_PUSH_AIR_FAN > PWM_PercentToRegister(power))
 			{
-				switch (xSpeed)
-				{
-				case PWM_CHANGE_FAST:
-					REG_PWM_PUSH_AIR_FAN -= 10;
-					break;
-
-				case PWM_CHANGE_SLOW:
+//				switch (xSpeed)
+//				{
+//				case PWM_CHANGE_FAST:
+//					REG_PWM_PUSH_AIR_FAN -= 10;
+//					break;
+//
+//				case PWM_CHANGE_SLOW:
 					REG_PWM_PUSH_AIR_FAN -= 1;
-					break;
-
-				default:
-					break;
-				}
+//					break;
+//
+//				default:
+//					break;
+//				}
 			}
 			else
 			{
@@ -224,12 +224,18 @@ void MainTimer_Handler(void)
 			}
 		}
 
+		shtTimer++;
+		if (shtTimer == 10)
+		{
+			shtTimer = 0;
+		}
+
 		displayData.pageCounter++;
 
 		if (atnel_wait_change_mode == TRUE)
 		{
 			atnelWaitCounter++;
-			if (atnelWaitCounter == 5)
+			if (atnelWaitCounter == 30)
 			{
 				atnelWaitCounter = 0;
 				atnel_wait_change_mode = FALSE;
@@ -411,15 +417,15 @@ static uint8_t PWM_FANSoftStart(void)
 	switch (tempControl.tempCtrlMode)
 	{
 	case TEMP_MANUAL:
-		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull, PWM_CHANGE_SLOW);
-		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush, PWM_CHANGE_SLOW);
+		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull);//, PWM_CHANGE_SLOW);
+		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush);//, PWM_CHANGE_SLOW);
 		lastPullPWM = tempControl.fanPull;
 		lastPushPWM = tempControl.fanPush;
 		break;
 
 	case TEMP_AUTO:
-		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, 60, PWM_CHANGE_SLOW);
-		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30, PWM_CHANGE_SLOW);
+		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, 60);//, PWM_CHANGE_SLOW);
+		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30);//, PWM_CHANGE_SLOW);
 		lastPullPWM = 60;
 		lastPushPWM = 30;
 		break;

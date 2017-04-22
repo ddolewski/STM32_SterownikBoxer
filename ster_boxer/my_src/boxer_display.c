@@ -31,9 +31,9 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 
 		if (display->page == 1)
 		{
-			float tempSHT2x = display->tempSHT2x;
-			float tempds18b20_1 = display->tempDS18B20_1_t;
-			float tempds18b20_2 = display->tempDS18B20_2_t;
+//			float tempSHT2x = display->temp_middle_t;
+//			float tempds18b20_1 = display->temp_up_t;
+//			float tempds18b20_2 = display->temp_down_t;
 			GLCD_GoTo(0,0);
 			GLCD_WriteString(display->time);
 			GLCD_GoTo(35,0);
@@ -46,7 +46,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 			GLCD_GoTo(0,2);
 			GLCD_WriteString("T. dolna [*C]:");
 			GLCD_GoTo(90,2);
-			ftoa(tempSHT2x, tempString, 1);
+			ftoa(display->temp_down_t, tempString, 1);
 			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 ///////////////////////////////////////////////////////
@@ -54,7 +54,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 			GLCD_WriteString("T. lampa [*C]:");
 
 			GLCD_GoTo(90,3);
-			ftoa(tempds18b20_1, tempString, 1);
+			ftoa(display->temp_up_t, tempString, 1);
 			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 
@@ -63,7 +63,7 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 			GLCD_WriteString("T. srodek[*C]:");
 
 			GLCD_GoTo(90,4);
-			ftoa(tempds18b20_2, tempString, 1);
+			ftoa(display->temp_middle_t, tempString, 1);
 			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 

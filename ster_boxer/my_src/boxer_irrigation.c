@@ -128,11 +128,11 @@ static uint8_t Irrigation_PumpEnable(bool_t xStatus)
 
 	if (xStatus)
 	{
-		ret = PWM_IncPercentTo(PWM_PUMP, 100, PWM_CHANGE_FAST);
+		ret = PWM_IncPercentTo(PWM_PUMP, 100);//, PWM_CHANGE_FAST);
 	}
 	else
 	{
-		ret = PWM_DecPercentTo(PWM_PUMP, 0, PWM_CHANGE_FAST);
+		ret = PWM_DecPercentTo(PWM_PUMP, 0);//, PWM_CHANGE_FAST);
 	}
 
 	return ret;
