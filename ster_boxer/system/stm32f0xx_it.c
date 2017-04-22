@@ -51,10 +51,11 @@ void NMI_Handler(void)
   */
 void HardFault_Handler(void)
 {
+	_error("HARD FAULT ERROR!\n\r");
 	/* Go to infinite loop when Hard Fault exception occurs */
 	while (TRUE)
 	{
-		_error("HARD FAULT ERROR!\n\r");
+
 	}
 }
 

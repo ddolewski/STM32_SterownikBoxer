@@ -224,18 +224,12 @@ void MainTimer_Handler(void)
 			}
 		}
 
-		shtTimer++;
-		if (shtTimer == 10)
-		{
-			shtTimer = 0;
-		}
-
 		displayData.pageCounter++;
 
 		if (atnel_wait_change_mode == TRUE)
 		{
 			atnelWaitCounter++;
-			if (atnelWaitCounter == 30)
+			if (atnelWaitCounter == 15)
 			{
 				atnelWaitCounter = 0;
 				atnel_wait_change_mode = FALSE;

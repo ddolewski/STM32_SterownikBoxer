@@ -1,10 +1,3 @@
-/*
- * fifo.c
- *
- *  Created on: 2 lut 2017
- *      Author: Doles
- */
-
 #include "fifo.h"
 
 //This initializes the FIFO structure with the given buffer and size
@@ -16,10 +9,11 @@ void fifo_init(volatile fifo_t * fifo, char * buf, int size)
 	fifo->buf = buf;
 }
 
-void fifo_flush(fifo_t *  flushFifo)
+void fifo_flush(volatile fifo_t *  flushFifo)
 {
 	flushFifo->head = 0;
 	flushFifo->tail = 0;
+	flushFifo->size = RX_BUFF_SIZE;
 	memset(flushFifo->buf, 0, RX_BUFF_SIZE);
 }
 

@@ -109,6 +109,7 @@ static void PeripheralInit(void)
 #ifndef I2C_OFF_MODE
 	I2C2_Init();
 	ErrorStatus tslError = TSL2561_Init();
+#ifdef MEASURE_LOGS
 	if (tslError == ERROR)
 	{
 		_error("TSL2561 init error");
@@ -117,8 +118,9 @@ static void PeripheralInit(void)
 	{
 		_printString("TSL2561 init ok\r\n");
 	}
-
+#endif
 	ErrorStatus shtError = SHT21_SoftReset(I2C2, SHT21_ADDR);
+#ifdef MEASURE_LOGS
 	if (tslError == ERROR)
 	{
 		_error("SHT21 reset error");
@@ -127,6 +129,7 @@ static void PeripheralInit(void)
 	{
 		_printString("SHT21 reset ok\r\n");
 	}
+#endif
 #endif
 
 	FLASH_ReadConfiguration();
@@ -149,6 +152,8 @@ static void PeripheralInit(void)
 #ifndef I2C_OFF_MODE
 
 	displayData.lux = TSL2561_ReadLux(&tslError);
+
+#ifdef MEASURE_LOGS
 	if (tslError == ERROR)
 	{
 		_error("TSL2561 read lux error");
@@ -157,11 +162,13 @@ static void PeripheralInit(void)
 	{
 		_printString("TSL2561 read lux ok\r\n");
 	}
-
+#endif
 	uint16_t tempWord = 0;
 	uint16_t humWord = 0;
 
     tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
+
+#ifdef MEASURE_LOGS
 	if (shtError == ERROR)
 	{
 		_error("SHT21 meas temp error");
@@ -170,8 +177,10 @@ static void PeripheralInit(void)
 	{
 		_printString("SHT21 meas temp ok\r\n");
 	}
-
+#endif
     humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
+
+#ifdef MEASURE_LOGS
 	if (shtError == ERROR)
 	{
 		_error("SHT21 meas hum error");
@@ -180,7 +189,7 @@ static void PeripheralInit(void)
 	{
 		_printString("SHT21 meas hum ok\r\n");
 	}
-
+#endif
 	humWord  = ((uint16_t)(SHT_HumData.msb_lsb[0])  << 8) | SHT_HumData.msb_lsb[1];
 	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
 
@@ -194,7 +203,7 @@ static void PeripheralInit(void)
 	GLCD_ClearScreen();
 
 	Ntp_SendRequest();
-
+//	atnel_Mode = ATNEL_MODE_TRANSPARENT;
 	peripheralsInit = TRUE;
 }
 

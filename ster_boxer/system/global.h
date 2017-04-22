@@ -15,6 +15,8 @@
 //#define I2C_OFF_MODE
 //#define OWIRE_OFF_MODE
 //#define RTC_WRITE_TEST
+//#define MEASURE_LOGS
+//#define SEND_TRANSMIT_FRAME
 
 #define WIFI_RST_PORT			GPIOC
 #define WIFI_RST_PIN			GPIOx_Pin_3
