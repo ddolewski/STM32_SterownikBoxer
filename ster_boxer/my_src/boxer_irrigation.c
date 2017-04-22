@@ -13,7 +13,6 @@ const uint32_t SOIL_MEASURE_TIMEOUT = 300000;
 const uint32_t DAY_IN_SEC = 86400;
 
 static systime_t waterLvlCheckTimer = 0;
-static systime_t softStartTimer = 0;
 static systime_t soilMoistTimer = 0;
 static uint32_t SecondIrr;
 static uint8_t DayIrr;

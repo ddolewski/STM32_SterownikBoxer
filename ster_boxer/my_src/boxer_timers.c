@@ -229,7 +229,7 @@ void MainTimer_Handler(void)
 		if (atnel_wait_change_mode == TRUE)
 		{
 			atnelWaitCounter++;
-			if (atnelWaitCounter == 15)
+			if (atnelWaitCounter == 5)
 			{
 				atnelWaitCounter = 0;
 				atnel_wait_change_mode = FALSE;

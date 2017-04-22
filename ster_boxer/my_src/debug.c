@@ -30,7 +30,7 @@ void DEBUG_Init(void)
     RCC_APB2PeriphClockCmd(RCC_APB2ENR_USART1EN, ENABLE);
     RCC_USARTCLKConfig(RCC_USART1CLK_SYSCLK);
 
-    USART_InitStrture.USART_BaudRate = 230400;
+    USART_InitStrture.USART_BaudRate = 115200;
     USART_InitStrture.USART_WordLength = USART_WordLength_8b;
     USART_InitStrture.USART_StopBits = USART_StopBits_1;
     USART_InitStrture.USART_Parity = USART_Parity_No;
