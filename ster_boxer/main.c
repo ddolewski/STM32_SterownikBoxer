@@ -18,11 +18,49 @@ int main(void)
 {
 	SystemInit();
 	SystemCoreClockUpdate();
+	RCC_HCLKConfig(RCC_SYSCLK_Div1);
+	RCC_PCLKConfig(RCC_HCLK_Div1);
+
 	systimeInit();
+
+//	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
+//	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
+//	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
+//	RCC->AHBENR |= RCC_AHBENR_GPIOFEN;
+//
+//	OneWire_TimerInit();
+//	memCopy(sensorTempUp.cROM, sensor1ROM, 8);
+//	memCopy(sensorTempDown.cROM, sensor2ROM, 8);
+//	DEBUG_Init();
+
+
 	PeripheralInit();
+
+//	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
+//	GPIOx_PinConfig(GPIOC, Mode_Out, OSpeed_50MHz, OType_PP, OState_PU, GPIOx_Pin_8);
+//	GPIOx_ResetPin(GPIOC, GPIOx_Pin_8);
 
     while (TRUE)
 	{
+////    	delay_us__(1);
+//    	delay_ms__(5);
+//    	GPIOC->BSRR = (uint32_t)GPIOx_Pin_8;
+////    	delay_us__(1);
+//    	delay_ms__(5);
+//    	GPIOC->BRR = (uint32_t)GPIOx_Pin_8;
+
+    	if (systickIRQ == 1)
+    	{
+        	SoftStart_Handler();
+
+        	if (peripheralsInit == TRUE)
+        	{
+        		Climate_TempCtrl_Handler();
+        	}
+
+        	systickIRQ = 0;
+    	}
+
     	MainTimer_Handler();
     	TransmitSerial_Handler();
     	ReceiveSerial_Handler();
@@ -119,17 +157,7 @@ static void PeripheralInit(void)
 		_printString("TSL2561 init ok\r\n");
 	}
 #endif
-	ErrorStatus shtError = SHT21_SoftReset(I2C2, SHT21_ADDR);
-#ifdef MEASURE_LOGS
-	if (tslError == ERROR)
-	{
-		_error("SHT21 reset error");
-	}
-	else
-	{
-		_printString("SHT21 reset ok\r\n");
-	}
-#endif
+
 #endif
 
 	FLASH_ReadConfiguration();
@@ -137,12 +165,13 @@ static void PeripheralInit(void)
 	FLASH_STORAGE_TEST();
 
 #ifndef OWIRE_OFF_MODE
+	OneWire_TimerInit();
 	memCopy(sensorTempUp.cROM, sensor1ROM, 8);
 	memCopy(sensorTempDown.cROM, sensor2ROM, 8);
 
 	initializeConversion(&sensorTempUp);
 	initializeConversion(&sensorTempDown);
-	systimeDelayMs(1000);
+	systimeDelayMs(760);
 	readTemperature(&sensorTempUp);
 	displayData.temp_up_t = sensorTempUp.fTemp;
 	readTemperature(&sensorTempDown);
@@ -165,36 +194,60 @@ static void PeripheralInit(void)
 #endif
 	uint16_t tempWord = 0;
 	uint16_t humWord = 0;
+	ErrorStatus shtError = SUCCESS;
 
-    tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
+	uint8_t i2cErrCounter = 0;
+	while (displayData.temp_middle_t <= 0)
+	{
+		i2cErrCounter++;
+		if (i2cErrCounter == 10)
+		{
+			break;
+		}
 
-#ifdef MEASURE_LOGS
-	if (shtError == ERROR)
-	{
-		_error("SHT21 meas temp error");
-	}
-	else
-	{
-		_printString("SHT21 meas temp ok\r\n");
-	}
-#endif
-    humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
+		shtError = SHT21_SoftReset(I2C2, SHT21_ADDR);
+		systimeDelayMs(50);
+	#ifdef MEASURE_LOGS
+		if (tslError == ERROR)
+		{
+			_error("SHT21 reset error");
+		}
+		else
+		{
+			_printString("SHT21 reset ok\r\n");
+		}
+	#endif
 
-#ifdef MEASURE_LOGS
-	if (shtError == ERROR)
-	{
-		_error("SHT21 meas hum error");
-	}
-	else
-	{
-		_printString("SHT21 meas hum ok\r\n");
-	}
-#endif
-	humWord  = ((uint16_t)(SHT_HumData.msb_lsb[0])  << 8) | SHT_HumData.msb_lsb[1];
-	tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
+	    tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
 
-	displayData.temp_middle_t 	= SHT21_CalcTemp(tempWord);
-	displayData.humiditySHT2x 	= SHT21_CalcRH(humWord);
+	#ifdef MEASURE_LOGS
+		if (shtError == ERROR)
+		{
+			_error("SHT21 meas temp error");
+		}
+		else
+		{
+			_printString("SHT21 meas temp ok\r\n");
+		}
+	#endif
+	    humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
+
+	#ifdef MEASURE_LOGS
+		if (shtError == ERROR)
+		{
+			_error("SHT21 meas hum error");
+		}
+		else
+		{
+			_printString("SHT21 meas hum ok\r\n");
+		}
+	#endif
+		humWord  = ((uint16_t)(SHT_HumData.msb_lsb[0])  << 8) | SHT_HumData.msb_lsb[1];
+		tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
+
+		displayData.temp_middle_t 	= SHT21_CalcTemp(tempWord);
+		displayData.humiditySHT2x 	= SHT21_CalcRH(humWord);
+	}
 #endif
 
 	Irrigation_CheckSoilMoisture();
@@ -202,8 +255,12 @@ static void PeripheralInit(void)
 	displayData.page = 1;
 	GLCD_ClearScreen();
 
+#ifdef TURN_OFF_FIRST_NTP_REQ
+	atnel_Mode = ATNEL_MODE_TRANSPARENT;
+#else
 	Ntp_SendRequest();
-//	atnel_Mode = ATNEL_MODE_TRANSPARENT;
+#endif
+
 	peripheralsInit = TRUE;
 }
 
@@ -228,7 +285,7 @@ static void I2C1_Init(void)
 	I2C_InitStructure.I2C_DigitalFilter = 0;
 	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
 	I2C_InitStructure.I2C_OwnAddress1 = 0x00;
-	I2C_InitStructure.I2C_Timing = 0x00C0CDE9;
+	I2C_InitStructure.I2C_Timing = 0x00100000;
 	I2C_Init(I2C1, &I2C_InitStructure);
 
 	SYSCFG_I2CFastModePlusConfig(SYSCFG_I2CFastModePlus_PB6, DISABLE);
@@ -257,7 +314,7 @@ static void I2C2_Init(void)
 	I2C_InitStructure.I2C_DigitalFilter = 0x00;
 	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
 	I2C_InitStructure.I2C_OwnAddress1 = 0x00;
-	I2C_InitStructure.I2C_Timing = 0x00C0CDE9;
+	I2C_InitStructure.I2C_Timing = 0x10800000;//0x00C0CDE9;
 	I2C_Init(I2C2, &I2C_InitStructure);
 
 	I2C_Cmd(I2C2, ENABLE);

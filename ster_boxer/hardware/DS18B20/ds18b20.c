@@ -1,28 +1,38 @@
 #include "ds18b20.h"
 #include "string.h"
+#include "stm32f0xx_rcc.h"
+#include "stm32f0xx_tim.h"
 
 const uint8_t sensor1ROM[8]={40, 255, 8, 153, 100, 20, 3, 10};
 const uint8_t sensor2ROM[8]={40, 21, 46, 135, 4, 0, 0, 53};
 
+volatile uint8_t toggle = 0;
+volatile uint8_t delayFlag = 0;
 
 GPIO_InitTypeDef GPIO_InitStructure;
-static inline void ASM_DelayUS(uint32_t us);
 
-static inline void ASM_DelayUS(uint32_t us)
+
+void OneWire_TimerInit(void)
 {
-	/* So (2^32)/12 micros max, or less than 6 minutes */
-	us *= 10;
-	us -= 2; //offset seems around 2 cycles
-	/* fudge for function call overhead */
-	us--;
-	__ASM volatile(" mov r0, %[us] \n\t"
-	".syntax unified \n\t"
-	"1: subs r0, #1 \n\t"
-	".syntax divided \n\t"
-	" bhi 1b \n\t"
-	:
-	: [us] "r" (us)
-	: "r0");
+	RCC->APB1ENR |= RCC_APB1ENR_TIM6EN; //timer clock enable
+	TIM6->CR1 |= TIM_CR1_CEN; 			//Counter enable
+	TIM6->PSC = 47; 					//Timer prescaler
+	TIM6->CNT = 0;
+}
+
+void delay_us__(uint32_t us)
+{
+	TIM6->CNT = 0;
+	while ((us - TIM6->CNT) > 0);
+}
+
+void delay_ms__(uint16_t delay) //up to 65535 ms (~65s)
+{
+	uint16_t i;
+	for (i = 0; i < delay; i++)
+	{
+		delay_us__(1000);
+	}
 }
 
 void OneWire_Low(void)
@@ -51,9 +61,9 @@ uint8_t uc1Wire_ResetPulse(void)
 
 	OneWire_Out();
 	OneWire_Low();
-	ASM_DelayUS(600); //minimum 480us
+	delay_us__(480); //minimum 480us
 	OneWire_In();
-	ASM_DelayUS(50); //15-60us
+	delay_us__(60); //15-60us
 
 	if (GPIOx_ReadInputPin(DS18B20_PORT, DS18B20_PIN))
 	{
@@ -64,7 +74,7 @@ uint8_t uc1Wire_ResetPulse(void)
 		ucPresenceImpulse = 0;
 	}
 
-	 ASM_DelayUS(300); //60-240us
+	 delay_us__(420);
 
 	if (GPIOx_ReadInputPin(DS18B20_PORT, DS18B20_PIN))
 	{
@@ -84,14 +94,14 @@ void v1Wire_SendBit(uint8_t cBit)
 	OneWire_Out();
 	OneWire_Low();
 
-	ASM_DelayUS(1);
+	delay_us__(1);
 
 	if (cBit == 1)
 	{
 		OneWire_High();
 	}
 
-	ASM_DelayUS(50);
+	delay_us__(60);
 	OneWire_High();
 }
 
@@ -102,10 +112,10 @@ uint8_t uc1Wire_ReadBit(void)
 
 	GPIOx_PinConfig(DS18B20_PORT, Mode_Out, 0, OType_PP, OState_PD, DS18B20_PIN);
 	DS18B20_PORT->BRR = DS18B20_PIN;
-	ASM_DelayUS(1);
+	delay_us__(1);
 
 	GPIOx_PinConfig(DS18B20_PORT, Mode_In, 0, 0, OState_PD, DS18B20_PIN);
-	ASM_DelayUS(10);
+	delay_us__(14);
 
 	if (GPIOx_ReadInputPin(DS18B20_PORT, DS18B20_PIN))
 	{
@@ -116,6 +126,7 @@ uint8_t uc1Wire_ReadBit(void)
 		ucBit = 0;
 	}
 
+	delay_us__(45);
 	return ucBit;
 }
 
@@ -132,7 +143,7 @@ void v1Wire_SendByte(uint8_t ucByteValue)
 		v1Wire_SendBit(ucValueToSend);
 	}
 
-	ASM_DelayUS(100);
+	delay_us__(100);
 }
 
 //Funkcja odbiera bajt z magistrali
@@ -146,9 +157,8 @@ uint8_t uv1Wire_ReadByte(void)
 		if (uc1Wire_ReadBit())
 		{
 			ucReadByte |= (1 << ucCounter);
+			delay_us__(15);
 		}
-
-		ASM_DelayUS(50);
 	}
 
 	return ucReadByte;

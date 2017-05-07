@@ -12,19 +12,13 @@
 
 static volatile systime_t sysTimer = 0;	//timer systemowy odmierzajacy czas w ms
 //-------------------------------------------------------------------------------------------------
-// Funkcja inicjalizuj�ca timer systemeowy
+// Funkcja inicjalizujaca timer systemeowy
 //void
 //return:		void
 //-------------------------------------------------------------------------------------------------
 void systimeInit(void)
 {
-	SysTick->LOAD = 48000 - 1; // 1ms
-	NVIC_SetPriority (SysTick_IRQn, 0);  	/* set Priority for Cortex-M0 System Interrupts */
-//	NVIC_SetPriority (SysTick_IRQn, 2);//(1<<__NVIC_PRIO_BITS) - 1);  	/* set Priority for Cortex-M0 System Interrupts */
-	SysTick->VAL   = 0;                                          	/* Load the SysTick Counter Value */
-	SysTick->CTRL  = SysTick_CTRL_CLKSOURCE_Msk |
-				     SysTick_CTRL_TICKINT_Msk   |
-					 SysTick_CTRL_ENABLE_Msk;                    	/* Enable SysTick IRQ and SysTick Timer */
+	SysTick_Config (SystemCoreClock / 1000);
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja obslugi przerwania SysTick
@@ -34,12 +28,13 @@ void systimeInit(void)
 void SYSTIMER_HANDLER (void)
 {
 	sysTimer++;
-	SoftStart_Handler();
-
-	if (peripheralsInit == TRUE)
-	{
-		Climate_TempCtrl_Handler();
-	}
+	systickIRQ = 1;
+//	SoftStart_Handler();
+//
+//	if (peripheralsInit == TRUE)
+//	{
+//		Climate_TempCtrl_Handler();
+//	}
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja zwracajaca aktualny czas systemowy

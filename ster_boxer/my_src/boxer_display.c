@@ -31,9 +31,6 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 
 		if (display->page == 1)
 		{
-//			float tempSHT2x = display->temp_middle_t;
-//			float tempds18b20_1 = display->temp_up_t;
-//			float tempds18b20_2 = display->temp_down_t;
 			GLCD_GoTo(0,0);
 			GLCD_WriteString(display->time);
 			GLCD_GoTo(35,0);
@@ -45,16 +42,29 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 /////////////////////////////////////////////////////
 			GLCD_GoTo(0,2);
 			GLCD_WriteString("T. dolna [*C]:");
-			GLCD_GoTo(90,2);
+
+			if (lastTempDown != display->temp_down_t)
+			{
+				GLCD_GoTo(90,2);
+				GLCD_WriteString("     ");
+			}
+
 			ftoa(display->temp_down_t, tempString, 1);
+			GLCD_GoTo(90,2);
 			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 ///////////////////////////////////////////////////////
 			GLCD_GoTo(0,3);
 			GLCD_WriteString("T. lampa [*C]:");
 
-			GLCD_GoTo(90,3);
+			if (lastTempUp != display->temp_up_t)
+			{
+				GLCD_GoTo(90,3);
+				GLCD_WriteString("     ");
+			}
+
 			ftoa(display->temp_up_t, tempString, 1);
+			GLCD_GoTo(90,3);
 			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 
@@ -62,14 +72,27 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 			GLCD_GoTo(0,4);
 			GLCD_WriteString("T. srodek[*C]:");
 
-			GLCD_GoTo(90,4);
+			if (lastTempMiddle != display->temp_middle_t)
+			{
+				GLCD_GoTo(90,4);
+				GLCD_WriteString("     ");
+			}
+
 			ftoa(display->temp_middle_t, tempString, 1);
+			GLCD_GoTo(90,4);
 			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
 
 			itoa(display->humiditySHT2x, tempString);
 			GLCD_GoTo(0,5);
 			GLCD_WriteString("Wilg. [%RH]:");
+
+			if (lastHumidity != display->humiditySHT2x)
+			{
+				GLCD_GoTo(90,5);
+				GLCD_WriteString("     ");
+			}
+
 			GLCD_GoTo(90,5);
 			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
@@ -77,6 +100,13 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 			itoa(display->lux, tempString);
 			GLCD_GoTo(0,6);
 			GLCD_WriteString("Nat.lampy [lx]:");
+
+			if (lastLux != display->lux)
+			{
+				GLCD_GoTo(90,6);
+				GLCD_WriteString("      ");
+			}
+
 			GLCD_GoTo(90,6);
 			GLCD_WriteString(tempString);
 			memset(tempString, 0, 10);
@@ -355,8 +385,8 @@ static void Display_ShowPage(lcdDisplayData_t * display)
 			switch(tempControl.tempCtrlMode)
 			{
 			case TEMP_AUTO:
-				GLCD_GoTo(102,6);
-				GLCD_WriteString("auto");
+				GLCD_GoTo(91,6);
+				GLCD_WriteString("  auto");
 				break;
 
 			case TEMP_MANUAL:

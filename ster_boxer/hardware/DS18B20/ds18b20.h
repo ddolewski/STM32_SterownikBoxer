@@ -9,6 +9,8 @@
 #define DS18B20_PORT			GPIOF
 #define DS18B20_PIN				GPIOx_Pin_5
 
+volatile int itFlag;
+
 typedef struct
 {
 	uint8_t cTempH;
@@ -25,6 +27,10 @@ DS18B20Sensor_t sensorTempDown;
 
 extern const uint8_t sensor1ROM[8];
 extern const uint8_t sensor2ROM[8];
+
+void OneWire_TimerInit(void);
+void delay_us__(uint32_t us);
+void delay_ms__(uint16_t delay);
 
 void OneWire_Low(void);
 void OneWire_High(void);

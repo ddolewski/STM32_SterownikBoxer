@@ -214,6 +214,7 @@ void MainTimer_Handler(void)
 {
 	if (systimeTimeoutControl(&oneSecTimer, 1000))
 	{
+
 		if (atnel_Mode == ATNEL_MODE_TRANSPARENT)
 		{
 			dataCounter++;
@@ -225,6 +226,21 @@ void MainTimer_Handler(void)
 		}
 
 		displayData.pageCounter++;
+//		char tmp[5];
+//		itoa(displayData.pageCounter, tmp);
+//		_printString("display counter = ");
+//		_printString(tmp);_printString("\r\n");
+
+		if (entm_count_timeout == TRUE)
+		{
+			entm_timeout_response++;
+			if (entm_timeout_response == 5)
+			{
+				entm_count_timeout = FALSE;
+				entm_timeout_response = 0;
+				Atnel_SetTransparentMode();
+			}
+		}
 
 		if (atnel_wait_change_mode == TRUE)
 		{
@@ -354,8 +370,8 @@ void PWM_FansInit(void)
 {
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
 	TIM_OCInitTypeDef  TIM_OCInitStructure;
-
 	GPIO_InitTypeDef GPIO_InitStructure;
+
 	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOB, ENABLE);
 
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1;
@@ -376,8 +392,7 @@ void PWM_FansInit(void)
 	TIM_TimeBaseStructure.TIM_Prescaler = TIMER_PRESCALER; // aby zmniejszyc F taktowania z 48Mhz na 1Mhz
 	TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;
 	TIM_TimeBaseStructure.TIM_Period = TimerPeriod;
-	TIM_TimeBaseStructure.TIM_ClockDivision = 0;
-	TIM_TimeBaseStructure.TIM_RepetitionCounter = 0;
+	TIM_TimeBaseStructure.TIM_ClockDivision = TIM_CKD_DIV1;
 
 	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);
 

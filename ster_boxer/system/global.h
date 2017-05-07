@@ -9,13 +9,15 @@
 //#define DISPLAY_PAGE1_TEST
 //#define DISPLAY_PAGE2_TEST
 //#define NTP_DEBUG
+//#define TURN_OFF_FIRST_NTP_REQ
 #define DEBUG_TERMINAL_USART
 //#define DISPLAY_PAGE3_TEST
 #define BUZZER_OFF_MODE
 //#define I2C_OFF_MODE
 //#define OWIRE_OFF_MODE
 //#define RTC_WRITE_TEST
-//#define MEASURE_LOGS
+//#define I2C2_LOGS
+#define ONE_WIRE_LOGS
 //#define SEND_TRANSMIT_FRAME
 
 #define WIFI_RST_PORT			GPIOC

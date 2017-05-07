@@ -19,6 +19,9 @@
 #define RX_PIN 	GPIO_Pin_3
 #define TX_PIN	GPIO_Pin_2
 
+uint8_t entm_timeout_response = 0;
+bool_t entm_count_timeout = FALSE;
+
 volatile static bool_t echoOff = FALSE;
 volatile int rxIdx = 0;
 volatile bool_t rxRecvFlag = FALSE;
@@ -290,6 +293,8 @@ void TransmitSerial_Handler(void)
 
 					atnel_AtCmdReqType = AT_NONE_REQ;
 					atnel_AtCmdRespType = AT_ENTM_RESP;
+
+					entm_count_timeout = TRUE;
 					break;
 
 				case AT_E_REQ:

@@ -43,7 +43,7 @@ typedef struct calibrationProcess_t
 	uint8_t pH4Buffer;
 	uint8_t pH7Buffer;
 	uint8_t	pH9Buffer;
-	uint8_t pHCounter;
+	uint8_t phBufferAvgDone;
 	probe_type_t probeType;
 }calibrationProcess_t;
 

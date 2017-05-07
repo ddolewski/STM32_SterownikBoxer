@@ -12,6 +12,12 @@
 
 typedef enum
 {
+	MEASURE_TEMP_UP,
+	MEASURE_TEMP_DOWN
+}temp_proccess_t;
+
+typedef enum
+{
 	TEMP_AUTO = 'A',
 	TEMP_MANUAL = 'M'
 }temp_control_state_t;
@@ -31,6 +37,12 @@ typedef struct
 }temp_control_t;
 
 volatile temp_control_t tempControl;
+
+extern float lastTempUp;
+extern float lastTempDown;
+extern float lastTempMiddle;
+extern float lastHumidity;
+extern uint32_t lastLux;
 
 void Climate_TempCtrl_Handler(void);
 void Climate_SensorsHandler(void);

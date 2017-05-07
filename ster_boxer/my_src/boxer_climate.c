@@ -11,41 +11,104 @@
 #include "boxer_light.h"
 #include "hardware/TSL2561/tsl2561.h"
 
+static temp_proccess_t oneWireTempProccess = MEASURE_TEMP_UP;
+
 static systime_t measureOwireTimer = 0;
 static systime_t luxMeasureTimer = 0;
 static systime_t shtMeasurementTimer = 0;
-static systime_t oWireInitTimer = 0;
+static bool_t oneWireResetDone = FALSE;
 
 static ErrorStatus errorSht = SUCCESS;
 static ErrorStatus errorTsl = SUCCESS;
 static ErrorStatus errorDsUp = SUCCESS;
 static ErrorStatus errorDsDown = SUCCESS;
+
+float lastTempUp = 0;
+float lastTempDown = 0;
+float lastTempMiddle = 0;
+float lastHumidity = 0;
+uint32_t lastLux = 0;
 /////////////////////////////////////////////////////////////////////////////
 void Climate_SensorsHandler(void)
 {
-	if (systimeTimeoutControl(&oWireInitTimer, 500))
+	if (oneWireResetDone == FALSE)
 	{
-#ifndef OWIRE_OFF_MODE
-		errorDsUp = initializeConversion(&sensorTempUp);
-		errorDsDown = initializeConversion(&sensorTempDown);
+	#ifndef OWIRE_OFF_MODE
+			errorDsUp = initializeConversion(&sensorTempUp);
+			errorDsDown = initializeConversion(&sensorTempDown);
+	#endif
+			oneWireResetDone = TRUE;
+
+#ifdef ONE_WIRE_LOGS
+//		if (errorDsUp == 0)
+//		{
+//			_error("ds up init error");
+//		}
+//		else
+//		{
+//			_printString("ds up init ok\r\n");
+//		}
+
+//		if (errorDsDown == 0)
+//		{
+//			_error("ds down init error");
+//		}
+//		else
+//		{
+//			_printString("ds dpwn init ok\r\n");
+//		}
 #endif
 	}
 
-	if (systimeTimeoutControl(&measureOwireTimer, 800))
+	if (oneWireResetDone == TRUE)
 	{
+		if (systimeTimeoutControl(&measureOwireTimer, 760))
+		{
 #ifndef OWIRE_OFF_MODE
-		errorDsUp = readTemperature(&sensorTempUp);
-		displayData.temp_up_t = sensorTempUp.fTemp;
-		errorDsDown = readTemperature(&sensorTempDown);
-		displayData.temp_down_t = sensorTempDown.fTemp;
+			errorDsUp = readTemperature(&sensorTempUp);
+			lastTempUp = displayData.temp_up_t;
+			displayData.temp_up_t = sensorTempUp.fTemp;
+
+			errorDsDown = readTemperature(&sensorTempDown);
+			lastTempDown = displayData.temp_down_t;
+			displayData.temp_down_t = sensorTempDown.fTemp;
 #endif
+
+#ifdef ONE_WIRE_LOGS
+			char tempString[5] = {0};
+			if (errorDsUp == 0)
+			{
+				_error("ds up measure error");
+			}
+			else
+			{
+//				_printString("ds up measure ok\r\n");
+				ftoa(displayData.temp_up_t, tempString, 1);
+				_printString(tempString);
+				_printString("\r\n");
+			}
+
+			if (errorDsDown == 0)
+			{
+				_error("ds down measure error");
+			}
+			else
+			{
+//				_printString("ds dpwn measure ok\r\n");
+				ftoa(displayData.temp_down_t, tempString, 1);
+				_printString(tempString);
+				_printString("\r\n");
+			}
+#endif
+			oneWireResetDone = FALSE;
+		}
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-	if (systimeTimeoutControl(&shtMeasurementTimer, 10000))
+	if (systimeTimeoutControl(&shtMeasurementTimer, 3000))
 	{
 #ifndef I2C_OFF_MODE
 		errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
-#ifdef MEASURE_LOGS
+#ifdef I2C2_LOGS
 		if (errorSht == ERROR)
 		{
 			_error("SHT21 reset error (loop)");
@@ -58,9 +121,9 @@ void Climate_SensorsHandler(void)
 		uint16_t tempWord = 0;
 		uint16_t humWord = 0;
 
-		systimeDelayMs(20);
+		systimeDelayMs(30);
 		tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
-#ifdef MEASURE_LOGS
+#ifdef I2C2_LOGS
 		if (errorSht == ERROR)
 		{
 			_error("SHT21 meas temp error (loop)");
@@ -71,7 +134,7 @@ void Climate_SensorsHandler(void)
 		}
 #endif
 		humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &errorSht);
-#ifdef MEASURE_LOGS
+#ifdef I2C2_LOGS
 		if (errorSht == ERROR)
 		{
 			_error("SHT21 meas hum error (loop)");
@@ -84,7 +147,10 @@ void Climate_SensorsHandler(void)
 		humWord = ((uint16_t)(SHT_HumData.msb_lsb[0]) << 8) | SHT_HumData.msb_lsb[1];
 		tempWord = ((uint16_t)(SHT_TempData.msb_lsb[0]) << 8) | SHT_TempData.msb_lsb[1];
 
+		lastTempMiddle = displayData.temp_middle_t;
 		displayData.temp_middle_t = SHT21_CalcTemp(tempWord);
+
+		lastHumidity = displayData.humiditySHT2x;
 		displayData.humiditySHT2x = SHT21_CalcRH(humWord);
 #endif
 	}
@@ -92,8 +158,9 @@ void Climate_SensorsHandler(void)
 	if (systimeTimeoutControl(&luxMeasureTimer, 5000))
 	{
 #ifndef I2C_OFF_MODE
+		lastLux = displayData.lux;
 		displayData.lux = TSL2561_ReadLux(&errorTsl);
-#ifdef MEASURE_LOGS
+#ifdef I2C2_LOGS
 		if (errorTsl == ERROR)
 		{
 			_error("TSL2561 read lux error (loop)");

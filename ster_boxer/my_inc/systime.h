@@ -18,6 +18,7 @@
 
 typedef uint32_t systime_t;
 uint8_t peripheralsInit;
+uint8_t systickIRQ;
 
 void systimeInit (void);
 systime_t systimeGet (void);

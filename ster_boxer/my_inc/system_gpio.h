@@ -91,6 +91,7 @@ uint16_t GPIOx_ReadInputAll(GPIO_TypeDef* GPIOx);
 uint8_t GPIOx_ReadInputPin(GPIO_TypeDef* GPIOx, uint16_t GPIOx_Pin_y);
 void GPIOx_ResetPin(GPIO_TypeDef* GPIOx, uint16_t GPIOx_Pin_y);
 void GPIOx_SetPin(GPIO_TypeDef* GPIOx, uint16_t GPIOx_Pin_y);
+void GPIOx_TogglePin(GPIO_TypeDef* GPIOx, uint16_t GPIOx_Pin_y);
 void GPIOx_PinConfig(GPIO_TypeDef* GPIOx, uint8_t GPIOx_Mode, uint8_t GPIOx_Speed, uint8_t GPIOx_OType, uint8_t GPIOx_OState, uint16_t GPIOx_Pin_y);
 void GPIOx_PinAFConfig(GPIO_TypeDef* GPIOx, uint16_t GPIOx_PinSource, uint8_t GPIOx_AF);
 void GPIOx_ClockConfig(uint32_t RCC_AHBPeriph, FunctionalState NewState);
