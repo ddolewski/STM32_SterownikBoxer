@@ -24,43 +24,17 @@ int main(void)
 	RCC_PCLKConfig(RCC_HCLK_Div1);
 
 	systimeInit();
-
-//	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
-//	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
-//	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
-//	RCC->AHBENR |= RCC_AHBENR_GPIOFEN;
-//
-//	OneWire_TimerInit();
-//	memCopy(sensorTempUp.cROM, sensor1ROM, 8);
-//	memCopy(sensorTempDown.cROM, sensor2ROM, 8);
-//	DEBUG_Init();
-
-
 	PeripheralInit();
 
-//	RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOC, ENABLE);
-//	GPIOx_PinConfig(GPIOC, Mode_Out, OSpeed_50MHz, OType_PP, OState_PU, GPIOx_Pin_8);
-//	GPIOx_ResetPin(GPIOC, GPIOx_Pin_8);
-
+	static bool_t softStartDone = FALSE;
     while (TRUE)
 	{
-////    	delay_us__(1);
-//    	delay_ms__(5);
-//    	GPIOC->BSRR = (uint32_t)GPIOx_Pin_8;
-////    	delay_us__(1);
-//    	delay_ms__(5);
-//    	GPIOC->BRR = (uint32_t)GPIOx_Pin_8;
-
-    	if (systickIRQ == 1)
+    	if (initFanPwm == TRUE)
     	{
-        	SoftStart_Handler();
-
-        	if (peripheralsInit == TRUE)
-        	{
-        		Climate_TempCtrl_Handler();
-        	}
-
-        	systickIRQ = 0;
+    		if (PWM_FANSoftStart() == TRUE)
+    		{
+    			initFanPwm = FALSE;
+    		}
     	}
 
     	MainTimer_Handler();
@@ -68,6 +42,7 @@ int main(void)
     	ReceiveSerial_Handler();
     	RTC_Handler();
     	Climate_SensorsHandler();
+    	Climate_TempCtrl_Handler();
     	Display_Handler();
     	PhProccess_Handler();
     	Irrigation_Handler();
@@ -264,8 +239,6 @@ static void PeripheralInit(void)
 #else
 	Ntp_SendRequest();
 #endif
-
-	peripheralsInit = TRUE;
 }
 
 #ifndef DEBUG_TERMINAL_USART
@@ -320,7 +293,7 @@ static void I2C2_Init(void)
 	I2C_InitStructure.I2C_DigitalFilter = 0x00;
 	I2C_InitStructure.I2C_Mode = I2C_Mode_I2C;
 	I2C_InitStructure.I2C_OwnAddress1 = 0x00;
-	I2C_InitStructure.I2C_Timing = 0x10800000;//0x00C0CDE9;
+	I2C_InitStructure.I2C_Timing = 0x10800000;
 	I2C_Init(I2C2, &I2C_InitStructure);
 
 	I2C_Cmd(I2C2, ENABLE);

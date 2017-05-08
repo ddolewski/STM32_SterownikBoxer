@@ -51,16 +51,15 @@ typedef enum
 }buffer_type_t;
 
 static ADC_value_t ADC_value = {0};
-static adcRef_t referenceVoltage = {0};
-static probe_adc_t probeData = {0};
-static uint16_t ADC_ConvertedData[3] = {0};
-static pHBufferVoltage_t pHBufferVoltage = {0};
+static adcRef_t referenceVoltage;
+ probe_adc_t probeData;
+static volatile uint8_t adcAverageMeasCounter;
+static uint16_t ADC_ConvertedData[3];
+ pHBufferVoltage_t pHBufferVoltage;
 
 static volatile uint8_t adcDataReady = FALSE;
 pH_t pH;
 
-static systime_t adcMeasTimer = 0;
-static uint32_t adcAverageMeasCounter = 0;
 
 #define SOIL_PH_INPUT 	GPIO_Pin_5
 #define WATER_PH_INPUT 	GPIO_Pin_6
@@ -71,7 +70,7 @@ static uint32_t adcAverageMeasCounter = 0;
 
 static void ADC_ReadCalcPh(void);
 static void ADC_CalibrateProbes_BufferChooser(void);
-static void ADC_CalibrateProbess_GetFactorsFromMeasurement(pHBufferVoltage_t * xReferenceBufferVoltages, volatile ph_factors_t * xOutPhFactors, volatile probe_type_t xProbeType);
+static void ADC_CalibrateProbess_GetFactorsFromMeasurement(volatile pHBufferVoltage_t * xReferenceBufferVoltages, volatile ph_factors_t * xOutPhFactors, probe_type_t xProbeType);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void ADC_DMA_Init(void)
@@ -106,15 +105,13 @@ void ADC_DMA_Init(void)
 	DMA_Init(DMA1_Channel1, &DMA_InitStructure);
 
 	DMA_Cmd(DMA1_Channel1, ENABLE);
-	DMA_ITConfig(DMA1_Channel1, DMA_IT_TC, ENABLE);
-
-	NVIC_SetPriority(DMA1_Channel1_IRQn, 2);
-	NVIC_EnableIRQ(DMA1_Channel1_IRQn);
+//	DMA_ITConfig(DMA1_Channel1, DMA_IT_TC, ENABLE);
+//
+//	NVIC_SetPriority(DMA1_Channel1_IRQn, 2);
+//	NVIC_EnableIRQ(DMA1_Channel1_IRQn);
 
 	ADC_DMARequestModeConfig(ADC1, ADC_DMAMode_Circular);
 	ADC_DMACmd(ADC1, ENABLE);
-
-	RCC_ADCCLKConfig(RCC_ADCCLK_PCLK_Div4);
 
 	ADC_StructInit(&ADC_InitStructure);
 	ADC_InitStructure.ADC_Resolution = ADC_Resolution_12b;
@@ -124,28 +121,38 @@ void ADC_DMA_Init(void)
 	ADC_InitStructure.ADC_ScanDirection = ADC_ScanDirection_Upward;
 	ADC_Init(ADC1, &ADC_InitStructure);
 
-	ADC_ChannelConfig(ADC1, ADC_Channel_5 , ADC_SampleTime_239_5Cycles);
-	ADC_ChannelConfig(ADC1, ADC_Channel_6 , ADC_SampleTime_239_5Cycles);
-	ADC_ChannelConfig(ADC1, ADC_Channel_Vrefint , ADC_SampleTime_239_5Cycles); //Vref
+	ADC_ChannelConfig(ADC1, ADC_Channel_5 , ADC_SampleTime_55_5Cycles);
+	ADC_ChannelConfig(ADC1, ADC_Channel_6 , ADC_SampleTime_55_5Cycles);
+	ADC_ChannelConfig(ADC1, ADC_Channel_Vrefint , ADC_SampleTime_55_5Cycles); //Vref
 
 	ADC_VrefintCmd(ENABLE);
 	ADC_GetCalibrationFactor(ADC1);
 
 	ADC_Cmd(ADC1, ENABLE);
-	uint32_t timeout = 0xFFFFFFF;
+	while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_ADRDY));
 
-	/* Wait the ADCEN falg */
-	while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_ADEN))
-    {
-    	if (timeout > 0)
-    	{
-    		timeout--;
-    	}
-    	else
-    	{
-    		break;
-    	}
-    }
+	/* ADC DMA request in circular mode */
+	ADC_DMARequestModeConfig(ADC1, ADC_DMAMode_Circular);
+
+	/* Enable ADC_DMA */
+	ADC_DMACmd(ADC1, ENABLE);
+
+	/* Enable the ADC peripheral */
+	ADC_Cmd(ADC1, ENABLE);
+
+	/* Wait the ADRDY flag */
+	uint32_t timeout = 0xFFFFFFF;
+	while(!ADC_GetFlagStatus(ADC1, ADC_FLAG_ADRDY))
+	{
+		if (timeout > 0)
+		{
+			timeout--;
+		}
+		else
+		{
+			break;
+		}
+	}
 	/* ADC1 regular Software Start Conv */
 	ADC_StartOfConversion(ADC1);
 }
@@ -158,43 +165,30 @@ void DMA1_Channel1_IRQHandler(void)
 	{
 		/* Clear DMA Transfer Complete interrupt pending bit */
 		DMA_ClearITPendingBit(DMA1_IT_TC1);
-
-		adcAverageMeasCounter++;
-		if (calibrateFlags.processActive == FALSE)
-		{
-			if (adcAverageMeasCounter == 500)
-			{
-				adcAverageMeasCounter = 0;
-				adcDataReady = TRUE;
-				ADC_StopOfConversion(ADC1);
-			}
-		}
-		else
-		{
-			if (adcAverageMeasCounter == 2500)
-			{
-				adcAverageMeasCounter = 0;
-				adcDataReady = TRUE;
-//				calibrateFlags.phBufferAvgDone = TRUE;
-				ADC_StopOfConversion(ADC1);
-			}
-		}
+		adcDataReady = TRUE;
 	}
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void ADC_ReadCalcPh(void)
 {
-	if (calibrateFlags.processActive == FALSE)
-	{
-		if (systimeTimeoutControl(&adcMeasTimer, 60000)) //pomiary pH co 1 min
-		{
-			ADC_StartOfConversion(ADC1);
-		}
-	}
-
-    if (adcDataReady == TRUE)
+	uint32_t timeout = 0xFFFFFFF;
+	while (DMA_GetFlagStatus(DMA1_FLAG_TC1) == RESET)
     {
+    	if (timeout > 0)
+    	{
+    		timeout--;
+    	}
+    	else
+    	{
+    		break;
+    	}
+    }
+    /* Clear DMA TC flag */
+    DMA_ClearFlag(DMA1_FLAG_TC1);
+
+//    if (adcDataReady == TRUE)
+//    {
         referenceVoltage.vRefValueADC = ADC_ConvertedData[V_REF_BUFF_INDEX];	//Vref voltage
         ADC_value.soil  = ADC_ConvertedData[SOIL_BUFF_INDEX]; 		//PA5
         ADC_value.water = ADC_ConvertedData[WATER_BUFF_INDEX]; 		//PA6
@@ -202,121 +196,100 @@ static void ADC_ReadCalcPh(void)
         referenceVoltage.refVoltage  = ((float)VREFINT_CAL * (float)3.3)/referenceVoltage.vRefValueADC;
         referenceVoltage.mVFactor 	 = referenceVoltage.refVoltage / (float)4096;
 
-    	probeData.inAverageSoil  = (float)ADC_value.soil  * referenceVoltage.mVFactor;
-    	probeData.inAverageWater = (float)ADC_value.water * referenceVoltage.mVFactor;
+    	probeData.inSoil = (float)ADC_value.soil * referenceVoltage.mVFactor;
+    	probeData.tempSoil += probeData.inSoil;
+    	probeData.inWater = (float)ADC_value.water * referenceVoltage.mVFactor;
+    	probeData.tempWater += probeData.inWater;
 
-		//////////////////////////////////////////////////////////////////////////
-		if (calibrateFlags.processActive == FALSE)
-		{
-			xLastWaterPh = pH.water;
-			xLastSoilPh  = pH.soil;
+    	++adcAverageMeasCounter;
+    	if (adcAverageMeasCounter == 250)
+    	{
+    		probeData.inAverageSoil  = (probeData.tempSoil/250);
+    		probeData.inAverageWater = (probeData.tempWater/250);
+    		adcAverageMeasCounter = 0;
+    		probeData.tempSoil = 0;
+    		probeData.tempWater = 0;
+    		//////////////////////////////////////////////////////////////////////////
+    		if (calibrateFlags.processActive == FALSE)
+    		{
+    			xLastWaterPh = pH.water;
+    			xLastSoilPh = pH.soil;
 
-			if (FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0)
-			{
-				pH.soil = 0;
-			}
-			else
-			{
-				pH.soil  = FactorsEquationpH.soilFactor_A  * probeData.inAverageSoil  + FactorsEquationpH.soilFactor_B;  	//soil pH equation
-			}
+    			if (FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0)
+    			{
+    				pH.soil = 0;
+    			}
+    			else
+    			{
+        			pH.soil  = FactorsEquationpH.soilFactor_A  * probeData.inAverageSoil  + FactorsEquationpH.soilFactor_B;  	//soil pH equation
+    			}
 
-			if (FactorsEquationpH.waterFactor_A == 0 && FactorsEquationpH.waterFactor_B == 0)
-			{
-				pH.water = 0;
-			}
-			else
-			{
-				pH.water = FactorsEquationpH.waterFactor_A * probeData.inAverageWater + FactorsEquationpH.waterFactor_B;	//water pH equation
-			}
-		}
-		else
-		{
-			calibrateFlags.phBufferAvgDone = TRUE;
-			pH.soil  = 0;
-			pH.water = 0;
-		}
+    			if (FactorsEquationpH.waterFactor_A == 0 && FactorsEquationpH.waterFactor_B == 0)
+    			{
+    				pH.water = 0;
+    			}
+    			else
+    			{
+    				pH.water = FactorsEquationpH.waterFactor_A * probeData.inAverageWater + FactorsEquationpH.waterFactor_B;	//water pH equation
+    			}
+    		}
+    		else
+    		{
+    			pH.soil = 0;
+    			pH.water = 0;
+    		}
+    	}
 
-        adcDataReady = FALSE;
-    }
+//        adcDataReady = FALSE;
+//    }
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void ADC_CalibrateProbes_BufferChooser(void)
 {
-	if (calibrateFlags.phBufferAvgDone == TRUE)
+	if (calibrateFlags.measureVoltagePh == 1)
 	{
-		switch (calibrateFlags.refBuffType)
+		if (calibrateFlags.pH4Buffer == 1)
 		{
-		case REF_BUFF_PH4:
-			switch (calibrateFlags.probeType)
+			if (calibrateFlags.probeType == 1)
 			{
-			case PROBE_SOIL:
 				pHBufferVoltage.pH4 = probeData.inAverageSoil;
-				break;
-
-			case PROBE_WATER:
-				pHBufferVoltage.pH4 = probeData.inAverageWater;
-				break;
-
-			default:
-				break;
 			}
-
-			calibrateFlags.waitForBuffer = TRUE;
-			break;
-
-		case REF_BUFF_PH7:
-			switch (calibrateFlags.probeType)
+			else if (calibrateFlags.probeType == 2)
 			{
-			case PROBE_SOIL:
-				pHBufferVoltage.pH4 = probeData.inAverageSoil;
-				break;
-
-			case PROBE_WATER:
 				pHBufferVoltage.pH4 = probeData.inAverageWater;
-				break;
-
-			default:
-				break;
 			}
-
-			calibrateFlags.waitForBuffer = TRUE;
-			break;
-
-		case REF_BUFF_PH9:
-			switch (calibrateFlags.probeType)
-			{
-			case PROBE_SOIL:
-				pHBufferVoltage.pH4 = probeData.inAverageSoil;
-				break;
-
-			case PROBE_WATER:
-				pHBufferVoltage.pH4 = probeData.inAverageWater;
-				break;
-
-			default:
-				break;
-			}
-
-			calibrateFlags.phBufferVoltageMeas = TRUE;
-			break;
-
-		default:
-			break;
 		}
-
-		calibrateFlags.phBufferAvgDone = FALSE;
+		else if (calibrateFlags.pH7Buffer == 1)
+		{
+			if (calibrateFlags.probeType == 1)
+			{
+				pHBufferVoltage.pH7 = probeData.inAverageSoil;
+			}
+			else if (calibrateFlags.probeType == 2)
+			{
+				pHBufferVoltage.pH7 = probeData.inAverageWater;
+			}
+		}
+		else if (calibrateFlags.pH9Buffer == 1)
+		{
+			if (calibrateFlags.probeType == 1)
+			{
+				pHBufferVoltage.pH9 = probeData.inAverageSoil;
+			}
+			else if (calibrateFlags.probeType == 2)
+			{
+				pHBufferVoltage.pH9 = probeData.inAverageWater;
+			}
+		}
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void ADC_CalibrateProbes_Handler(void)
+void ADC_CalibrateProbes_Core(void)
 {
 	if (calibrateFlags.processActive == TRUE)
 	{
-		if (calibrateFlags.waitForBuffer == TRUE)
+		if (calibrateFlags.turnOnBuzzer == TRUE)
 		{
-			//sygnalizacja buzzerem oczekiwania do przygotowania sondy do pomiaru
-			//przygotowanie buforu referencyjnego, wypłukanie, wytarcie i umieszczenie
-			//w buforze sondy pH
 			if (calibrateFlags.toggleBuzzerState == TRUE)
 			{
 				GPIOx_ResetPin(BUZZER_PORT, BUZZER_PIN);
@@ -329,55 +302,68 @@ void ADC_CalibrateProbes_Handler(void)
 			}
 
 			calibrateFlags.buzzerCounter++;
-			if (calibrateFlags.buzzerCounter == 20) // 20s
+			if (calibrateFlags.buzzerCounter == 15) // 30s
 			{
-				calibrateFlags.buzzerCounter = 0;
-				calibrateFlags.waitForBuffer = FALSE;
+				calibrateFlags.buzzerCounter = FALSE;
+				calibrateFlags.turnOnBuzzer = FALSE;
 				GPIOx_SetPin(BUZZER_PORT, BUZZER_PIN);
+				calibrateFlags.measureVoltagePh = TRUE;
+				calibrateFlags.pHBufferChooser++;
+				__NOP();__NOP();__NOP();
 
-				switch (calibrateFlags.refBuffType)
+				if (calibrateFlags.pHBufferChooser == BUFFER_PH4)
 				{
-				case REF_BUFF_NONE:
-					calibrateFlags.refBuffType = REF_BUFF_PH4;
-					ADC_StartOfConversion(ADC1);
-					break;
-
-				case REF_BUFF_PH4:
-					calibrateFlags.refBuffType = REF_BUFF_PH7;
-					ADC_StartOfConversion(ADC1);
-					break;
-
-				case REF_BUFF_PH7:
-					calibrateFlags.refBuffType = REF_BUFF_PH9;
-					ADC_StartOfConversion(ADC1);
-					break;
-
-				case REF_BUFF_PH9:
-					calibrateFlags.refBuffType = REF_BUFF_NONE;
-					break;
-
-				default:
-					break;
+					calibrateFlags.pH4Buffer = TRUE;
+					calibrateFlags.pH7Buffer = FALSE;
+					calibrateFlags.pH9Buffer = FALSE;
 				}
-
-
+				else if (calibrateFlags.pHBufferChooser == BUFFER_PH7)
+				{
+					calibrateFlags.pH4Buffer = FALSE;
+					calibrateFlags.pH7Buffer = TRUE;
+					calibrateFlags.pH9Buffer = FALSE;
+				}
+				else if (calibrateFlags.pHBufferChooser == BUFFER_PH9)
+				{
+					calibrateFlags.pH4Buffer = FALSE;
+					calibrateFlags.pH7Buffer = FALSE;
+					calibrateFlags.pH9Buffer = TRUE;
+				}
 			}
 		}
 
-		if (calibrateFlags.phBufferVoltageMeas == TRUE)
+		if (calibrateFlags.measureVoltagePh == TRUE)
 		{
-			calibrateFlags.phBufferVoltageMeas = FALSE;
+			calibrateFlags.pHCounter++;
+			if (calibrateFlags.pHCounter == 10) // 10s
+			{
+				calibrateFlags.pHCounter = 0;
+				calibrateFlags.measureVoltagePh = FALSE;
+				calibrateFlags.turnOnBuzzer = TRUE;
 
-			ADC_CalibrateProbess_GetFactorsFromMeasurement(&pHBufferVoltage, &FactorsEquationpH, calibrateFlags.probeType);
+				if (calibrateFlags.pH9Buffer == TRUE)
+				{
+					if ((pHBufferVoltage.pH4 != 0 && pHBufferVoltage.pH7 != 0 && pHBufferVoltage.pH9 != 0) ||
+						(FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0 &&
+						 FactorsEquationpH.waterFactor_A == 0 && FactorsEquationpH.waterFactor_B == 0))
+					{
+						ADC_CalibrateProbess_GetFactorsFromMeasurement(
+								&pHBufferVoltage,
+								&FactorsEquationpH,
+								calibrateFlags.probeType);
 
-			memset(&calibrateFlags, 0, sizeof(calibrateFlags)); //skasowanie flag
-			FLASH_SaveConfiguration();
-			GPIOx_SetPin(BUZZER_PORT, BUZZER_PIN);
+						FLASH_SaveConfiguration();
+						GPIOx_SetPin(BUZZER_PORT, BUZZER_PIN);
+					}
+
+					memset(&calibrateFlags, 0, sizeof(calibrateFlags)); //skasowanie flag
+				}
+			}
 		}
 	}
 }
 ////////////////////////////////////////////////////////////////////////////
-static void ADC_CalibrateProbess_GetFactorsFromMeasurement(pHBufferVoltage_t * xReferenceBufferVoltages, volatile ph_factors_t * xOutPhFactors, volatile probe_type_t xProbeType)
+static void ADC_CalibrateProbess_GetFactorsFromMeasurement(volatile pHBufferVoltage_t * xReferenceBufferVoltages, volatile ph_factors_t * xOutPhFactors, probe_type_t xProbeType)
 {
 	float xx[3] = {0, 0, 0};
 	float nr = 0, dr = 0;

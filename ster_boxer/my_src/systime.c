@@ -18,7 +18,7 @@ static volatile systime_t sysTimer = 0;	//timer systemowy odmierzajacy czas w ms
 //-------------------------------------------------------------------------------------------------
 void systimeInit(void)
 {
-	SysTick_Config (SystemCoreClock / 1000);
+	SysTick_Config (SystemCoreClock / 1000); //1ms
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja obslugi przerwania SysTick
@@ -28,13 +28,6 @@ void systimeInit(void)
 void SYSTIMER_HANDLER (void)
 {
 	sysTimer++;
-	systickIRQ = 1;
-//	SoftStart_Handler();
-//
-//	if (peripheralsInit == TRUE)
-//	{
-//		Climate_TempCtrl_Handler();
-//	}
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja zwracajaca aktualny czas systemowy

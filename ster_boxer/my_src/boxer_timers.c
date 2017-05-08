@@ -23,7 +23,7 @@ bool_t initFanPwm = FALSE;
 
 static void Lightning_Handler(void);
 static uint32_t PWM_PercentToRegister(uint8_t xPercent);
-static uint8_t PWM_FANSoftStart(void);
+//static uint8_t PWM_FANSoftStart(void);
 
 
 //bool_t ntpSyncProccess = FALSE;
@@ -205,7 +205,7 @@ void SoftStart_Handler(void)
 		}
 	}
 
-	Irrigation_PumpControll();
+//	Irrigation_PumpControll();
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void MainTimer_Handler(void)
@@ -217,7 +217,7 @@ void MainTimer_Handler(void)
 		AtnelWiFi_Handler();
 		Ntp_Handler();
     	Lightning_Handler();
-		ADC_CalibrateProbes_Handler();
+		ADC_CalibrateProbes_Core();
 //		Irrigation_Core();
 
     	if (xLightCounters.counterSeconds % 300 == 0)
@@ -378,7 +378,8 @@ void PWM_FansInit(void)
 	initFanPwm = TRUE;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static uint8_t PWM_FANSoftStart(void)
+//static uint8_t PWM_FANSoftStart(void)
+uint8_t PWM_FANSoftStart(void)
 {
 	uint8_t ret = 0;
 	uint8_t retPull = 0;

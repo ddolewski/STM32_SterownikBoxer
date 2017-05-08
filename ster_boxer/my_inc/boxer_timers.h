@@ -37,7 +37,7 @@ extern bool_t initFanPwm;
 uint8_t shtTimer;
 void PWM_FansInit(void);
 void PWM_PumpInit(void);
-
+uint8_t PWM_FANSoftStart(void);
 void SoftStart_Handler(void);
 void MainTimer_Handler(void);
 void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent);
