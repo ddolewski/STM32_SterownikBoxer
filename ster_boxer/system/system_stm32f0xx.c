@@ -270,8 +270,6 @@ void SystemCoreClockUpdate (void)
   */
 static void SetSysClock(void)
 {
-  __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
-  
   /* SYSCLK, HCLK, PCLK configuration ----------------------------------------*/
 #if defined (PLL_SOURCE_HSI)
   /* At this stage the HSI is already enabled */
@@ -307,6 +305,7 @@ static void SetSysClock(void)
   }
 #else
  #if defined (PLL_SOURCE_HSE)
+  __IO uint32_t StartUpCounter = 0, HSEStatus = 0;
   /* Enable HSE */    
   RCC->CR |= ((uint32_t)RCC_CR_HSEON);
  #elif defined (PLL_SOURCE_HSE_BYPASS)

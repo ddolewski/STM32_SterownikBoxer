@@ -11,8 +11,6 @@
 #include "boxer_light.h"
 #include "hardware/TSL2561/tsl2561.h"
 
-static temp_proccess_t oneWireTempProccess = MEASURE_TEMP_UP;
-
 static systime_t measureOwireTimer = 0;
 static systime_t luxMeasureTimer = 0;
 static systime_t shtMeasurementTimer = 0;

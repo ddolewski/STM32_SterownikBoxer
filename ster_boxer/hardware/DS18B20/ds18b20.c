@@ -165,7 +165,7 @@ uint8_t uv1Wire_ReadByte(void)
 }
 
 //funkcja odczytuje unikalny kod pojedynczego czujnika
-void readROM(uint8_t *buffer)
+uint8_t readROM(uint8_t *buffer)
 {
 	uint8_t ucReset;
 	uint32_t i;
@@ -176,6 +176,8 @@ void readROM(uint8_t *buffer)
 	{
 		buffer[i] = uv1Wire_ReadByte();
 	}
+
+	return ucReset;
 }
 
 //funkcja wysyla unikalny kod czujnika
@@ -250,7 +252,7 @@ uint8_t readTemperature(DS18B20Sensor_t * sensor)
 	return ucReset;
 }
 
-void readTemperatureChar(DS18B20Sensor_t * sensor)
+uint8_t readTemperatureChar(DS18B20Sensor_t * sensor)
 {
 	uint8_t ucReset;
 	int cLSB[8]	=	{8, 4, 2, 1, 500, 250, 125, 62};
@@ -305,4 +307,6 @@ void readTemperatureChar(DS18B20Sensor_t * sensor)
 	sensor->cAtempL[length + 1] = '\0';
 	
 	strcat (sensor->cAtempL, sensor->cAtempH);
+
+	return ucReset;
 }

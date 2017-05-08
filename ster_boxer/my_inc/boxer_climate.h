@@ -12,12 +12,6 @@
 
 typedef enum
 {
-	MEASURE_TEMP_UP,
-	MEASURE_TEMP_DOWN
-}temp_proccess_t;
-
-typedef enum
-{
 	TEMP_AUTO = 'A',
 	TEMP_MANUAL = 'M'
 }temp_control_state_t;

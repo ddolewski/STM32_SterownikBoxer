@@ -27,7 +27,6 @@ volatile int rxIdx = 0;
 volatile bool_t rxRecvFlag = FALSE;
 
 static char RxBuffer[RX_BUFF_SIZE] = {0};
-
 static char TxBuffer[TX_BUFF_SIZE] = {0};
 static fifo_t tx_fifo = {NULL, 0, 0};
 
@@ -50,11 +49,14 @@ static uint8_t ntp_resp_wait = FALSE;
 static uint8_t ntpRetryTimer = 0;
 static uint8_t ntpRetryCounter = 0;
 
+static uint8_t atnelWaitCounter = 0;
+static uint8_t dataCounter = 0;
+
 void Atnel_SetTransparentMode(void)
 {
-//#ifdef NTP_DEBUG
-//	ntpRequestTimer = 3560;
-//#endif
+#ifdef NTP_DEBUG
+	ntpRequestTimer = 3560;
+#endif
 	atnel_Mode = ATNEL_MODE_TRANSPARENT;
 	atnelInitProccess = ATNEL_UNINITIALISE;
 	memset(RxBuffer, 0, RX_BUFF_SIZE);
@@ -183,6 +185,41 @@ void USART2_IRQHandler(void)
 		USART2->ICR |= USART_ICR_ORECF;
 		USART_ClearITPendingBit(USART2, USART_IT_RXNE);
 		rxChar = (char)USART_ReceiveData( USART2 );
+	}
+}
+
+void AtnelWiFi_Handler(void)
+{
+	if (atnel_Mode == ATNEL_MODE_TRANSPARENT)
+	{
+		dataCounter++;
+		if (dataCounter == 3)
+		{
+			dataCounter = 0;
+			atnel_TrCmdReqType = TRNSP_MEAS_DATA_REQ;
+		}
+	}
+
+	if (entm_count_timeout == TRUE)
+	{
+		entm_timeout_response++;
+		if (entm_timeout_response == 5)
+		{
+			entm_count_timeout = FALSE;
+			entm_timeout_response = 0;
+			Atnel_SetTransparentMode();
+		}
+	}
+
+	if (atnel_wait_change_mode == TRUE)
+	{
+		atnelWaitCounter++;
+		if (atnelWaitCounter == 5)
+		{
+			atnelWaitCounter = 0;
+			atnel_wait_change_mode = FALSE;
+			Atnel_SetTransparentMode();
+		}
 	}
 }
 
@@ -338,7 +375,6 @@ void TransmitSerial_Handler(void)
 			case TRNSP_CAL_DONE_REQ:
 				SerialPort_PutString("STA CD END");
 				atnel_TrCmdReqType = TRNSP_NONE_REQ;
-				calibrateFlags.calibrateDone = FALSE;
 				break;
 
 			default:
@@ -638,7 +674,7 @@ void ReceiveSerial_Handler(void)
 									uint8_t probeType = atoi( ReceivedString[2] );
 									calibrateFlags.probeType = (probe_type_t)probeType;
 									calibrateFlags.processActive = TRUE;
-									calibrateFlags.turnOnBuzzer = TRUE;
+									calibrateFlags.waitForBuffer = TRUE;
 									calibrateFlags.toggleBuzzerState = TRUE;
 								}
 							}

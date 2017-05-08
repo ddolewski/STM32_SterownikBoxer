@@ -18,12 +18,10 @@
 #define TIMER_PRESCALER	48
 
 static systime_t oneSecTimer = 0;
-static uint8_t atnelWaitCounter = 0;
-static uint8_t dataCounter = 0;
 static uint16_t TimerPeriod = 0;
 bool_t initFanPwm = FALSE;
 
-static void Lightning_Core(void);
+static void Lightning_Handler(void);
 static uint32_t PWM_PercentToRegister(uint8_t xPercent);
 static uint8_t PWM_FANSoftStart(void);
 
@@ -214,59 +212,22 @@ void MainTimer_Handler(void)
 {
 	if (systimeTimeoutControl(&oneSecTimer, 1000))
 	{
-
-		if (atnel_Mode == ATNEL_MODE_TRANSPARENT)
-		{
-			dataCounter++;
-			if (dataCounter == 3)
-			{
-				dataCounter = 0;
-				atnel_TrCmdReqType = TRNSP_MEAS_DATA_REQ;
-			}
-		}
-
 		displayData.pageCounter++;
-//		char tmp[5];
-//		itoa(displayData.pageCounter, tmp);
-//		_printString("display counter = ");
-//		_printString(tmp);_printString("\r\n");
 
-		if (entm_count_timeout == TRUE)
-		{
-			entm_timeout_response++;
-			if (entm_timeout_response == 5)
-			{
-				entm_count_timeout = FALSE;
-				entm_timeout_response = 0;
-				Atnel_SetTransparentMode();
-			}
-		}
-
-		if (atnel_wait_change_mode == TRUE)
-		{
-			atnelWaitCounter++;
-			if (atnelWaitCounter == 5)
-			{
-				atnelWaitCounter = 0;
-				atnel_wait_change_mode = FALSE;
-				Atnel_SetTransparentMode();
-			}
-		}
-
+		AtnelWiFi_Handler();
 		Ntp_Handler();
+    	Lightning_Handler();
+		ADC_CalibrateProbes_Handler();
+//		Irrigation_Core();
 
     	if (xLightCounters.counterSeconds % 300 == 0)
     	{
     		FLASH_SaveLightCounters();
     	}
-
-    	Lightning_Core();
-		ADC_CalibrateProbes_Core();
-//		Irrigation_Core();
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void Lightning_Core(void)
+static void Lightning_Handler(void)
 {
 	lastLightState = xLightControl.lightingState;
 	if (xLightControl.timeOnHours == 0 && xLightControl.timeOffHours == 24)

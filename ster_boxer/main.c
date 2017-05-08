@@ -11,7 +11,9 @@
 #include "misc.h"
 ///////////////////////////////////////////////////////////
 static void PeripheralInit(void);
+#ifndef DEBUG_TERMINAL_USART
 static void I2C1_Init(void);
+#endif
 static void I2C2_Init(void);
 
 int main(void)
@@ -129,6 +131,7 @@ static void PeripheralInit(void)
 	DEBUG_Init();
 #endif
 
+#ifndef DEBUG_TERMINAL_USART
 #ifdef RTC_WRITE_TEST
 	time_complex_t timeTest;
 	timeTest.sec = 0;
@@ -142,6 +145,7 @@ static void PeripheralInit(void)
 	static time_complex_t timeUtc 	= {2000, 1, 1, 1, 0, 0, 0};
 	timeLocalToUtcConv(&timeTest, &timeUtc);
 	PCF8563_WriteTime(&timeUtc, I2C1);
+#endif
 #endif
 
 #ifndef I2C_OFF_MODE
@@ -264,6 +268,7 @@ static void PeripheralInit(void)
 	peripheralsInit = TRUE;
 }
 
+#ifndef DEBUG_TERMINAL_USART
 static void I2C1_Init(void)
 {
 	GPIOx_ClockConfig(RCC_AHBPeriph_GPIOB, ENABLE);
@@ -293,6 +298,7 @@ static void I2C1_Init(void)
 
 	I2C_Cmd(I2C1, ENABLE);
 }
+#endif
 
 static void I2C2_Init(void)
 {
