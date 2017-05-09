@@ -19,8 +19,6 @@ static ErrorStatus TSL2561_Initialize(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 {
 	uint32_t TimeOut = 10000;
 
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET);
-
 	I2C_NumberOfBytesConfig(I2Cx, 2);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Transmitter);
@@ -92,8 +90,6 @@ static ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 {
 	uint32_t TimeOut = 10000;
 
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET);
-
 	I2C_NumberOfBytesConfig(I2Cx, 2);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Transmitter);
@@ -164,8 +160,6 @@ uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Register
 {
 	uint32_t TimeOut = 10000;
 	uint8_t ReadValue = 0;
-
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET);
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);

@@ -119,7 +119,7 @@ void Climate_SensorsHandler(void)
 		uint16_t tempWord = 0;
 		uint16_t humWord = 0;
 
-		systimeDelayMs(30);
+		systimeDelayMs(20);
 		tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
 #ifdef I2C2_LOGS
 		if (errorSht == ERROR)

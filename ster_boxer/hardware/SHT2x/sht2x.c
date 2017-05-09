@@ -4,7 +4,18 @@ uint16_t SHT21_MeasureTempCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSt
 {
 	uint32_t TimeOut = 100000;
 
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET);
+	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET)
+	{
+		if(TimeOut > 0)
+		{
+			TimeOut--;
+		}
+		else
+		{
+			*Error = ERROR;
+			return 1;
+		}
+	}
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
@@ -102,7 +113,18 @@ uint16_t SHT21_MeasureHumCommand(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorSta
 {
 	uint32_t TimeOut = 100000;
 
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET);
+	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET)
+	{
+		if(TimeOut > 0)
+		{
+			TimeOut--;
+		}
+		else
+		{
+			*Error = ERROR;
+			return 1;
+		}
+	}
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
@@ -219,7 +241,18 @@ uint8_t SHT21_ReadUserReg(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, ErrorStatus * E
 	uint32_t TimeOut = 10000;
 	uint8_t readValue = 0;
 
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET);
+	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET)
+	{
+		if(TimeOut > 0)
+		{
+			TimeOut--;
+		}
+		else
+		{
+			*Error = ERROR;
+			return 1;
+		}
+	}
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
@@ -301,7 +334,17 @@ ErrorStatus SHT21_SoftReset(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 {
 	uint32_t TimeOut = 100000;
 
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET);
+	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET)
+	{
+		if(TimeOut > 0)
+		{
+			TimeOut--;
+		}
+		else
+		{
+			return ERROR;
+		}
+	}
 
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);

@@ -103,8 +103,6 @@ static uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Re
 	uint32_t TimeOut = 10000;
 	uint8_t ReadValue = 0;
 
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET);
-
 	I2C_NumberOfBytesConfig(I2Cx, 1);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
 	I2C_MasterRequestConfig(I2Cx, I2C_Direction_Transmitter);
@@ -185,8 +183,6 @@ static ErrorStatus PCF8563_RegWrite(I2C_TypeDef * I2Cx, uint16_t SlaveAddr, uint
 	uint32_t TimeOut = 10000;
 	uint8_t TimeBCD = 0;
 	TimeBCD = DecToBcd(data);
-
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET);
 
 	I2C_NumberOfBytesConfig(I2Cx, 2);
 	I2C_SlaveAddressConfig(I2Cx, SlaveAddr);
