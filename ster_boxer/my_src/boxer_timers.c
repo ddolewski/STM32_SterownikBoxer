@@ -239,7 +239,7 @@ static void Lightning_Handler(void)
 	}
 	else if (xLightControl.timeOnHours == 24 && xLightControl.timeOffHours == 0)
 	{
-		GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
+		GPIOx_SetPin(LAMP_PORT, LAMP_PIN);
 		xLightControl.lightingState = LIGHT_ON;
 		xLightCounters.counterSeconds = 0;
 		xLightCounters.counterHours = 0;

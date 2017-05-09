@@ -76,17 +76,12 @@ static void PeripheralInit(void)
 
 #ifndef BUZZER_OFF_MODE
 	GPIOx_ResetPin(BUZZER_PORT, BUZZER_PIN);
-	systimeDelayMs(800);
+	systimeDelayMs(25);
 	GPIOx_SetPin(BUZZER_PORT, BUZZER_PIN);
 #endif
 
 	PWM_FansInit();
 	PWM_PumpInit();
-
-	while (PWM_FANSoftStart() == FALSE)
-	{
-		delay_us__(50); //jeśli maks rejestr wynosi 33k to 50us*33k = 1650000us = ~1,6s
-	}
 
     ADC_DMA_Init();
 
@@ -146,12 +141,20 @@ static void PeripheralInit(void)
 
 	initializeConversion(&sensorTempUp);
 	initializeConversion(&sensorTempDown);
-	systimeDelayMs(800);
+//	systimeDelayMs(800);
+
+	while (PWM_FANSoftStart() == FALSE)
+	{
+		delay_us__(150); //jeśli maks rejestr wynosi 33k to 50us*33k = 1650000us = ~1,6s
+	}
+
 	readTemperature(&sensorTempUp);
 	displayData.temp_up_t = sensorTempUp.fTemp;
 	readTemperature(&sensorTempDown);
 	displayData.temp_down_t = sensorTempDown.fTemp;
 #endif
+
+
 
 #ifndef I2C_OFF_MODE
 

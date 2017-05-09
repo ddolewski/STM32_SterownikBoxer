@@ -10,7 +10,7 @@
 //#define DISPLAY_PAGE2_TEST
 //#define NTP_DEBUG
 //#define TURN_OFF_FIRST_NTP_REQ
-#define DEBUG_TERMINAL_USART
+//#define DEBUG_TERMINAL_USART
 //#define DISPLAY_PAGE3_TEST
 //#define BUZZER_OFF_MODE
 //#define I2C_OFF_MODE
