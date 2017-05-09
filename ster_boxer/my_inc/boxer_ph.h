@@ -34,7 +34,7 @@ typedef enum
 typedef struct calibrationProcess_t
 {
 	uint8_t processActive;
-	uint8_t turnOnBuzzer;
+	uint8_t waitForNextBuffer;
 	uint8_t buzzerCounter;
 	uint8_t toggleBuzzerState;
 	uint8_t measureVoltagePh;
@@ -54,7 +54,7 @@ float xLastWaterPh;
 float xLastSoilPh;
 
 void ADC_DMA_Init(void);
-void ADC_CalibrateProbes_Core(void);
+void ADC_CalibrateProbes_Handler(void);
 void PhProccess_Handler(void);
 
 #endif /* MY_INC_BOXER_PH_H_ */

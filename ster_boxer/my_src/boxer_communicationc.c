@@ -675,7 +675,7 @@ void ReceiveSerial_Handler(void)
 									calibrateFlags.probeType = (probe_type_t)probeType;
 									calibrateFlags.processActive = TRUE;
 									calibrateFlags.toggleBuzzerState = TRUE;
-									calibrateFlags.turnOnBuzzer = TRUE;
+									calibrateFlags.waitForNextBuffer = TRUE;
 								}
 							}
 							else if (strcmp(ReceivedString[1], "SI") == 0)

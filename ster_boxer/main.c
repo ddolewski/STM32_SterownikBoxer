@@ -26,17 +26,8 @@ int main(void)
 	systimeInit();
 	PeripheralInit();
 
-	static bool_t softStartDone = FALSE;
     while (TRUE)
 	{
-    	if (initFanPwm == TRUE)
-    	{
-    		if (PWM_FANSoftStart() == TRUE)
-    		{
-    			initFanPwm = FALSE;
-    		}
-    	}
-
     	MainTimer_Handler();
     	TransmitSerial_Handler();
     	ReceiveSerial_Handler();
@@ -91,6 +82,11 @@ static void PeripheralInit(void)
 
 	PWM_FansInit();
 	PWM_PumpInit();
+
+	while (PWM_FANSoftStart() == FALSE)
+	{
+		delay_us__(50); //jeśli maks rejestr wynosi 33k to 50us*33k = 1650000us = ~1,6s
+	}
 
     ADC_DMA_Init();
 
@@ -150,7 +146,7 @@ static void PeripheralInit(void)
 
 	initializeConversion(&sensorTempUp);
 	initializeConversion(&sensorTempDown);
-	systimeDelayMs(760);
+	systimeDelayMs(800);
 	readTemperature(&sensorTempUp);
 	displayData.temp_up_t = sensorTempUp.fTemp;
 	readTemperature(&sensorTempDown);

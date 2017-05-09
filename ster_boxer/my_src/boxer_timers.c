@@ -217,7 +217,7 @@ void MainTimer_Handler(void)
 		AtnelWiFi_Handler();
 		Ntp_Handler();
     	Lightning_Handler();
-		ADC_CalibrateProbes_Core();
+		ADC_CalibrateProbes_Handler();
 //		Irrigation_Core();
 
     	if (xLightCounters.counterSeconds % 300 == 0)

@@ -17,7 +17,7 @@
 //#define OWIRE_OFF_MODE
 //#define RTC_WRITE_TEST
 //#define I2C2_LOGS
-#define ONE_WIRE_LOGS
+//#define ONE_WIRE_LOGS
 //#define SEND_TRANSMIT_FRAME
 
 #define WIFI_RST_PORT			GPIOC

@@ -6,11 +6,7 @@
 #include "boxer_climate.h"
 #include "boxer_timers.h"
 
-//Timer systemowy
-#define SYSTIMER 				SysTick
-#define SYSTIMER_HANDLER		SysTick_Handler
-
-static volatile systime_t sysTimer = 0;	//timer systemowy odmierzajacy czas w ms
+static volatile systime_t msTimer = 0;	//timer systemowy odmierzajacy czas w ms
 //-------------------------------------------------------------------------------------------------
 // Funkcja inicjalizujaca timer systemeowy
 //void
@@ -18,16 +14,16 @@ static volatile systime_t sysTimer = 0;	//timer systemowy odmierzajacy czas w ms
 //-------------------------------------------------------------------------------------------------
 void systimeInit(void)
 {
-	SysTick_Config (SystemCoreClock / 1000); //1ms
+	SysTick_Config(SystemCoreClock / 1000); //1ms
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja obslugi przerwania SysTick
 //void
 //return:		void
 //-------------------------------------------------------------------------------------------------
-void SYSTIMER_HANDLER (void)
+void SysTick_Handler (void)
 {
-	sysTimer++;
+	msTimer++;
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja zwracajaca aktualny czas systemowy
@@ -36,11 +32,11 @@ void SYSTIMER_HANDLER (void)
 //-------------------------------------------------------------------------------------------------
 systime_t systimeGet (void)
 {
-	return sysTimer;
+	return msTimer;
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja zwracajaca aktualny czas systemowy
-//xLastTime		/inOut: wskaznik na zmienna reprezentujac� czas ostatniego wywolania danego timeouta
+//xLastTime		/inOut: wskaznik na zmienna reprezentujaca czas ostatniego wywolania danego timeouta
 //xCheckTime	/in:	interwal czasu sprawdzenia
 //return:	timeElapsed	TRUE  -  czas minal, FALSE - czas nie minal
 //-------------------------------------------------------------------------------------------------

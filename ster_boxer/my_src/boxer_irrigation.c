@@ -31,10 +31,10 @@ static uint8_t Irrigation_PumpEnable(bool_t xStatus);
 irrigate_control_t irrigationControl;
 void Irrigation_Handler(void)
 {
-	Irrigation_PumpControll();
-	Irrigation_WaterLevel();
+//	Irrigation_PumpControll();
+//	Irrigation_WaterLevel();
 	Irrigation_SoilMoisture();
-	Irrigation_Core();
+//	Irrigation_Core();
 }
 /////////////////////////////////////////////////////////////////////////////
 void Irrigation_PumpControll(void)
