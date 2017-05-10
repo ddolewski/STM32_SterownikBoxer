@@ -4,7 +4,8 @@
 #include "stm32f0xx_tim.h"
 
 const uint8_t sensor1ROM[8]={40, 255, 8, 153, 100, 20, 3, 10};
-const uint8_t sensor2ROM[8]={40, 21, 46, 135, 4, 0, 0, 53};
+//const uint8_t sensor2ROM[8]={40, 21, 46, 135, 4, 0, 0, 53}; // ROM starego czujnika
+const uint8_t sensor2ROM[8]={40, 255, 180, 92, 139, 22, 3, 213};
 
 volatile uint8_t toggle = 0;
 volatile uint8_t delayFlag = 0;

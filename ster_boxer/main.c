@@ -136,16 +136,16 @@ static void PeripheralInit(void)
 
 #ifndef OWIRE_OFF_MODE
 	OneWire_TimerInit();
+
 	memCopy(sensorTempUp.cROM, sensor1ROM, 8);
 	memCopy(sensorTempDown.cROM, sensor2ROM, 8);
 
 	initializeConversion(&sensorTempUp);
 	initializeConversion(&sensorTempDown);
-//	systimeDelayMs(800);
 
 	while (PWM_FANSoftStart() == FALSE)
 	{
-		delay_us__(150); //jeśli maks rejestr wynosi 33k to 50us*33k = 1650000us = ~1,6s
+		delay_us__(150);
 	}
 
 	readTemperature(&sensorTempUp);
