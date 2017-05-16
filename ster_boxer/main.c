@@ -22,8 +22,6 @@ int main(void)
 	SystemCoreClockUpdate();
 	RCC_HCLKConfig(RCC_SYSCLK_Div1);
 	RCC_PCLKConfig(RCC_HCLK_Div1);
-
-	systimeInit();
 	PeripheralInit();
 
     while (TRUE)
@@ -43,6 +41,8 @@ int main(void)
 ////////////////////////////////////////////////////////////////////////////////////////////////
 static void PeripheralInit(void)
 {
+	systimeInit();
+
 	RCC->AHBENR |= RCC_AHBENR_GPIOAEN;
 	RCC->AHBENR |= RCC_AHBENR_GPIOBEN;
 	RCC->AHBENR |= RCC_AHBENR_GPIOCEN;
