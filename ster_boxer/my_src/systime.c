@@ -24,6 +24,7 @@ void systimeInit(void)
 void SysTick_Handler (void)
 {
 	msTimer++;
+	systickIrq = 1;
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja zwracajaca aktualny czas systemowy

@@ -32,29 +32,29 @@ void Climate_SensorsHandler(void)
 	if (oneWireResetDone == FALSE)
 	{
 	#ifndef OWIRE_OFF_MODE
-			errorDsUp = initializeConversion(&sensorTempUp);
-			errorDsDown = initializeConversion(&sensorTempDown);
+		errorDsUp = initializeConversion(&sensorTempUp);
+		errorDsDown = initializeConversion(&sensorTempDown);
 	#endif
-			oneWireResetDone = TRUE;
+		oneWireResetDone = TRUE;
 
 #ifdef ONE_WIRE_LOGS
-//		if (errorDsUp == 0)
-//		{
-//			_error("ds up init error");
-//		}
-//		else
-//		{
-//			_printString("ds up init ok\r\n");
-//		}
+		if (errorDsUp == 0)
+		{
+			_error("ds up init error");
+		}
+		else
+		{
+			_printString("ds up init ok\r\n");
+		}
 
-//		if (errorDsDown == 0)
-//		{
-//			_error("ds down init error");
-//		}
-//		else
-//		{
-//			_printString("ds dpwn init ok\r\n");
-//		}
+		if (errorDsDown == 0)
+		{
+			_error("ds down init error");
+		}
+		else
+		{
+			_printString("ds dpwn init ok\r\n");
+		}
 #endif
 	}
 
@@ -119,7 +119,7 @@ void Climate_SensorsHandler(void)
 		uint16_t tempWord = 0;
 		uint16_t humWord = 0;
 
-		systimeDelayMs(20);
+		systimeDelayMs(20); //datasheet
 		tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
 #ifdef I2C2_LOGS
 		if (errorSht == ERROR)
@@ -174,103 +174,112 @@ void Climate_SensorsHandler(void)
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void Climate_TempCtrl_Handler(void)
 {
-	if ((TIM3->CR1 & TIM_CR1_CEN) == SET)
+	if (systickIrq)
 	{
-	    if (tempControl.tempCtrlMode == TEMP_AUTO) //sterowanie temperatura maksymalna
+		if (softStartDone == TRUE)
 		{
-	//    	_printParam(UC"userParam.tempControl", userParam.tempControl);
-			if (xLightControl.lightingState == LIGHT_ON)
+			switch (tempControl.tempCtrlMode)
 			{
-	//			_printParam(UC"LightControl.LightingState", LightControl.LightingState);
-				if (sensorTempUp.fTemp > (float)tempControl.userTemp)
+			case TEMP_AUTO:
+				switch (xLightControl.lightingState)
 				{
-					//USARTx_SendString(USART_COMM, UC"fTemp > userTemp\n\r");
-					PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100);//, PWM_CHANGE_SLOW); 	//wyciagajacy
-					lastPullPWM = 100;
-					PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70);//, PWM_CHANGE_SLOW); 	//wciagajacy
-					lastPushPWM = 70;
-				}
-				else
-				{
-					//USARTx_SendString(USART_COMM, UC"fTemp < userTemp\n\r");
-					PWM_DecPercentTo(PWM_FAN_PULL_AIR, 60);//, PWM_CHANGE_SLOW);
-					lastPullPWM = 60;
-					PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30);//, PWM_CHANGE_SLOW);
-					lastPushPWM = 30;
-				}
-			}
-			else
-			{
-	//			_printParam(UC"LightControl.LightingState", LightControl.LightingState);
-
-				if (lastPullPWM > 40)
-				{
-					if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, 40))//, 40, PWM_CHANGE_SLOW) == 1)
+				case LIGHT_ON:
+					if (sensorTempUp.fTemp > (float)tempControl.userTemp)
 					{
-						lastPullPWM = 40;
+						PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100);//, PWM_CHANGE_SLOW); 	//wyciagajacy
+						lastPullPWM = 100;
+						PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70);//, PWM_CHANGE_SLOW); 	//wciagajacy
+						lastPushPWM = 70;
 					}
-				}
-				else
-				{
-					if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, 40))//, 40, PWM_CHANGE_SLOW) == 1)
+					else
 					{
-						lastPullPWM = 40;
-					}
-				}
-
-				if (lastPushPWM > 30)
-				{
-					if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30))//, 30, PWM_CHANGE_SLOW) == 1)
-					{
+						PWM_DecPercentTo(PWM_FAN_PULL_AIR, 60);//, PWM_CHANGE_SLOW);
+						lastPullPWM = 60;
+						PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30);//, PWM_CHANGE_SLOW);
 						lastPushPWM = 30;
 					}
-				}
-				else
-				{
-					if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30))//, 30, PWM_CHANGE_SLOW) == 1)
+					break;
+
+				case LIGHT_OFF:
+					if (lastPullPWM > 40)
 					{
-						lastPushPWM = 30;
+						if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, 40))//, 40, PWM_CHANGE_SLOW) == 1)
+						{
+							lastPullPWM = 40;
+						}
+					}
+					else
+					{
+						if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, 40))//, 40, PWM_CHANGE_SLOW) == 1)
+						{
+							lastPullPWM = 40;
+						}
+					}
+
+					if (lastPushPWM > 30)
+					{
+						if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30))//, 30, PWM_CHANGE_SLOW) == 1)
+						{
+							lastPushPWM = 30;
+						}
+					}
+					else
+					{
+						if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30))//, 30, PWM_CHANGE_SLOW) == 1)
+						{
+							lastPushPWM = 30;
+						}
+					}
+					break;
+
+				default:
+					break;
+				}
+				break;
+
+			case TEMP_MANUAL:
+				if (lastPullPWM != tempControl.fanPull)
+				{
+					if (lastPullPWM > tempControl.fanPull)
+					{
+						if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))//, PWM_CHANGE_SLOW) == 1)
+						{
+							lastPullPWM = tempControl.fanPull;
+						}
+					}
+					else
+					{
+						if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))//, PWM_CHANGE_SLOW) == 1)
+						{
+							lastPullPWM = tempControl.fanPull;
+						}
 					}
 				}
+
+				if (lastPushPWM != tempControl.fanPush)
+				{
+					if (lastPushPWM > tempControl.fanPush)
+					{
+						if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))//, PWM_CHANGE_SLOW) == 1)
+						{
+							lastPushPWM = tempControl.fanPush;
+						}
+					}
+					else
+					{
+						if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))//, PWM_CHANGE_SLOW) == 1)
+						{
+							lastPushPWM = tempControl.fanPush;
+						}
+					}
+				}
+				break;
+
+			default:
+				break;
 			}
 		}
-	    else if (tempControl.tempCtrlMode == TEMP_MANUAL)
-	    {
-	    	if (lastPullPWM != tempControl.fanPull)
-			{
-				if (lastPullPWM > tempControl.fanPull)
-				{
-					if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))//, PWM_CHANGE_SLOW) == 1)
-					{
-						lastPullPWM = tempControl.fanPull;
-					}
-				}
-				else
-				{
-					if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))//, PWM_CHANGE_SLOW) == 1)
-					{
-						lastPullPWM = tempControl.fanPull;
-					}
-				}
-			}
 
-			if (lastPushPWM != tempControl.fanPush)
-			{
-				if (lastPushPWM > tempControl.fanPush)
-				{
-					if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))//, PWM_CHANGE_SLOW) == 1)
-					{
-						lastPushPWM = tempControl.fanPush;
-					}
-				}
-				else
-				{
-					if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))//, PWM_CHANGE_SLOW) == 1)
-					{
-						lastPushPWM = tempControl.fanPush;
-					}
-				}
-			}
-	    }
+		systickIrq = 0;
 	}
 }

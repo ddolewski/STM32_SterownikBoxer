@@ -13,13 +13,14 @@
 #include "boxer_irrigation.h"
 #include "boxer_ph.h"
 #include "boxer_datastorage.h"
-
+#include "hardware/PCF8563/pcf8563.h"
 #define PUMP_PIN		GPIO_Pin_1
 #define TIMER_PRESCALER	48
 
 static systime_t oneSecTimer = 0;
 static uint16_t TimerPeriod = 0;
 bool_t initFanPwm = FALSE;
+bool_t softStartDone = FALSE;
 
 static void Lightning_Handler(void);
 static uint32_t PWM_PercentToRegister(uint8_t xPercent);
@@ -202,6 +203,7 @@ void SoftStart_Handler(void)
 		if (PWM_FANSoftStart() == TRUE)
 		{
 			initFanPwm = FALSE;
+			softStartDone = TRUE;
 		}
 	}
 
@@ -213,7 +215,7 @@ void MainTimer_Handler(void)
 	if (systimeTimeoutControl(&oneSecTimer, 1000))
 	{
 		displayData.pageCounter++;
-
+		RTC_Handler();
 		AtnelWiFi_Handler();
 		Ntp_Handler();
     	Lightning_Handler();
@@ -253,8 +255,10 @@ static void Lightning_Handler(void)
 			xLightCounters.counterSeconds = 0;
 		}
 
-		if (xLightControl.lightingState == LIGHT_ON) //lampa wlaczona
+
+		switch (xLightControl.lightingState)
 		{
+		case LIGHT_ON:
 			if (xLightControl.timeOnHours != 0 && xLightControl.timeOnHours != 24)
 			{
 				GPIOx_SetPin(LAMP_PORT, LAMP_PIN);
@@ -265,9 +269,9 @@ static void Lightning_Handler(void)
 					xLightCounters.counterSeconds = 0;
 				}
 			}
-		}
-		else if (xLightControl.lightingState == LIGHT_OFF) //lampa wylaczona
-		{
+			break;
+
+		case LIGHT_OFF:
 			if (xLightControl.timeOffHours != 0 && xLightControl.timeOffHours != 24)
 			{
 				GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
@@ -278,7 +282,38 @@ static void Lightning_Handler(void)
 					xLightCounters.counterSeconds = 0;
 				}
 			}
+			break;
+
+		default:
+			break;
 		}
+
+//		if (xLightControl.lightingState == LIGHT_ON) //lampa wlaczona
+//		{
+//			if (xLightControl.timeOnHours != 0 && xLightControl.timeOnHours != 24)
+//			{
+//				GPIOx_SetPin(LAMP_PORT, LAMP_PIN);
+//				if (xLightControl.timeOnHours == xLightCounters.counterHours)
+//				{
+//					xLightControl.lightingState = LIGHT_OFF;
+//					xLightCounters.counterHours = 0;
+//					xLightCounters.counterSeconds = 0;
+//				}
+//			}
+//		}
+//		else if (xLightControl.lightingState == LIGHT_OFF) //lampa wylaczona
+//		{
+//			if (xLightControl.timeOffHours != 0 && xLightControl.timeOffHours != 24)
+//			{
+//				GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
+//				if (xLightControl.timeOffHours == xLightCounters.counterHours)
+//				{
+//					xLightControl.lightingState = LIGHT_ON;
+//					xLightCounters.counterHours = 0;
+//					xLightCounters.counterSeconds = 0;
+//				}
+//			}
+//		}
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

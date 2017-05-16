@@ -7,7 +7,6 @@
 #include "stm32f0xx_flash.h"
 #include "boxer_datastorage.h"
 #include "hardware/TSL2561/tsl2561.h"
-#include "hardware/PCF8563/pcf8563.h"
 #include "misc.h"
 ///////////////////////////////////////////////////////////
 static void PeripheralInit(void);
@@ -31,15 +30,14 @@ int main(void)
     	MainTimer_Handler();
     	TransmitSerial_Handler();
     	ReceiveSerial_Handler();
-    	RTC_Handler();
-    	Climate_SensorsHandler();
     	Climate_TempCtrl_Handler();
+    	Climate_SensorsHandler();
     	Display_Handler();
     	PhProccess_Handler();
     	Irrigation_Handler();
 	}
 
-    return FALSE;
+    return ERROR;
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 static void PeripheralInit(void)
@@ -80,9 +78,6 @@ static void PeripheralInit(void)
 	GPIOx_SetPin(BUZZER_PORT, BUZZER_PIN);
 #endif
 
-	PWM_FansInit();
-	PWM_PumpInit();
-
     ADC_DMA_Init();
 
 #ifndef DEBUG_TERMINAL_USART
@@ -95,6 +90,7 @@ static void PeripheralInit(void)
 	}
 #else
 	DEBUG_Init();
+	_printString("TEST\r\n");
 #endif
 
 #ifndef DEBUG_TERMINAL_USART
@@ -142,12 +138,7 @@ static void PeripheralInit(void)
 
 	initializeConversion(&sensorTempUp);
 	initializeConversion(&sensorTempDown);
-
-	while (PWM_FANSoftStart() == FALSE)
-	{
-		delay_us__(150);
-	}
-
+	systimeDelayMs(760);
 	readTemperature(&sensorTempUp);
 	displayData.temp_up_t = sensorTempUp.fTemp;
 	readTemperature(&sensorTempDown);
@@ -230,14 +221,25 @@ static void PeripheralInit(void)
 
 	Irrigation_CheckSoilMoisture();
 
-	displayData.page = 1;
-	GLCD_ClearScreen();
+
+
+	PWM_FansInit();
+//	SoftStart_Handler();
+	while (softStartDone == FALSE)
+	{
+		SoftStart_Handler();
+		delay_us__(250);
+	}
+//	PWM_PumpInit();
 
 #ifdef TURN_OFF_FIRST_NTP_REQ
 	atnel_Mode = ATNEL_MODE_TRANSPARENT;
 #else
 	Ntp_SendRequest();
 #endif
+
+	displayData.page = 1;
+	GLCD_ClearScreen();
 }
 
 #ifndef DEBUG_TERMINAL_USART

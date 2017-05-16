@@ -17,6 +17,7 @@
 #define SYSTICKNS      (1000000000 / SYSTICKHZ)
 
 typedef uint32_t systime_t;
+volatile uint8_t systickIrq;
 
 void systimeInit (void);
 systime_t systimeGet (void);

@@ -84,8 +84,6 @@ ErrorStatus PCF8563_WriteTime(time_complex_t * xTime, I2C_TypeDef * I2Cx)
 
 void RTC_Handler(void)
 {
-	if (systimeTimeoutControl(&readTimeTimer, 400))
-	{
 #ifndef DEBUG_TERMINAL_USART
 		PCF8563_ReadTime(&xRtcFullDate, I2C1);
 #endif
@@ -95,7 +93,6 @@ void RTC_Handler(void)
 		displayWeekDayConvert(localTime.wday, weekDayString);
 
 		strcpy(displayData.time, xTimeString);
-	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static uint8_t PCF8563_RegRead(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error)

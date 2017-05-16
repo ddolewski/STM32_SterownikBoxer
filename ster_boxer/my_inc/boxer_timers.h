@@ -33,8 +33,10 @@ typedef enum
 uint8_t lastPullPWM;
 uint8_t lastPushPWM;
 
+extern bool_t softStartDone;
 extern bool_t initFanPwm;
 uint8_t shtTimer;
+
 void PWM_FansInit(void);
 void PWM_PumpInit(void);
 uint8_t PWM_FANSoftStart(void);
