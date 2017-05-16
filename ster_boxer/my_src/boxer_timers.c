@@ -222,7 +222,7 @@ void MainTimer_Handler(void)
 		ADC_CalibrateProbes_Handler();
 //		Irrigation_Core();
 
-    	if (xLightCounters.counterSeconds % 300 == 0)
+    	if (xLightCounters.counterSeconds % ((uint32_t)1200000) == 0) //co 20 min
     	{
     		FLASH_SaveLightCounters();
     	}

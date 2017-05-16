@@ -9,6 +9,13 @@
 #include "glcd_font5x8.h"
 #include "graphic.h"
 
+typedef enum
+{
+	PAGE_1 = 1,
+	PAGE_2,
+	PAGE_3
+}page_t;
+
 typedef struct
 {
 	float temp_middle_t;
@@ -19,11 +26,11 @@ typedef struct
 	char time[20];
 	float ph1;
 	float ph2;
-	uint8_t page;
+	page_t page;
 	uint8_t pageCounter;
 }lcdDisplayData_t;
 
-volatile lcdDisplayData_t displayData;
+lcdDisplayData_t displayData;
 
 uint8_t xLastTimeOnHour;
 uint8_t xLastTimeOffHour;

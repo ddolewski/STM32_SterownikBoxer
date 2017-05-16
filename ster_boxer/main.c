@@ -4,10 +4,11 @@
 #include "boxer_climate.h"
 #include "boxer_ph.h"
 #include "boxer_irrigation.h"
-#include "stm32f0xx_flash.h"
 #include "boxer_datastorage.h"
-#include "hardware/TSL2561/tsl2561.h"
+#include "tsl2561.h"
+#include "pcf8563.h"
 #include "misc.h"
+#include "stm32f0xx_flash.h"
 ///////////////////////////////////////////////////////////
 static void PeripheralInit(void);
 #ifndef DEBUG_TERMINAL_USART
@@ -138,7 +139,7 @@ static void PeripheralInit(void)
 
 	initializeConversion(&sensorTempUp);
 	initializeConversion(&sensorTempDown);
-	systimeDelayMs(760);
+	systimeDelayMs(800);
 	readTemperature(&sensorTempUp);
 	displayData.temp_up_t = sensorTempUp.fTemp;
 	readTemperature(&sensorTempDown);
@@ -221,15 +222,14 @@ static void PeripheralInit(void)
 
 	Irrigation_CheckSoilMoisture();
 
-
-
 	PWM_FansInit();
-//	SoftStart_Handler();
+
 	while (softStartDone == FALSE)
 	{
 		SoftStart_Handler();
-		delay_us__(250);
+		delay_us__(200);
 	}
+
 //	PWM_PumpInit();
 
 #ifdef TURN_OFF_FIRST_NTP_REQ
@@ -238,7 +238,7 @@ static void PeripheralInit(void)
 	Ntp_SendRequest();
 #endif
 
-	displayData.page = 1;
+	displayData.page = PAGE_1;
 	GLCD_ClearScreen();
 }
 

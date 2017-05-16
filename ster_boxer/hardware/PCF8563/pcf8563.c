@@ -15,7 +15,6 @@ static ErrorStatus PCF8563_RegWrite(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8
 static int BcdToDec(int data);
 static int DecToBcd(int data);
 
-static systime_t readTimeTimer = 0;
 static time_complex_t localTime;
 
 ErrorStatus PCF8563_Init(I2C_TypeDef * I2Cx)
