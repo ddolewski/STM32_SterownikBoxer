@@ -25,7 +25,9 @@ bool_t softStartDone = FALSE;
 
 static uint32_t PWM_PercentToRegister(uint8_t xPercent);
 static uint8_t PWM_FANSoftStart(void);
-
+#ifdef CALIB_DEBUG
+static uint8_t calibDbgCounter = 0;
+#endif
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 {
@@ -171,7 +173,24 @@ void MainTimer_Handler(void)
 {
 	if (systimeTimeoutControl(&oneSecTimer, 1000))
 	{
-		displayData.pageCounter++;
+		if (calibrateFlags.processActive == FALSE)
+		{
+			displayData.pageCounter++;
+		}
+
+#ifdef CALIB_DEBUG
+		if (calibDbgCounter < 5)
+		{
+			calibDbgCounter++;
+			if (calibDbgCounter == 5)
+			{
+				calibrateFlags.probeType = PROBE_WATER;
+				calibrateFlags.processActive = TRUE;
+				calibrateFlags.waitForNextBuffer = TRUE;
+				GLCD_ClearScreen();
+			}
+		}
+#endif
 		RTC_Handler();
 		AtnelWiFi_Handler();
 		Ntp_Handler();

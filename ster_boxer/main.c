@@ -131,9 +131,9 @@ static void PeripheralInit(void)
 	FLASH_ReadLightCounters();
 	FLASH_STORAGE_TEST();
 
-#ifndef OWIRE_OFF_MODE
 	OneWire_TimerInit();
 
+#ifndef OWIRE_OFF_MODE
 	memCopy(sensorTempUp.cROM, sensor1ROM, 8);
 	memCopy(sensorTempDown.cROM, sensor2ROM, 8);
 
@@ -224,11 +224,11 @@ static void PeripheralInit(void)
 
 	PWM_FansInit();
 
-	while (softStartDone == FALSE)
-	{
-		SoftStart_Handler();
-		delay_us__(200);
-	}
+//	while (softStartDone == FALSE)
+//	{
+//		SoftStart_Handler();
+//		delay_us__(200);
+//	}
 
 //	PWM_PumpInit();
 

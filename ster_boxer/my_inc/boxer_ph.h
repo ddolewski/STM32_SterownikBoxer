@@ -31,24 +31,43 @@ typedef enum
 	PROBE_WATER
 }probe_type_t;
 
+typedef enum
+{
+	BUFFER_PH_NONE = 0,
+	BUFFER_PH4 = 1,
+	BUFFER_PH7 = 2,
+	BUFFER_PH9 = 3
+}buffer_type_t;
+
 typedef struct calibrationProcess_t
 {
 	uint8_t processActive;
 	uint8_t waitForNextBuffer;
-	uint8_t buzzerCounter;
+	uint8_t waitCounter;
 	uint8_t toggleBuzzerState;
 	uint8_t measureVoltagePh;
 	uint8_t pHBufferChooser;
 	uint8_t pH4Buffer;
 	uint8_t pH7Buffer;
 	uint8_t	pH9Buffer;
-	uint8_t pHCounter;
+	uint8_t meanpHCounter;
 	probe_type_t probeType;
 }calibrationProcess_t;
+
+typedef struct probe_t
+{
+	float tempSoil;
+	float inAverageSoil;
+	float inSoil;
+	float tempWater;
+	float inAverageWater;
+	float inWater;
+}probe_adc_t;
 
 extern pH_t pH;
 volatile ph_factors_t FactorsEquationpH;
 volatile calibrationProcess_t calibrateFlags;
+probe_adc_t probeData;
 
 float xLastWaterPh;
 float xLastSoilPh;

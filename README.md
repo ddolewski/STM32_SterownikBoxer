@@ -4,14 +4,17 @@ Monitor uprawy roślin STM32F051
 
 Zmiany:
 
-- zrobić sprzętowe opóźnienie delay_us (1us) -> Timer?
 - zrobić algorytm wyszukiwania 1Wire
 - uruchomić HSE+PLL na 48MHz
 - dorobić info o nawadnianiu na LCD
 - dodać obsługę błędów czujników na LCD (w miejscu wartości pomiarowej dać napis Error)
-- dodać ekran wyświetlania informacji o kalibracji sond pH ?
 
 WYKONANE:
+
+- dodano strone kalibracji sond na LCD
+
+- delay_us postawiony na timerze (licznik 1us)  ------> OK
+
 - poprawiony algorytm sterowania wentylatorami (PWM, timingi, zakresy, soft start)  ------> OK
 
 - zmiana czasów wykonywania pomiarów  ------> OK 

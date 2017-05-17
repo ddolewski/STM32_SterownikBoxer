@@ -15,6 +15,7 @@ static void Display_ChangePage(lcdDisplayData_t * display);
 static void Display_Page1(lcdDisplayData_t * display);
 static void Display_Page2(lcdDisplayData_t * display);
 static void Display_Page3(lcdDisplayData_t * display);
+static void Display_PhCalibration(void);
 
 static systime_t displayTimer = 0;
 static uint8_t sPhWaterUnderRange = TRUE;
@@ -22,8 +23,15 @@ static uint8_t sPhSoilUnderRange = TRUE;
 ////////////////////////////////////////////////////////////////////////////
 void Display_Handler(void)
 {
-	Display_ChangePage((lcdDisplayData_t*)&displayData);
-	Display_ShowPage((lcdDisplayData_t*)&displayData);
+	if (calibrateFlags.processActive == TRUE)
+	{
+		Display_PhCalibration();
+	}
+	else
+	{
+		Display_ChangePage((lcdDisplayData_t*)&displayData);
+		Display_ShowPage((lcdDisplayData_t*)&displayData);
+	}
 }
 ////////////////////////////////////////////////////////////////////////////
 static void Display_ShowPage(lcdDisplayData_t * display)
@@ -87,6 +95,93 @@ static void Display_ChangePage(lcdDisplayData_t * display)
 #ifdef DISPLAY_PAGE3_TEST
 		display->page = 3;
 #endif
+}
+
+static void Display_PhCalibration(void)
+{
+	if (calibrateFlags.processActive == TRUE)
+	{
+		GLCD_GoTo(0,0);
+		switch (calibrateFlags.probeType)
+		{
+		case PROBE_WATER:
+			GLCD_WriteString("Kalibracja pH wody");
+			break;
+
+		case PROBE_SOIL:
+			GLCD_WriteString("Kalibracja pH gleby");
+			break;
+
+		default:
+			break;
+		}
+
+		GLCD_GoTo(0,1);
+		GLCD_WriteString("=====================");
+
+		if (calibrateFlags.waitForNextBuffer == TRUE)
+		{
+			GLCD_GoTo(0,2);
+			switch (calibrateFlags.pHBufferChooser)
+			{
+			case BUFFER_PH_NONE:
+				GLCD_WriteString("Czekam na bufor pH4..");
+				break;
+
+			case BUFFER_PH4:
+				GLCD_WriteString("Czekam na bufor pH7..");
+				break;
+
+			case BUFFER_PH7:
+				GLCD_WriteString("Czekam na bufor pH9..");
+				break;
+
+			case BUFFER_PH9:
+				break;
+
+			default:
+				break;
+			}
+
+			char tmpStr[21] = {0};
+			itoa(calibrateFlags.waitCounter, tmpStr);
+			strcat(tmpStr, "...");
+			GLCD_GoTo(0,3);
+			GLCD_WriteString(tmpStr);
+		}
+
+		if (calibrateFlags.measureVoltagePh == TRUE)
+		{
+			GLCD_GoTo(0,2);
+			if (calibrateFlags.pH4Buffer == TRUE)
+			{
+				GLCD_WriteString("Bufor pH4 pomiar..");
+			}
+			else if (calibrateFlags.pH7Buffer == TRUE)
+			{
+				GLCD_WriteString("Bufor pH7 pomiar..");
+			}
+			else if (calibrateFlags.pH9Buffer == TRUE)
+			{
+				GLCD_WriteString("Bufor pH9 pomiar..");
+			}
+
+			char tmpStr[21] = {0};
+			itoa(calibrateFlags.meanpHCounter, tmpStr);
+			strcat(tmpStr, "...");
+			GLCD_GoTo(0,3);
+			GLCD_WriteString(tmpStr);
+
+			memset(tmpStr, 0, 21);
+			strcat(tmpStr, "Vref: ");
+			char vrefStr[5] = {0};
+			ftoa(probeData.inAverageWater, vrefStr, 2);
+
+			strcat(tmpStr, vrefStr);
+			GLCD_GoTo(0,4);
+			GLCD_WriteString(tmpStr);
+		}
+	}
 }
 
 static void Display_Page1(lcdDisplayData_t * display)
