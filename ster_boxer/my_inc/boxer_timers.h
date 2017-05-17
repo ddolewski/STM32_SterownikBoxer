@@ -20,12 +20,6 @@ typedef enum
 
 typedef enum
 {
-	PWM_CHANGE_FAST,
-	PWM_CHANGE_SLOW
-}pwm_change_speed_t;
-
-typedef enum
-{
 	PWM_MIN_PERCENT = 0,
 	PWM_MAX_PERCENT = 100
 }pwm_range_t;
@@ -35,15 +29,12 @@ uint8_t lastPushPWM;
 
 extern bool_t softStartDone;
 extern bool_t initFanPwm;
-uint8_t shtTimer;
 
 void PWM_FansInit(void);
 void PWM_PumpInit(void);
-uint8_t PWM_FANSoftStart(void);
 void SoftStart_Handler(void);
 void MainTimer_Handler(void);
-void PWM_SetPercent(uint8_t xPwmDev, uint32_t xPercent);
-uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent);//, pwm_change_speed_t xSpeed);
-uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent);//, pwm_change_speed_t xSpeed);
+uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent);
+uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent);
 
 #endif /* MY_INC_BOXER_TIMERS_H_ */

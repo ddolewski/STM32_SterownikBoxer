@@ -13,30 +13,21 @@
 #include "boxer_irrigation.h"
 #include "boxer_ph.h"
 #include "boxer_datastorage.h"
-#include "hardware/PCF8563/pcf8563.h"
-#define PUMP_PIN		GPIO_Pin_1
-#define TIMER_PRESCALER	48
+#include "pcf8563.h"
+
+#define PUMP_PIN			GPIO_Pin_1
+#define TIMER_PRESCALER		48
 
 static systime_t oneSecTimer = 0;
 static uint16_t TimerPeriod = 0;
 bool_t initFanPwm = FALSE;
 bool_t softStartDone = FALSE;
 
-static void Lightning_Handler(void);
 static uint32_t PWM_PercentToRegister(uint8_t xPercent);
-//static uint8_t PWM_FANSoftStart(void);
-
-
-//bool_t ntpSyncProccess = FALSE;
-//#ifdef NTP_DEBUG
-//static uint16_t ntpRequestTimer = 3590;
-//
-//#else
-//static uint16_t ntpRequestTimer = 0;
-//#endif
+static uint8_t PWM_FANSoftStart(void);
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)//, pwm_change_speed_t xSpeed)
+uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 {
 	uint8_t ret = 0;
 	uint8_t power = 100 - xPercent;
@@ -83,7 +74,7 @@ uint8_t PWM_DecPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)//, pwm_change
 	return ret;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)//, pwm_change_speed_t xSpeed)
+uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)
 {
 	uint8_t ret = 0;
 	uint8_t power = 100 - xPercent;
@@ -92,19 +83,7 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)//, pwm_change
 		case PWM_PUMP:
 			if (REG_PWM_PUMP > PWM_PercentToRegister(power))
 			{
-//				switch (xSpeed)
-//				{
-//				case PWM_CHANGE_FAST:
-//					REG_PWM_PUMP -= 10;
-//					break;
-//
-//				case PWM_CHANGE_SLOW:
-					REG_PWM_PUMP -= 1;
-//					break;
-//
-//				default:
-//					break;
-//				}
+				REG_PWM_PUMP -= 1;
 			}
 			else
 			{
@@ -115,19 +94,8 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)//, pwm_change
 		case PWM_FAN_PULL_AIR:
 			if (REG_PWM_PULL_AIR_FAN > PWM_PercentToRegister(power))
 			{
-//				switch (xSpeed)
-//				{
-//				case PWM_CHANGE_FAST:
-//					REG_PWM_PULL_AIR_FAN -= 10;
-//					break;
-//
-//				case PWM_CHANGE_SLOW:
-					REG_PWM_PULL_AIR_FAN -= 1;
-//					break;
-//
-//				default:
-//					break;
-//				}
+
+				REG_PWM_PULL_AIR_FAN -= 1;
 			}
 			else
 			{
@@ -138,19 +106,7 @@ uint8_t PWM_IncPercentTo(pwm_dev_type_t xPwmDev, uint8_t xPercent)//, pwm_change
 		case PWM_FAN_PUSH_AIR:
 			if (REG_PWM_PUSH_AIR_FAN > PWM_PercentToRegister(power))
 			{
-//				switch (xSpeed)
-//				{
-//				case PWM_CHANGE_FAST:
-//					REG_PWM_PUSH_AIR_FAN -= 10;
-//					break;
-//
-//				case PWM_CHANGE_SLOW:
-					REG_PWM_PUSH_AIR_FAN -= 1;
-//					break;
-//
-//				default:
-//					break;
-//				}
+				REG_PWM_PUSH_AIR_FAN -= 1;
 			}
 			else
 			{
@@ -229,93 +185,7 @@ void MainTimer_Handler(void)
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void Lightning_Handler(void)
-{
-	lastLightState = xLightControl.lightingState;
-	if (xLightControl.timeOnHours == 0 && xLightControl.timeOffHours == 24)
-	{
-		GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
-		xLightControl.lightingState = LIGHT_OFF;
-		xLightCounters.counterSeconds = 0;
-		xLightCounters.counterHours = 0;
-	}
-	else if (xLightControl.timeOnHours == 24 && xLightControl.timeOffHours == 0)
-	{
-		GPIOx_SetPin(LAMP_PORT, LAMP_PIN);
-		xLightControl.lightingState = LIGHT_ON;
-		xLightCounters.counterSeconds = 0;
-		xLightCounters.counterHours = 0;
-	}
-	else
-	{
-		xLightCounters.counterSeconds++;
-		if (xLightCounters.counterSeconds == 3600)
-		{
-			xLightCounters.counterHours++;
-			xLightCounters.counterSeconds = 0;
-		}
 
-
-		switch (xLightControl.lightingState)
-		{
-		case LIGHT_ON:
-			if (xLightControl.timeOnHours != 0 && xLightControl.timeOnHours != 24)
-			{
-				GPIOx_SetPin(LAMP_PORT, LAMP_PIN);
-				if (xLightControl.timeOnHours == xLightCounters.counterHours)
-				{
-					xLightControl.lightingState = LIGHT_OFF;
-					xLightCounters.counterHours = 0;
-					xLightCounters.counterSeconds = 0;
-				}
-			}
-			break;
-
-		case LIGHT_OFF:
-			if (xLightControl.timeOffHours != 0 && xLightControl.timeOffHours != 24)
-			{
-				GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
-				if (xLightControl.timeOffHours == xLightCounters.counterHours)
-				{
-					xLightControl.lightingState = LIGHT_ON;
-					xLightCounters.counterHours = 0;
-					xLightCounters.counterSeconds = 0;
-				}
-			}
-			break;
-
-		default:
-			break;
-		}
-
-//		if (xLightControl.lightingState == LIGHT_ON) //lampa wlaczona
-//		{
-//			if (xLightControl.timeOnHours != 0 && xLightControl.timeOnHours != 24)
-//			{
-//				GPIOx_SetPin(LAMP_PORT, LAMP_PIN);
-//				if (xLightControl.timeOnHours == xLightCounters.counterHours)
-//				{
-//					xLightControl.lightingState = LIGHT_OFF;
-//					xLightCounters.counterHours = 0;
-//					xLightCounters.counterSeconds = 0;
-//				}
-//			}
-//		}
-//		else if (xLightControl.lightingState == LIGHT_OFF) //lampa wylaczona
-//		{
-//			if (xLightControl.timeOffHours != 0 && xLightControl.timeOffHours != 24)
-//			{
-//				GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
-//				if (xLightControl.timeOffHours == xLightCounters.counterHours)
-//				{
-//					xLightControl.lightingState = LIGHT_ON;
-//					xLightCounters.counterHours = 0;
-//					xLightCounters.counterSeconds = 0;
-//				}
-//			}
-//		}
-	}
-}
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void PWM_PumpInit(void)
 {
@@ -413,8 +283,7 @@ void PWM_FansInit(void)
 	initFanPwm = TRUE;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//static uint8_t PWM_FANSoftStart(void)
-uint8_t PWM_FANSoftStart(void)
+static uint8_t PWM_FANSoftStart(void)
 {
 	uint8_t ret = 0;
 	uint8_t retPull = 0;
@@ -423,15 +292,15 @@ uint8_t PWM_FANSoftStart(void)
 	switch (tempControl.tempCtrlMode)
 	{
 	case TEMP_MANUAL:
-		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull);//, PWM_CHANGE_SLOW);
-		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush);//, PWM_CHANGE_SLOW);
+		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull);
+		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush);
 		lastPullPWM = tempControl.fanPull;
 		lastPushPWM = tempControl.fanPush;
 		break;
 
 	case TEMP_AUTO:
-		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, 60);//, PWM_CHANGE_SLOW);
-		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30);//, PWM_CHANGE_SLOW);
+		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, 60);
+		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30);
 		lastPullPWM = 60;
 		lastPushPWM = 30;
 		break;

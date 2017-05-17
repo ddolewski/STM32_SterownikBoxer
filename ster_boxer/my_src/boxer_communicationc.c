@@ -15,9 +15,10 @@
 #include "misc.h"
 #include "string_builder.h"
 #include "fifo.h"
+#include "pcf8563.h"
 
-#define RX_PIN 	GPIO_Pin_3
-#define TX_PIN	GPIO_Pin_2
+#define RX_PIN 		GPIO_Pin_3
+#define TX_PIN		GPIO_Pin_2
 
 uint8_t entm_timeout_response = 0;
 bool_t entm_count_timeout = FALSE;

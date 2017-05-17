@@ -2,6 +2,7 @@
 #define MY_INC_BOXER_LIGHT_H_
 
 #include "stdint.h"
+#include "system_gpio.h"
 
 typedef enum
 {
@@ -25,5 +26,7 @@ typedef struct
 light_state_t lastLightState;
 volatile light_control_t xLightControl;
 volatile light_counters_t xLightCounters;
+
+void Lightning_Handler(void);
 
 #endif /* MY_INC_BOXER_LIGHT_H_ */
