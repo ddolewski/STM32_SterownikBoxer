@@ -323,15 +323,16 @@ void ADC_CalibrateProbes_Handler(void)
 						(FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0 &&
 						 FactorsEquationpH.waterFactor_A == 0 && FactorsEquationpH.waterFactor_B == 0))
 					{
+						GLCD_GoTo(0,5);
+						GLCD_WriteString("Kalibracja wykonana");
+						systimeDelayMs(2000);
 						GLCD_ClearScreen();
 						ADC_CalibrateProbess_GetFactorsFromMeasurement(
 								&pHBufferVoltage,
 								&FactorsEquationpH,
 								calibrateFlags.probeType);
 
-						GLCD_GoTo(0,5);
-						GLCD_WriteString("Kalibracja wykonana");
-						systimeDelayMs(2000);
+
 						FLASH_SaveConfiguration();
 					}
 
