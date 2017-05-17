@@ -60,7 +60,7 @@ void Climate_SensorsHandler(void)
 
 	if (oneWireResetDone == TRUE)
 	{
-		if (systimeTimeoutControl(&measureOwireTimer, 760))
+		if (systimeTimeoutControl(&measureOwireTimer, 780))
 		{
 #ifndef OWIRE_OFF_MODE
 			errorDsUp = readTemperature(&sensorTempUp);

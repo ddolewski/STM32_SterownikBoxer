@@ -54,17 +54,22 @@ static void Display_ChangePage(lcdDisplayData_t * display)
 {
 	if (display->pageCounter == 10)
 	{
-		if (display->page == 1)
+		switch (display->page)
 		{
-			display->page = 2;
-		}
-		else if (display->page == 2)
-		{
-			display->page = 3;
-		}
-		else if (display->page == 3)
-		{
-			display->page = 1;
+		case PAGE_1:
+			display->page = PAGE_2;
+			break;
+
+		case PAGE_2:
+			display->page = PAGE_3;
+			break;
+
+		case PAGE_3:
+			display->page = PAGE_1;
+			break;
+
+		default:
+			break;
 		}
 
 		GLCD_ClearScreen();

@@ -129,7 +129,8 @@ static uint32_t PWM_PercentToRegister(uint8_t xPercent)
     25% duty cycle:     pulse_length = ((8399 + 1) * 25) / 100 - 1 = 2099
     50% duty cycle:     pulse_length = ((8399 + 1) * 50) / 100 - 1 = 4199
     75% duty cycle:     pulse_length = ((8399 + 1) * 75) / 100 - 1 = 6299
-    100% duty cycle:    pulse_length = ((8399 + 1) * 100) / 100 - 1 = 8399 */
+    100% duty cycle:    pulse_length = ((8399 + 1) * 100) / 100 - 1 = 8399
+    */
 
 	uint32_t reg = 0;
 
