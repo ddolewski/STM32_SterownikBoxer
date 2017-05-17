@@ -44,7 +44,6 @@ typedef struct calibrationProcess_t
 	uint8_t processActive;
 	uint8_t waitForNextBuffer;
 	uint8_t waitCounter;
-	uint8_t toggleBuzzerState;
 	uint8_t measureVoltagePh;
 	uint8_t pHBufferChooser;
 	uint8_t pH4Buffer;

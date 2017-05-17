@@ -329,6 +329,9 @@ void ADC_CalibrateProbes_Handler(void)
 								&FactorsEquationpH,
 								calibrateFlags.probeType);
 
+						GLCD_GoTo(0,5);
+						GLCD_WriteString("Kalibracja wykonana");
+						systimeDelayMs(2000);
 						FLASH_SaveConfiguration();
 					}
 

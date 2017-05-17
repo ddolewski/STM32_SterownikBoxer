@@ -224,11 +224,11 @@ static void PeripheralInit(void)
 
 	PWM_FansInit();
 
-//	while (softStartDone == FALSE)
-//	{
-//		SoftStart_Handler();
-//		delay_us__(200);
-//	}
+	while (softStartDone == FALSE)
+	{
+		SoftStart_Handler();
+		delay_us__(200);
+	}
 
 //	PWM_PumpInit();
 

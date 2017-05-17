@@ -675,7 +675,6 @@ void ReceiveSerial_Handler(void)
 									uint8_t probeType = atoi( ReceivedString[2] );
 									calibrateFlags.probeType = (probe_type_t)probeType;
 									calibrateFlags.processActive = TRUE;
-//									calibrateFlags.toggleBuzzerState = TRUE;
 									calibrateFlags.waitForNextBuffer = TRUE;
 									GLCD_ClearScreen();
 								}
