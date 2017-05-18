@@ -51,6 +51,7 @@ static const flashLampCounters_t defFlashLightCounters =
 {
 	.signatureC = SIGNATURE_C,
     .lightCounters = { .counterSeconds = 0, .counterHours = 0 },
+	.lightingState = LIGHT_OFF,
 	.signatureD = SIGNATURE_D
 };
 //flashCopy_t backupConfig __attribute__((section(".STORAGE_REGION"))) = {0};
@@ -173,6 +174,7 @@ void FLASH_SaveLightCounters(void)
 	xBackupLightCounters.signatureD = SIGNATURE_D;
 
 	xBackupLightCounters.lightCounters = xLightCounters;
+	xBackupLightCounters.lightingState = xLightControl.lightingState;
 
 	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&xBackupLightCounters, LIGHT_COUNTERS_PAGE_NUMBER, sizeof(xBackupLightCounters));
 	if (flashError == ERROR)
@@ -195,10 +197,12 @@ void FLASH_ReadLightCounters(void)
 	if ((xBackupLightCounters.signatureC == SIGNATURE_C) && (xBackupLightCounters.signatureD == SIGNATURE_D))
 	{
 		xLightCounters = xBackupLightCounters.lightCounters;
+		xLightControl.lightingState = xBackupLightCounters.lightingState;
 	}
 	else
 	{
 		xLightCounters = defFlashLightCounters.lightCounters;
+		xLightControl.lightingState = defFlashLightCounters.lightingState;
 
 		flashError = SYSTEM_FLASH_ErasePage(LIGHT_COUNTERS_PAGE_NUMBER);
 		if (flashError == ERROR)

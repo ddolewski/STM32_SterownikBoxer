@@ -29,6 +29,7 @@ typedef struct
 {
 	uint32_t signatureC;
 	light_counters_t lightCounters;
+	light_state_t lightingState;
 	uint32_t signatureD;
 }flashLampCounters_t;
 
