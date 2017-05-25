@@ -611,6 +611,11 @@ void ReceiveSerial_Handler(void)
 										FLASH_SaveConfiguration();
 									}
 								}
+								else
+								{
+									rxIdx = 0;
+									memset(RxBuffer, 0, RX_BUFF_SIZE);
+								}
 							}
 							else if (strcmp(ReceivedString[1], "ST") == 0)
 							{
@@ -629,6 +634,11 @@ void ReceiveSerial_Handler(void)
 										tempControl.userTemp = temp;
 										FLASH_SaveConfiguration();
 									}
+								}
+								else
+								{
+									rxIdx = 0;
+									memset(RxBuffer, 0, RX_BUFF_SIZE);
 								}
 							}
 							else if (strcmp(ReceivedString[1], "SF") == 0)
@@ -662,6 +672,11 @@ void ReceiveSerial_Handler(void)
 										FLASH_SaveConfiguration();
 									}
 								}
+								else
+								{
+									rxIdx = 0;
+									memset(RxBuffer, 0, RX_BUFF_SIZE);
+								}
 							}
 							else if (strcmp(ReceivedString[1], "CP") == 0)
 							{
@@ -678,6 +693,11 @@ void ReceiveSerial_Handler(void)
 									calibrateFlags.waitForNextBuffer = TRUE;
 									GLCD_ClearScreen();
 								}
+								else
+								{
+									rxIdx = 0;
+									memset(RxBuffer, 0, RX_BUFF_SIZE);
+								}
 							}
 							else if (strcmp(ReceivedString[1], "SI") == 0)
 							{
@@ -693,6 +713,11 @@ void ReceiveSerial_Handler(void)
 		//
 		//							FLASH_SaveConfiguration();
 								}
+								else
+								{
+									rxIdx = 0;
+									memset(RxBuffer, 0, RX_BUFF_SIZE);
+								}
 							}
 							else if (strcmp(ReceivedString[1], "R") == 0)
 							{
@@ -704,6 +729,11 @@ void ReceiveSerial_Handler(void)
 									memset(RxBuffer, 0, RX_BUFF_SIZE);
 									rxIdx = 0;
 									MISC_ResetARM();
+								}
+								else
+								{
+									rxIdx = 0;
+									memset(RxBuffer, 0, RX_BUFF_SIZE);
 								}
 							}
 							else if (strcmp(ReceivedString[1], "DEF") == 0)
