@@ -3,15 +3,16 @@ Monitor uprawy roślin STM32F051
 
 
 Zmiany:
-
-- zrobić algorytm wyszukiwania 1Wire
-- uruchomić HSE+PLL na 48MHz
-- dorobić info o nawadnianiu na LCD
+- dorobić do programatora lampy sodowej opcję godziny początkowej dla danego stanu (18/6, stan początkowy włącz, o godzinie: xx:xx)
 - dodać obsługę błędów czujników na LCD (w miejscu wartości pomiarowej dać napis Error)
+- uruchomić HSE+PLL na 48MHz
+- dorobić CRC do ramek uart/wifi
+- uruchomić i nawadnianie (obsługa pompki, dolewania wody, sterowanie z aplikacji, pomiar przepływu wody)
+- dorobić info o nawadnianiu na LCD
 
 WYKONANE:
 
-- dodano strone kalibracji sond na LCD
+- dodano strone kalibracji sond na LCD  ------> OK
 
 - delay_us postawiony na timerze (licznik 1us)  ------> OK
 
@@ -52,7 +53,7 @@ WYKONANE:
 
 - ustawienia flash w jednej strukturze a w niej struktury danych funkcji + flagi poprawności ------> OK
 
-- dobrać elementy bufora w zależności od pomiaru ([1]-> PA4 czyli coś tam, itd.) ------> OK
+- dobrać elementy bufora w zależności od pomiaru (mapowanie kanałów ADC do tablicy) ------> OK
 
 - napis kalibracja na LCD podczas kalibracji sondy ------> OK
 
@@ -60,6 +61,6 @@ WYKONANE:
 
 - sprawdzić i poprawić dlaczego współczynniki równania nie zawsze są 0 przed kalibracją ? ------> OK
 
-- napis kalibracja na LCD (kasowanie) (wysylanie potwierdzenia z procka do C# ze kalibracja wykonana) ---> PRZETESTOWAĆ!! ------> OK
+- napis kalibracja na LCD (kasowanie) (wysylanie potwierdzenia z procka do C# ze kalibracja wykonana) ------> OK
 
 - dorobiono kalkulację CRC dla pomiarów z DS18B20 + odrzucanie błędnych ramek ------> OK
