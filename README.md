@@ -8,6 +8,7 @@ Zmiany:
 - uruchomić HSE+PLL na 48MHz
 - dorobić CRC do ramek uart/wifi
 - uruchomić i nawadnianie (obsługa pompki, dolewania wody, sterowanie z aplikacji, pomiar przepływu wody)
+- dorobić funkcję sprawdzania różnicy czasu ostatniego zapisu z aktualnym i kalibracja licznika lampy
 - dorobić info o nawadnianiu na LCD
 
 WYKONANE:

@@ -745,6 +745,7 @@ void ReceiveSerial_Handler(void)
 								{
 									_printString("\r\n");
 
+									FLASH_SaveLightCounters();
 									ClearRxBuff();
 									MISC_ResetARM();
 								}
