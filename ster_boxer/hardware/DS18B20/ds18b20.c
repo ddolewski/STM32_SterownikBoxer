@@ -247,7 +247,11 @@ uint8_t readTemperature(DS18B20Sensor_t * sensor)
 
 	if (crcDS18B20 == crcCalculated)
 	{
-		sensor->fTemp = (float)(sensor->cTempL + (sensor->cTempH << 8))/16;
+		float fTemp = (float)(sensor->cTempL + (sensor->cTempH << 8))/16;
+		if (fTemp < 40)
+		{
+			sensor->fTemp = fTemp;
+		}
 	}
 
 	return ucReset;
