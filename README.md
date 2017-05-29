@@ -9,6 +9,7 @@ Zmiany:
 - dorobić CRC do ramek uart/wifi
 - uruchomić i nawadnianie (obsługa pompki, dolewania wody, sterowanie z aplikacji, pomiar przepływu wody)
 - dorobić funkcję sprawdzania różnicy czasu ostatniego zapisu z aktualnym i kalibracja licznika lampy
+- poprawić błąd pomiaru lub wyświetlania natężenia światła (zatrzymuje się na wartości 2)
 - dorobić info o nawadnianiu na LCD
 
 WYKONANE:
