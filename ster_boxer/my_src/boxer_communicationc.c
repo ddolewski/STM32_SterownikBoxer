@@ -41,7 +41,6 @@ atnel_trnsp_cmd_resp_t atnel_TrCmdRespType = TRNSP_NONE_RESP;
 atnel_trnsp_cmd_req_t atnel_TrCmdReqType = TRNSP_NONE_REQ;
 
 bool_t atnel_wait_change_mode = FALSE;
-
 static time_complex_t ntpTime = {0};
 
 static bool_t ntpSyncProccess = FALSE;
@@ -52,6 +51,8 @@ static uint8_t ntpRetryCounter = 0;
 
 static uint8_t atnelWaitCounter = 0;
 static uint8_t dataCounter = 0;
+static bool_t atnelReset = FALSE;
+static uint8_t resetMaxCounterValue = 5;
 
 static void ClearRxBuff(void);
 
@@ -213,16 +214,28 @@ void AtnelWiFi_Handler(void)
 			AtnelWifi_ResetModule();
 			atnel_Mode = ATNEL_MODE_UNKNOWN;
 			atnel_wait_change_mode = TRUE;
+			atnelReset = TRUE;
 		}
 	}
 
 	if (atnel_wait_change_mode == TRUE)
 	{
 		atnelWaitCounter++;
-		if (atnelWaitCounter == 15)
+
+		if (atnelReset == TRUE)
+		{
+			resetMaxCounterValue = 60;
+		}
+		else
+		{
+			resetMaxCounterValue = 10;
+		}
+
+		if (atnelWaitCounter == resetMaxCounterValue)
 		{
 			atnelWaitCounter = 0;
 			atnel_wait_change_mode = FALSE;
+			atnelReset = FALSE;
 			Atnel_SetTransparentMode();
 		}
 	}
@@ -427,7 +440,6 @@ void ReceiveSerial_Handler(void)
 				if (atnelResponse != NULL)
 				{
 					atnelInitProccess = ATNEL_INIT_DONE;
-					//atnel_AtCmdRespType = AT_ENTM_REQ; //todo po co to jest ??????
 					atnel_wait_for_response = FALSE;
 					response_timeout = 0;
 
