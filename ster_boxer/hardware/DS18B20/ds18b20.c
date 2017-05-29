@@ -223,7 +223,7 @@ uint8_t CRC8(uint8_t *inData, uint8_t len)
 uint8_t readTemperature(DS18B20Sensor_t * sensor)
 {
 	uint8_t ucReset;
-	uint8_t crcData[8] = {0};
+	uint8_t dsData[8] = {0};
 	ucReset = uc1Wire_ResetPulse();
 
 	v1Wire_SendByte(0x55);
@@ -231,19 +231,19 @@ uint8_t readTemperature(DS18B20Sensor_t * sensor)
 	v1Wire_SendByte(0xBE);
 	sensor->cTempL = uv1Wire_ReadByte();
 	sensor->cTempH = uv1Wire_ReadByte();
-	crcData[0] = sensor->cTempL;
-	crcData[1] = sensor->cTempH;
+	dsData[0] = sensor->cTempL;
+	dsData[1] = sensor->cTempH;
 
-	crcData[2] =  uv1Wire_ReadByte();
-	crcData[3] =  uv1Wire_ReadByte();
-	crcData[4] =  uv1Wire_ReadByte();
-	crcData[5] =  uv1Wire_ReadByte();
-	crcData[6] =  uv1Wire_ReadByte();
-	crcData[7] =  uv1Wire_ReadByte();
+	dsData[2] =  uv1Wire_ReadByte();
+	dsData[3] =  uv1Wire_ReadByte();
+	dsData[4] =  uv1Wire_ReadByte();
+	dsData[5] =  uv1Wire_ReadByte();
+	dsData[6] =  uv1Wire_ReadByte();
+	dsData[7] =  uv1Wire_ReadByte();
 	uint8_t crcDS18B20 = uv1Wire_ReadByte();
 	ucReset = uc1Wire_ResetPulse();
 
-	uint8_t crcCalculated = CRC8(crcData, 8);
+	uint8_t crcCalculated = CRC8(dsData, 8);
 
 	if (crcDS18B20 == crcCalculated)
 	{
