@@ -65,8 +65,7 @@ extern atnel_trnsp_cmd_req_t atnel_TrCmdReqType;
 
 extern bool_t ntpSendRequest;
 extern atnel_mode_t atnel_Mode;
-extern uint8_t entm_timeout_response;
-extern bool_t entm_count_timeout;
+extern bool_t atnel_wait_for_response;
 
 void SerialPort_PutChar(char xSendChar);
 void SerialPort_PutString(char * xString);
@@ -78,4 +77,6 @@ void Ntp_SendRequest(void);
 void Ntp_Handler(void);
 void AtnelWiFi_Handler(void);
 void Atnel_SetTransparentMode(void);
+void AtnelWifi_ResetModule(void);
+
 #endif /* MY_INC_BOXER_COMMUNICATION_H_ */

@@ -20,16 +20,16 @@
 #define RX_PIN 		GPIO_Pin_3
 #define TX_PIN		GPIO_Pin_2
 
-uint8_t entm_timeout_response = 0;
-bool_t entm_count_timeout = FALSE;
+static uint8_t response_timeout = 0;
+bool_t atnel_wait_for_response = FALSE;
 
 volatile static bool_t echoOff = FALSE;
-volatile int rxIdx = 0;
+static volatile int rxIdx = 0;
 volatile bool_t rxRecvFlag = FALSE;
 
-static char RxBuffer[RX_BUFF_SIZE] = {0};
-static char TxBuffer[TX_BUFF_SIZE] = {0};
-static fifo_t tx_fifo = {NULL, 0, 0};
+static volatile char RxBuffer[RX_BUFF_SIZE] = {0};
+static volatile char TxBuffer[TX_BUFF_SIZE] = {0};
+static volatile fifo_t tx_fifo = {NULL, 0, 0};
 
 static atnel_init_state_t atnelInitProccess = ATNEL_UNINITIALISE;
 atnel_mode_t atnel_Mode = ATNEL_MODE_TRANSPARENT;
@@ -53,6 +53,8 @@ static uint8_t ntpRetryCounter = 0;
 static uint8_t atnelWaitCounter = 0;
 static uint8_t dataCounter = 0;
 
+static void ClearRxBuff(void);
+
 void Atnel_SetTransparentMode(void)
 {
 #ifdef NTP_DEBUG
@@ -60,8 +62,8 @@ void Atnel_SetTransparentMode(void)
 #endif
 	atnel_Mode = ATNEL_MODE_TRANSPARENT;
 	atnelInitProccess = ATNEL_UNINITIALISE;
-	memset(RxBuffer, 0, RX_BUFF_SIZE);
-	rxIdx = 0;
+
+	ClearRxBuff();
 
 	atnel_wait_change_mode = FALSE;
 	ntpSyncProccess = FALSE;
@@ -152,9 +154,10 @@ void USART2_IRQHandler(void)
 
 		RxBuffer[rxIdx] = rxChar;
 		rxIdx++;
+
 		if (rxIdx == RX_BUFF_SIZE)
 		{
-			rxIdx = 0;
+			ClearRxBuff();
 		}
 
 		if (atnel_Mode == ATNEL_MODE_TRANSPARENT)
@@ -165,8 +168,7 @@ void USART2_IRQHandler(void)
 				{
 					if (RxBuffer[2] != 'A')
 					{
-						rxIdx = 0;
-						memset(RxBuffer, 0, RX_BUFF_SIZE);
+						ClearRxBuff();
 					}
 				}
 			}
@@ -201,21 +203,23 @@ void AtnelWiFi_Handler(void)
 		}
 	}
 
-	if (entm_count_timeout == TRUE)
+	if (atnel_wait_for_response == TRUE)
 	{
-		entm_timeout_response++;
-		if (entm_timeout_response == 5)
+		response_timeout++;
+		if (response_timeout == 5)
 		{
-			entm_count_timeout = FALSE;
-			entm_timeout_response = 0;
-			Atnel_SetTransparentMode();
+			atnel_wait_for_response = FALSE;
+			response_timeout = 0;
+			AtnelWifi_ResetModule();
+			atnel_Mode = ATNEL_MODE_UNKNOWN;
+			atnel_wait_change_mode = TRUE;
 		}
 	}
 
 	if (atnel_wait_change_mode == TRUE)
 	{
 		atnelWaitCounter++;
-		if (atnelWaitCounter == 5)
+		if (atnelWaitCounter == 15)
 		{
 			atnelWaitCounter = 0;
 			atnel_wait_change_mode = FALSE;
@@ -289,6 +293,7 @@ void TransmitSerial_Handler(void)
 		{
 			SerialPort_PutString("+++");
 			atnelInitProccess = ATNEL_SEND_3PLUS;
+			atnel_wait_for_response = TRUE;
 
 			_printString("send '+++'\r\n");
 		}
@@ -296,6 +301,7 @@ void TransmitSerial_Handler(void)
 		{
 			SerialPort_PutChar('a');
 			atnelInitProccess = ATNEL_SEND_A;
+			atnel_wait_for_response = TRUE;
 
 			_printString("send 'a'\r\n");
 		}
@@ -331,8 +337,7 @@ void TransmitSerial_Handler(void)
 
 					atnel_AtCmdReqType = AT_NONE_REQ;
 					atnel_AtCmdRespType = AT_ENTM_RESP;
-
-					entm_count_timeout = TRUE;
+					atnel_wait_for_response = TRUE;
 					break;
 
 				case AT_E_REQ:
@@ -341,6 +346,7 @@ void TransmitSerial_Handler(void)
 
 					atnel_AtCmdReqType = AT_NONE_REQ;
 					atnel_AtCmdRespType = AT_E_RESP;
+					atnel_wait_for_response = TRUE;
 					break;
 
 				default:
@@ -385,6 +391,7 @@ void TransmitSerial_Handler(void)
 		}
 
 		break;
+
 	default:
 		break;
 	}
@@ -404,11 +411,13 @@ void ReceiveSerial_Handler(void)
 				char * atnelResponse = strstr(RxBuffer, "a");
 				if (atnelResponse != NULL)
 				{
-					rxIdx = 0;
 					atnelInitProccess = ATNEL_RECV_A;
-					_printString("recv 'a'\r\n");
+					atnel_wait_for_response = FALSE;
+					response_timeout = 0;
 
-					memset(RxBuffer, 0, RX_BUFF_SIZE);
+					ClearRxBuff();
+
+					_printString("recv 'a'\r\n");
 				}
 			}
 			else if (atnelInitProccess == ATNEL_SEND_A)
@@ -417,11 +426,14 @@ void ReceiveSerial_Handler(void)
 
 				if (atnelResponse != NULL)
 				{
-					rxIdx = 0;
 					atnelInitProccess = ATNEL_INIT_DONE;
-					atnel_AtCmdRespType = AT_ENTM_REQ;
+					//atnel_AtCmdRespType = AT_ENTM_REQ; //todo po co to jest ??????
+					atnel_wait_for_response = FALSE;
+					response_timeout = 0;
+
+					ClearRxBuff();
+
 					_printString("recv +ok\r\n");
-					memset(RxBuffer, 0, RX_BUFF_SIZE);
 				}
 			}
 			else if (atnelInitProccess == ATNEL_INIT_DONE)
@@ -482,14 +494,15 @@ void ReceiveSerial_Handler(void)
 							ntpTime.sec   = atoi( splitedString[6] );
 
 							timeLocalToUtcConv(&ntpTime, &timeUtc);
+
 	#ifndef DEBUG_TERMINAL_USART
 							PCF8563_WriteTime(&timeUtc, I2C1);
 	#endif
 							atnel_AtCmdReqType = AT_ENTM_REQ;
 							atnel_AtCmdRespType = AT_NONE_RESP;
-							memset(RxBuffer, 0, RX_BUFF_SIZE);
-							rxIdx = 0;
 							ntp_resp_wait = FALSE;
+
+							ClearRxBuff();
 						}
 					}
 
@@ -506,9 +519,12 @@ void ReceiveSerial_Handler(void)
 						atnel_AtCmdReqType = AT_NONE_REQ;
 						atnel_AtCmdRespType = AT_NONE_RESP;
 						atnel_wait_change_mode = TRUE;
+						atnel_wait_for_response = FALSE;
+						response_timeout = 0;
+
 						echoOff = FALSE;
-						rxIdx = 0;
-						memset(RxBuffer, 0, RX_BUFF_SIZE);
+
+						ClearRxBuff();
 					}
 
 					break;
@@ -520,12 +536,13 @@ void ReceiveSerial_Handler(void)
 					if (at_echo_response != NULL)
 					{
 						_printString(at_echo_response);
-						echoOff = TRUE;
+
 						atnel_AtCmdReqType = AT_GMT_REQ;
 						atnel_AtCmdRespType = AT_NONE_RESP;
 						atnel_wait_change_mode = FALSE;
-						rxIdx = 0;
-						memset(RxBuffer, 0, RX_BUFF_SIZE);
+						echoOff = TRUE;
+
+						ClearRxBuff();
 					}
 
 					break;
@@ -578,8 +595,7 @@ void ReceiveSerial_Handler(void)
 								{
 									_printString("\r\n");
 
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 
 									char timeOn   = atoi(ReceivedString[2]);
 									char timeOff  = atoi(ReceivedString[3]);
@@ -613,8 +629,7 @@ void ReceiveSerial_Handler(void)
 								}
 								else
 								{
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 								}
 							}
 							else if (strcmp(ReceivedString[1], "ST") == 0)
@@ -623,8 +638,7 @@ void ReceiveSerial_Handler(void)
 								{
 									_printString("\r\n");
 
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 
 									uint8_t temp = atoi( ReceivedString[2] );
 
@@ -637,8 +651,7 @@ void ReceiveSerial_Handler(void)
 								}
 								else
 								{
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 								}
 							}
 							else if (strcmp(ReceivedString[1], "SF") == 0)
@@ -647,8 +660,7 @@ void ReceiveSerial_Handler(void)
 								{
 									_printString("\r\n");
 
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 
 									uint8_t isProper = TRUE;
 									uint8_t fanPull = atoi( ReceivedString[2] );
@@ -674,8 +686,7 @@ void ReceiveSerial_Handler(void)
 								}
 								else
 								{
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 								}
 							}
 							else if (strcmp(ReceivedString[1], "CP") == 0)
@@ -684,8 +695,7 @@ void ReceiveSerial_Handler(void)
 								{
 									_printString("\r\n");
 
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
-									rxIdx = 0;
+									ClearRxBuff();
 
 									uint8_t probeType = atoi( ReceivedString[2] );
 									calibrateFlags.probeType = (probe_type_t)probeType;
@@ -695,8 +705,7 @@ void ReceiveSerial_Handler(void)
 								}
 								else
 								{
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 								}
 							}
 							else if (strcmp(ReceivedString[1], "SI") == 0)
@@ -705,8 +714,7 @@ void ReceiveSerial_Handler(void)
 								{
 									_printString("\r\n");
 
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
-									rxIdx = 0;
+									ClearRxBuff();
 		//							irrigationControl.mode = (irrigation_mode_t)ReceivedString[2];
 		//							irrigationControl.frequency = (uint8_t)ReceivedString[3];
 		//							irrigationControl.water = (uint8_t)ReceivedString[4];
@@ -715,8 +723,7 @@ void ReceiveSerial_Handler(void)
 								}
 								else
 								{
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 								}
 							}
 							else if (strcmp(ReceivedString[1], "R") == 0)
@@ -726,14 +733,12 @@ void ReceiveSerial_Handler(void)
 								{
 									_printString("\r\n");
 
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
-									rxIdx = 0;
+									ClearRxBuff();
 									MISC_ResetARM();
 								}
 								else
 								{
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 								}
 							}
 							else if (strcmp(ReceivedString[1], "DEF") == 0)
@@ -745,34 +750,29 @@ void ReceiveSerial_Handler(void)
 									{
 										_printString("\r\n");
 
-										memset(RxBuffer, 0, RX_BUFF_SIZE);
-										rxIdx = 0;
+										ClearRxBuff();
 										FLASH_RestoreDefaultConfig();
 										FLASH_ClearLightState();
 										MISC_ResetARM();
 									}
 									else
 									{
-										rxIdx = 0;
-										memset(RxBuffer, 0, RX_BUFF_SIZE);
+										ClearRxBuff();
 									}
 								}
 								else
 								{
-									rxIdx = 0;
-									memset(RxBuffer, 0, RX_BUFF_SIZE);
+									ClearRxBuff();
 								}
 							}
 							else
 							{
-								rxIdx = 0;
-								memset(RxBuffer, 0, RX_BUFF_SIZE);
+								ClearRxBuff();
 							}
 						}
 						else
 						{
-							rxIdx = 0;
-							memset(RxBuffer, 0, RX_BUFF_SIZE);
+							ClearRxBuff();
 						}
 					}
 				}
@@ -785,6 +785,16 @@ void ReceiveSerial_Handler(void)
 		}
 	}
 }
-
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
+static void ClearRxBuff(void)
+{
+	rxIdx = 0;
+	memset(RxBuffer, 0, RX_BUFF_SIZE);
+}
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void AtnelWifi_ResetModule(void)
+{
+	GPIOx_ResetPin(WIFI_RST_PORT, WIFI_RST_PIN);
+	systimeDelayMs(5000);
+	GPIOx_SetPin(WIFI_RST_PORT, WIFI_RST_PIN);
+}
