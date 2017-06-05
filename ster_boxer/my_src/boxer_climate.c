@@ -12,8 +12,7 @@
 #include "hardware/TSL2561/tsl2561.h"
 
 static systime_t measureOwireTimer = 0;
-static systime_t luxMeasureTimer = 0;
-static systime_t shtMeasurementTimer = 0;
+static systime_t i2cMeasTimer = 0;
 static bool_t oneWireResetDone = FALSE;
 
 static ErrorStatus errorSht = SUCCESS;
@@ -102,7 +101,7 @@ void Climate_SensorsHandler(void)
 		}
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-	if (systimeTimeoutControl(&shtMeasurementTimer, 3000))
+	if (systimeTimeoutControl(&i2cMeasTimer, 3000))
 	{
 #ifndef I2C_OFF_MODE
 		errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
@@ -119,7 +118,7 @@ void Climate_SensorsHandler(void)
 		uint16_t tempWord = 0;
 		uint16_t humWord = 0;
 
-		systimeDelayMs(20); //datasheet
+		systimeDelayMs(25); //datasheet
 		tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
 #ifdef I2C2_LOGS
 		if (errorSht == ERROR)
@@ -150,12 +149,7 @@ void Climate_SensorsHandler(void)
 
 		lastHumidity = displayData.humiditySHT2x;
 		displayData.humiditySHT2x = SHT21_CalcRH(humWord);
-#endif
-	}
-////////////////////////////////////////////////////////////////////////////////////////////////////
-	if (systimeTimeoutControl(&luxMeasureTimer, 5000))
-	{
-#ifndef I2C_OFF_MODE
+///////////////////////////////////////////////////////////////////////////////////////////////
 		lastLux = displayData.lux;
 		displayData.lux = TSL2561_ReadLux(&errorTsl);
 #ifdef I2C2_LOGS
