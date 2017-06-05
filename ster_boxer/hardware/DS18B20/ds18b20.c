@@ -231,16 +231,16 @@ uint8_t readTemperature(DS18B20Sensor_t * sensor)
 	v1Wire_SendByte(0xBE);
 	sensor->cTempL = uv1Wire_ReadByte();
 	sensor->cTempH = uv1Wire_ReadByte();
-	dsData[0] = sensor->cTempL;
-	dsData[1] = sensor->cTempH;
+	dsData[0] = sensor->cTempL;  //temperature LSB
+	dsData[1] = sensor->cTempH;  //temperature MSB
 
-	dsData[2] =  uv1Wire_ReadByte();
-	dsData[3] =  uv1Wire_ReadByte();
-	dsData[4] =  uv1Wire_ReadByte();
-	dsData[5] =  uv1Wire_ReadByte();
-	dsData[6] =  uv1Wire_ReadByte();
-	dsData[7] =  uv1Wire_ReadByte();
-	uint8_t crcDS18B20 = uv1Wire_ReadByte();
+	dsData[2] =  uv1Wire_ReadByte(); //Th register or user byte 1
+	dsData[3] =  uv1Wire_ReadByte(); //Tl register or user byte 2
+	dsData[4] =  uv1Wire_ReadByte(); //configuration register
+	dsData[5] =  uv1Wire_ReadByte(); //reserved (0xFF)
+	dsData[6] =  uv1Wire_ReadByte(); //reserved (0x0C)
+	dsData[7] =  uv1Wire_ReadByte(); //reserved (0x10)
+	uint8_t crcDS18B20 = uv1Wire_ReadByte(); //CRC8 Dallas standard
 	ucReset = uc1Wire_ResetPulse();
 
 	uint8_t crcCalculated = CRC8(dsData, 8);
@@ -248,7 +248,7 @@ uint8_t readTemperature(DS18B20Sensor_t * sensor)
 	if (crcDS18B20 == crcCalculated)
 	{
 		float fTemp = (float)(sensor->cTempL + (sensor->cTempH << 8))/16;
-		if (fTemp < 40)
+		if (fTemp < 40 && fTemp > 5)
 		{
 			sensor->fTemp = fTemp;
 		}
