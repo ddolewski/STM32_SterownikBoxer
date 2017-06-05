@@ -139,7 +139,7 @@ static void PeripheralInit(void)
 
 	initializeConversion(&sensorTempUp);
 	initializeConversion(&sensorTempDown);
-	systimeDelayMs(800);
+	systimeDelayMs(1000);
 	readTemperature(&sensorTempUp);
 	displayData.temp_up_t = sensorTempUp.fTemp;
 	readTemperature(&sensorTempDown);
