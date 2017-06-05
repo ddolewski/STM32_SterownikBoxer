@@ -64,6 +64,7 @@ typedef struct probe_t
 }probe_adc_t;
 
 extern pH_t pH;
+extern uint8_t adcAverageMeasCounter;
 volatile ph_factors_t FactorsEquationpH;
 volatile calibrationProcess_t calibrateFlags;
 probe_adc_t probeData;

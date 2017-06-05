@@ -175,7 +175,15 @@ static void Display_PhCalibration(void)
 			memset(tmpStr, 0, 21);
 			strcat(tmpStr, "Vref: ");
 			char vrefStr[5] = {0};
-			ftoa(probeData.inAverageWater, vrefStr, 2);
+
+			if (calibrateFlags.probeType == PROBE_SOIL)
+			{
+				ftoa(probeData.inAverageSoil, vrefStr, 2);
+			}
+			else if (calibrateFlags.probeType == PROBE_WATER)
+			{
+				ftoa(probeData.inAverageWater, vrefStr, 2);
+			}
 
 			strcat(tmpStr, vrefStr);
 			GLCD_GoTo(0,4);

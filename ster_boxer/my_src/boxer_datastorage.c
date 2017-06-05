@@ -75,10 +75,10 @@ void FLASH_ReadConfiguration(void)
 		tempControl = xBackupConfig.backupTempControl;
 		FactorsEquationpH = xBackupConfig.backupPhEcuationFactors;
 
-		if (isfinite(FactorsEquationpH.soilFactor_A)  == 1  ||
-			isfinite(FactorsEquationpH.soilFactor_B)  == 1  ||
-			isfinite(FactorsEquationpH.waterFactor_A) == 1  ||
-			isfinite(FactorsEquationpH.waterFactor_B) == 1)
+		if (isfinite(FactorsEquationpH.soilFactor_A)  == 0  ||
+			isfinite(FactorsEquationpH.soilFactor_B)  == 0  ||
+			isfinite(FactorsEquationpH.waterFactor_A) == 0  ||
+			isfinite(FactorsEquationpH.waterFactor_B) == 0)
 		{
 			FLASH_RestoreDefaultConfig();
 		}

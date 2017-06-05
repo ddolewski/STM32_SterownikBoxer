@@ -27,8 +27,6 @@ typedef struct ADC_value_t
 	uint16_t waterLevel;
 } ADC_value_t;
 
-
-
 typedef struct
 {
 	float pH4;
@@ -39,7 +37,8 @@ typedef struct
 static ADC_value_t ADC_value = {0};
 static adcRef_t referenceVoltage;
 
-static volatile uint8_t adcAverageMeasCounter;
+//static volatile uint8_t adcAverageMeasCounter;
+uint8_t adcAverageMeasCounter = 0;
 static uint16_t ADC_ConvertedData[3];
 pHBufferVoltage_t pHBufferVoltage;
 
@@ -166,22 +165,23 @@ static void ADC_ReadCalcPh(void)
 		referenceVoltage.refVoltage  = ((float)VREFINT_CAL * (float)3.3)/referenceVoltage.vRefValueADC;
 		referenceVoltage.mVFactor 	 = referenceVoltage.refVoltage / (float)4096;
 
-		probeData.inSoil = (float)ADC_value.soil * referenceVoltage.mVFactor;
-		probeData.tempSoil += probeData.inSoil;
-		probeData.inWater = (float)ADC_value.water * referenceVoltage.mVFactor;
-		probeData.tempWater += probeData.inWater;
-
-		++adcAverageMeasCounter;
-		if (adcAverageMeasCounter == 250)
+		//////////////////////////////////////////////////////////////////////////
+		if (calibrateFlags.processActive == FALSE)
 		{
-			probeData.inAverageSoil  = (probeData.tempSoil/250);
-			probeData.inAverageWater = (probeData.tempWater/250);
-			adcAverageMeasCounter = 0;
-			probeData.tempSoil = 0;
-			probeData.tempWater = 0;
-			//////////////////////////////////////////////////////////////////////////
-			if (calibrateFlags.processActive == FALSE)
+			probeData.inSoil = (float)ADC_value.soil * referenceVoltage.mVFactor;
+			probeData.tempSoil += probeData.inSoil;
+			probeData.inWater = (float)ADC_value.water * referenceVoltage.mVFactor;
+			probeData.tempWater += probeData.inWater;
+
+			adcAverageMeasCounter++;
+			if (adcAverageMeasCounter == 250)
 			{
+				probeData.inAverageSoil  = (probeData.tempSoil/250);
+				probeData.inAverageWater = (probeData.tempWater/250);
+				adcAverageMeasCounter = 0;
+				probeData.tempSoil = 0;
+				probeData.tempWater = 0;
+
 				xLastWaterPh = pH.water;
 				xLastSoilPh = pH.soil;
 
@@ -203,11 +203,17 @@ static void ADC_ReadCalcPh(void)
 					pH.water = FactorsEquationpH.waterFactor_A * probeData.inAverageWater + FactorsEquationpH.waterFactor_B;	//water pH equation
 				}
 			}
-			else
+		}
+		else
+		{
+			if (calibrateFlags.measureVoltagePh == TRUE)
 			{
-				pH.soil = 0;
-				pH.water = 0;
+				probeData.inAverageSoil = (float)ADC_value.soil * referenceVoltage.mVFactor;
+				probeData.inAverageWater = (float)ADC_value.water * referenceVoltage.mVFactor;
 			}
+
+			pH.soil = 0;
+			pH.water = 0;
 		}
 	}
 	else
@@ -316,7 +322,7 @@ void ADC_CalibrateProbes_Handler(void)
 		if (calibrateFlags.measureVoltagePh == TRUE)
 		{
 			calibrateFlags.meanpHCounter++;
-			if (calibrateFlags.meanpHCounter == 5) // 5s
+			if (calibrateFlags.meanpHCounter == 6) // 5s
 			{
 				GLCD_GoTo(0,4);
 				GLCD_WriteString("                     ");
@@ -327,8 +333,8 @@ void ADC_CalibrateProbes_Handler(void)
 				if (calibrateFlags.pH9Buffer == TRUE)
 				{
 					if ((pHBufferVoltage.pH4 != 0 && pHBufferVoltage.pH7 != 0 && pHBufferVoltage.pH9 != 0) ||
-						(FactorsEquationpH.soilFactor_A == 0 || FactorsEquationpH.soilFactor_B == 0 ||
-						 FactorsEquationpH.waterFactor_A == 0 || FactorsEquationpH.waterFactor_B == 0))
+						(FactorsEquationpH.soilFactor_A != 0 && FactorsEquationpH.soilFactor_B != 0 &&
+						 FactorsEquationpH.waterFactor_A != 0 && FactorsEquationpH.waterFactor_B != 0))
 					{
 						GLCD_GoTo(0,5);
 						GLCD_WriteString("Kalibracja wykonana");
@@ -341,6 +347,11 @@ void ADC_CalibrateProbes_Handler(void)
 
 
 						FLASH_SaveConfiguration();
+					}
+					else
+					{
+						GLCD_GoTo(0,5);
+						GLCD_WriteString("Kalibracja bez sondy pH!");
 					}
 
 					memset(&calibrateFlags, 0, sizeof(calibrateFlags)); //skasowanie flag

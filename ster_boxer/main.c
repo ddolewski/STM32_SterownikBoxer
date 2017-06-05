@@ -137,16 +137,38 @@ static void PeripheralInit(void)
 	memCopy(sensorTempUp.cROM, sensor1ROM, 8);
 	memCopy(sensorTempDown.cROM, sensor2ROM, 8);
 
-	initializeConversion(&sensorTempUp);
-	initializeConversion(&sensorTempDown);
-	systimeDelayMs(1000);
-	readTemperature(&sensorTempUp);
-	displayData.temp_up_t = sensorTempUp.fTemp;
-	readTemperature(&sensorTempDown);
-	displayData.temp_down_t = sensorTempDown.fTemp;
+	uint8_t oWireErrCounter = 0;
+	while (displayData.temp_up_t == 0)
+	{
+		oWireErrCounter++;
+		if (oWireErrCounter == 20)
+		{
+			oWireErrCounter = 0;
+			break;
+		}
+
+		initializeConversion(&sensorTempUp);
+		systimeDelayMs(760);
+		readTemperature(&sensorTempUp);
+		displayData.temp_up_t = sensorTempUp.fTemp;
+	}
+
+	while (displayData.temp_down_t == 0)
+	{
+		oWireErrCounter++;
+		if (oWireErrCounter == 20)
+		{
+			oWireErrCounter = 0;
+			break;
+		}
+
+		initializeConversion(&sensorTempDown);
+		systimeDelayMs(760);
+		readTemperature(&sensorTempDown);
+		displayData.temp_down_t = sensorTempDown.fTemp;
+	}
+
 #endif
-
-
 
 #ifndef I2C_OFF_MODE
 
@@ -170,7 +192,7 @@ static void PeripheralInit(void)
 	while (displayData.temp_middle_t <= 0)
 	{
 		i2cErrCounter++;
-		if (i2cErrCounter == 10)
+		if (i2cErrCounter == 5)
 		{
 			break;
 		}

@@ -713,6 +713,7 @@ void ReceiveSerial_Handler(void)
 									calibrateFlags.probeType = (probe_type_t)probeType;
 									calibrateFlags.processActive = TRUE;
 									calibrateFlags.waitForNextBuffer = TRUE;
+									adcAverageMeasCounter = 0;
 									GLCD_ClearScreen();
 								}
 								else
