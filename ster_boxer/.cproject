@@ -54,6 +54,9 @@
 							<tool id="cdt.managedbuild.tool.gnu.cross.c.linker.1834128712" name="Cross GCC Linker" superClass="cdt.managedbuild.tool.gnu.cross.c.linker">
 								<option id="gnu.c.link.option.ldflags.1157297836" name="Linker flags" superClass="gnu.c.link.option.ldflags" useByScannerDiscovery="false" value="-T &quot;${ProjDirPath}/stm32_flash.ld&quot; -mthumb -mcpu=cortex-m0 -Wl,--gc-sections" valueType="string"/>
 								<option id="gnu.c.link.option.nostart.418171495" name="Do not use standard start files (-nostartfiles)" superClass="gnu.c.link.option.nostart" useByScannerDiscovery="false" value="false" valueType="boolean"/>
+								<option id="gnu.c.link.option.libs.465346767" name="Libraries (-l)" superClass="gnu.c.link.option.libs" useByScannerDiscovery="false" valueType="libs">
+									<listOptionValue builtIn="false" value="m"/>
+								</option>
 								<inputType id="cdt.managedbuild.tool.gnu.c.linker.input.1061581232" superClass="cdt.managedbuild.tool.gnu.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>

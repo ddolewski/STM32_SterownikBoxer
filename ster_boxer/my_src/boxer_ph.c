@@ -161,51 +161,58 @@ static void ADC_ReadCalcPh(void)
 	ADC_value.soil  = ADC_ConvertedData[SOIL_BUFF_INDEX]; 		//PA5
 	ADC_value.water = ADC_ConvertedData[WATER_BUFF_INDEX]; 		//PA6
 
-	referenceVoltage.refVoltage  = ((float)VREFINT_CAL * (float)3.3)/referenceVoltage.vRefValueADC;
-	referenceVoltage.mVFactor 	 = referenceVoltage.refVoltage / (float)4096;
-
-	probeData.inSoil = (float)ADC_value.soil * referenceVoltage.mVFactor;
-	probeData.tempSoil += probeData.inSoil;
-	probeData.inWater = (float)ADC_value.water * referenceVoltage.mVFactor;
-	probeData.tempWater += probeData.inWater;
-
-	++adcAverageMeasCounter;
-	if (adcAverageMeasCounter == 250)
+	if (isfinite(((float)VREFINT_CAL * (float)3.3)/referenceVoltage.vRefValueADC) == 1)
 	{
-		probeData.inAverageSoil  = (probeData.tempSoil/250);
-		probeData.inAverageWater = (probeData.tempWater/250);
-		adcAverageMeasCounter = 0;
-		probeData.tempSoil = 0;
-		probeData.tempWater = 0;
-		//////////////////////////////////////////////////////////////////////////
-		if (calibrateFlags.processActive == FALSE)
-		{
-			xLastWaterPh = pH.water;
-			xLastSoilPh = pH.soil;
+		referenceVoltage.refVoltage  = ((float)VREFINT_CAL * (float)3.3)/referenceVoltage.vRefValueADC;
+		referenceVoltage.mVFactor 	 = referenceVoltage.refVoltage / (float)4096;
 
-			if (FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0)
+		probeData.inSoil = (float)ADC_value.soil * referenceVoltage.mVFactor;
+		probeData.tempSoil += probeData.inSoil;
+		probeData.inWater = (float)ADC_value.water * referenceVoltage.mVFactor;
+		probeData.tempWater += probeData.inWater;
+
+		++adcAverageMeasCounter;
+		if (adcAverageMeasCounter == 250)
+		{
+			probeData.inAverageSoil  = (probeData.tempSoil/250);
+			probeData.inAverageWater = (probeData.tempWater/250);
+			adcAverageMeasCounter = 0;
+			probeData.tempSoil = 0;
+			probeData.tempWater = 0;
+			//////////////////////////////////////////////////////////////////////////
+			if (calibrateFlags.processActive == FALSE)
+			{
+				xLastWaterPh = pH.water;
+				xLastSoilPh = pH.soil;
+
+				if (FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0)
+				{
+					pH.soil = 0;
+				}
+				else
+				{
+					pH.soil  = FactorsEquationpH.soilFactor_A  * probeData.inAverageSoil  + FactorsEquationpH.soilFactor_B;  	//soil pH equation
+				}
+
+				if (FactorsEquationpH.waterFactor_A == 0 && FactorsEquationpH.waterFactor_B == 0)
+				{
+					pH.water = 0;
+				}
+				else
+				{
+					pH.water = FactorsEquationpH.waterFactor_A * probeData.inAverageWater + FactorsEquationpH.waterFactor_B;	//water pH equation
+				}
+			}
+			else
 			{
 				pH.soil = 0;
-			}
-			else
-			{
-				pH.soil  = FactorsEquationpH.soilFactor_A  * probeData.inAverageSoil  + FactorsEquationpH.soilFactor_B;  	//soil pH equation
-			}
-
-			if (FactorsEquationpH.waterFactor_A == 0 && FactorsEquationpH.waterFactor_B == 0)
-			{
 				pH.water = 0;
 			}
-			else
-			{
-				pH.water = FactorsEquationpH.waterFactor_A * probeData.inAverageWater + FactorsEquationpH.waterFactor_B;	//water pH equation
-			}
 		}
-		else
-		{
-			pH.soil = 0;
-			pH.water = 0;
-		}
+	}
+	else
+	{
+		// error !
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -320,8 +327,8 @@ void ADC_CalibrateProbes_Handler(void)
 				if (calibrateFlags.pH9Buffer == TRUE)
 				{
 					if ((pHBufferVoltage.pH4 != 0 && pHBufferVoltage.pH7 != 0 && pHBufferVoltage.pH9 != 0) ||
-						(FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0 &&
-						 FactorsEquationpH.waterFactor_A == 0 && FactorsEquationpH.waterFactor_B == 0))
+						(FactorsEquationpH.soilFactor_A == 0 || FactorsEquationpH.soilFactor_B == 0 ||
+						 FactorsEquationpH.waterFactor_A == 0 || FactorsEquationpH.waterFactor_B == 0))
 					{
 						GLCD_GoTo(0,5);
 						GLCD_WriteString("Kalibracja wykonana");

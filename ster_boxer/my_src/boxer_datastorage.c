@@ -8,6 +8,7 @@
 #include "boxer_datastorage.h"
 #include "boxer_light.h"
 #include "boxer_climate.h"
+#include <math.h>
 
 flashSettings_t	currentFlashConfig;				//ustawienia obecne
 
@@ -73,6 +74,14 @@ void FLASH_ReadConfiguration(void)
 		xLightControl = xBackupConfig.backupLightControl;
 		tempControl = xBackupConfig.backupTempControl;
 		FactorsEquationpH = xBackupConfig.backupPhEcuationFactors;
+
+		if (isfinite(FactorsEquationpH.soilFactor_A)  == 1  ||
+			isfinite(FactorsEquationpH.soilFactor_B)  == 1  ||
+			isfinite(FactorsEquationpH.waterFactor_A) == 1  ||
+			isfinite(FactorsEquationpH.waterFactor_B) == 1)
+		{
+			FLASH_RestoreDefaultConfig();
+		}
 	}
 	else
 	{
