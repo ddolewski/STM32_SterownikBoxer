@@ -1,7 +1,6 @@
 #ifndef TIMESTAMP_H_
 #define TIMESTAMP_H_
 
-//#include "global.h"
 #include <boxer_bool.h>
 #include "stdint.h"
 

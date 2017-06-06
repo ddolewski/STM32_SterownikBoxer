@@ -350,7 +350,7 @@ void ADC_CalibrateProbes_Handler(void)
 						GLCD_ClearScreen();
 					}
 
-					memset(&calibrateFlags, 0, sizeof(calibrateFlags)); //skasowanie flag
+					memset((void*)&calibrateFlags, 0, sizeof(calibrateFlags)); //skasowanie flag
 					//zaczynamy od 1 strony
 					displayData.page = PAGE_1;
 					displayData.pageCounter = 0;

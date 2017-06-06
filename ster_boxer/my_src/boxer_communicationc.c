@@ -20,6 +20,8 @@
 #define RX_PIN 		GPIO_Pin_3
 #define TX_PIN		GPIO_Pin_2
 
+#define NTP_REQTIME(H)			(3600*H)
+
 static uint8_t response_timeout 	= 0;
 bool_t atnel_wait_for_response 		= FALSE;
 
@@ -46,7 +48,7 @@ static time_complex_t ntpTime 		= {0};
 static bool_t ntpSyncProccess 		= FALSE;
 static uint16_t ntpRequestTimer 	= 0; //pierwsze zapytanie o czas po 10s od wlaczenia
 static uint8_t ntp_resp_wait 		= FALSE;
-static uint8_t ntpRetryTimer 		= 0;
+static uint8_t ntpResponseTimer 		= 0;
 static uint8_t ntpRetryCounter 		= 0;
 
 static uint8_t atnelWaitCounter 	= 0;
@@ -207,7 +209,7 @@ void AtnelWiFi_Handler(void)
 	if (atnel_wait_for_response == TRUE)
 	{
 		response_timeout++;
-		if (response_timeout == 5)
+		if (response_timeout == 10)
 		{
 			atnel_wait_for_response = FALSE;
 			response_timeout = 0;
@@ -250,7 +252,7 @@ void Ntp_Handler(void)
 	{
 		ntpRequestTimer++;
 
-		if (ntpRequestTimer == 3600) //wyslij zapytanie o czas co godzine
+		if (ntpRequestTimer == NTP_REQTIME(12)) //todo wyslij zapytanie o czas co godzine
 		{
 			Ntp_SendRequest();
 		}
@@ -258,21 +260,21 @@ void Ntp_Handler(void)
 
 	if (ntp_resp_wait == TRUE)
 	{
-		ntpRetryTimer++;
-		if (ntpRetryTimer == 5) //czekaj maksymalnie 5s na odpowiedz
+		ntpResponseTimer++;
+		if (ntpResponseTimer == 5) //czekaj maksymalnie 3s na odpowiedz
 		{
 			_printString("timeout odpowiedzi ntp\r\n");
-			ntpRetryTimer = 0;
+			ntpResponseTimer = 0;
 			Ntp_SendRequest();
 
 			ntpRetryCounter++;
 			_printString("ponowne zapytanie o czas\r\n");
-			if (ntpRetryCounter == 3) //do 3 prob potem wylacz komendy AT
+			if (ntpRetryCounter == 5) //do 5 prob potem wylacz komendy AT
 			{
 				atnel_AtCmdReqType = AT_ENTM_REQ;
 				atnel_AtCmdRespType = AT_NONE_RESP;
 				ntp_resp_wait = FALSE;
-				_printString("BLAD! serwer nie odpowiedzial 3x\r\n");
+				_printString("BLAD! serwer nie odpowiedzial 5x\r\n");
 			}
 		}
 	}
@@ -421,7 +423,7 @@ void ReceiveSerial_Handler(void)
 		case ATNEL_MODE_AT_CMD:
 			if (atnelInitProccess == ATNEL_SEND_3PLUS)
 			{
-				char * atnelResponse = strstr(RxBuffer, "a");
+				char * atnelResponse = strstr((void*)RxBuffer, "a");
 				if (atnelResponse != NULL)
 				{
 					atnelInitProccess 		= ATNEL_RECV_A;
@@ -435,7 +437,7 @@ void ReceiveSerial_Handler(void)
 			}
 			else if (atnelInitProccess == ATNEL_SEND_A)
 			{
-				char * atnelResponse = strstr(RxBuffer, "+ok\r\n\r\n");
+				char * atnelResponse = strstr((void*)RxBuffer, "+ok\r\n\r\n");
 
 				if (atnelResponse != NULL)
 				{
@@ -454,7 +456,7 @@ void ReceiveSerial_Handler(void)
 				{
 				case AT_GMT_RESP:
 					__NOP();
-					char * at_gmt_response = strstr(RxBuffer, "+ok=20");
+					char * at_gmt_response = strstr((void*)RxBuffer, "+ok=20");
 
 					if (at_gmt_response != NULL)
 					{
@@ -522,7 +524,7 @@ void ReceiveSerial_Handler(void)
 
 				case AT_ENTM_RESP:
 					__NOP();
-					char * at_entm_response = strstr(RxBuffer, "+ok\r\n\r\n");
+					char * at_entm_response = strstr((void*)RxBuffer, "+ok\r\n\r\n");
 
 					if (at_entm_response != NULL)
 					{
@@ -543,7 +545,7 @@ void ReceiveSerial_Handler(void)
 
 				case AT_E_RESP:
 					__NOP();
-					char * at_echo_response = strstr(RxBuffer, "+ok");
+					char * at_echo_response = strstr((void*)RxBuffer, "+ok");
 
 					if (at_echo_response != NULL)
 					{
@@ -570,19 +572,19 @@ void ReceiveSerial_Handler(void)
 
 			if (atnel_wait_change_mode == FALSE)
 			{
-				char * startStrAddr  = strstr(RxBuffer, "STA");
+				char * startStrAddr  = strstr((void*)RxBuffer, "STA");
 
 				if (startStrAddr != NULL)
 				{
-					char * endStrAddr    = strstr(RxBuffer, "END");
+					char * endStrAddr    = strstr((void*)RxBuffer, "END");
 					if (endStrAddr != NULL)
 					{
-						_printString(RxBuffer);
+						_printString((void*)RxBuffer);
 
 						char ReceivedString [8][32] = {{0},{0}};
 						char * splitStr = 0;
 						int i = 0;
-						splitStr = strtok (RxBuffer, " ");
+						splitStr = strtok ((void*)RxBuffer, " ");
 						strcpy(ReceivedString[i], splitStr);
 
 						while (splitStr != NULL)
@@ -637,6 +639,7 @@ void ReceiveSerial_Handler(void)
 											xLightCounters.counterSeconds = 0;
 										}
 
+										FLASH_ClearLightState();
 										FLASH_SaveConfiguration();
 									}
 								}
@@ -804,7 +807,7 @@ void ReceiveSerial_Handler(void)
 static void ClearRxBuff(void)
 {
 	rxIdx = 0;
-	memset(RxBuffer, 0, RX_BUFF_SIZE);
+	memset((void*)RxBuffer, 0, RX_BUFF_SIZE);
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void AtnelWifi_ResetModule(void)

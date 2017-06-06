@@ -313,11 +313,11 @@ uint8_t readTemperatureChar(DS18B20Sensor_t * sensor)
 	if (sensor->	cTempL & 1 << 0)
 		iFraction+=	cLSB[7];	
 	
-	int length = strlen(sensor->cAtempL);
+	int length = strlen((char*)sensor->cAtempL);
 	sensor->cAtempL[length] = '.';
 	sensor->cAtempL[length + 1] = '\0';
 	
-	strcat (sensor->cAtempL, sensor->cAtempH);
+	strcat ((char*)sensor->cAtempL, (char*)sensor->cAtempH);
 
 	return ucReset;
 }

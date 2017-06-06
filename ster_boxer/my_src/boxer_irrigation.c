@@ -12,7 +12,7 @@
 const uint32_t SOIL_MEASURE_TIMEOUT = 300000;
 const uint32_t DAY_IN_SEC 			= 86400;
 
-static systime_t waterLvlCheckTimer = 0;
+//static systime_t waterLvlCheckTimer = 0;
 static systime_t soilMoistTimer 	= 0;
 static uint32_t SecondIrr;
 static uint8_t DayIrr;
@@ -24,7 +24,7 @@ static bool_t pumpOn = FALSE;
 soil_moist_t soilMoisture = SOIL_UNKNOWN_STATE;
 soil_moist_t lastSoilMoistState = SOIL_UNKNOWN_STATE;
 
-static void Irrigation_WaterLevel(void);
+//static void Irrigation_WaterLevel(void);
 static void Irrigation_SoilMoisture(void);
 static uint8_t Irrigation_PumpEnable(bool_t xStatus);
 /////////////////////////////////////////////////////////////////////////////
@@ -49,22 +49,22 @@ void Irrigation_PumpControll(void)
 	}
 }
 /////////////////////////////////////////////////////////////////////////////
-static void Irrigation_WaterLevel(void)
-{
-	if (systimeTimeoutControl(&waterLvlCheckTimer, 1000))
-	{
-		if (GPIOx_ReadInputPin(WATER_LEVEL_PORT, WATER_LEVEL_PIN))
-		{
-//			USARTx_SendString(USART_COMM, UC"poziom wody odpowiedni\n\r");
-			GPIOx_ResetPin(SOLENOID_PORT, SOLENOID_PIN);
-		}
-		else
-		{
-//			USARTx_SendString(USART_COMM, UC"dolewanie wody\n\r");
-			GPIOx_SetPin(SOLENOID_PORT, SOLENOID_PIN);
-		}
-	}
-}
+//static void Irrigation_WaterLevel(void)
+//{
+//	if (systimeTimeoutControl(&waterLvlCheckTimer, 1000))
+//	{
+//		if (GPIOx_ReadInputPin(WATER_LEVEL_PORT, WATER_LEVEL_PIN))
+//		{
+////			USARTx_SendString(USART_COMM, UC"poziom wody odpowiedni\n\r");
+//			GPIOx_ResetPin(SOLENOID_PORT, SOLENOID_PIN);
+//		}
+//		else
+//		{
+////			USARTx_SendString(USART_COMM, UC"dolewanie wody\n\r");
+//			GPIOx_SetPin(SOLENOID_PORT, SOLENOID_PIN);
+//		}
+//	}
+//}
 /////////////////////////////////////////////////////////////////////////////
 static void Irrigation_SoilMoisture(void)
 {

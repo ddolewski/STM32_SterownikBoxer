@@ -328,25 +328,25 @@ ErrorStatus TSL2561_ReadLux(uint32_t * xLux)
 	Data1Low_uint  = (uint32_t)Data1Low_uchar;
 	Data1High_uint = (uint32_t)Data1High_uchar;
 
-	_printParam("Data0Low_uint",  Data0Low_uint);
-	_printParam("Data0High_uint", Data0High_uint);
-	_printParam("Data1Low_uint",  Data1Low_uint);
-	_printParam("Data1High_uint", Data1High_uint);
+//	_printParam("Data0Low_uint",  Data0Low_uint);
+//	_printParam("Data0High_uint", Data0High_uint);
+//	_printParam("Data1Low_uint",  Data1Low_uint);
+//	_printParam("Data1High_uint", Data1High_uint);
 
 	Channel0_uint = ((uint32_t)256 * Data0High_uint) + Data0Low_uint; //Shift Data0High to upper byte
 	Channel1_uint = ((uint32_t)256 * Data1High_uint) + Data1Low_uint; //Shift Data1High to upper byte
 
-	_printParam("Channel0_uint", Channel0_uint);
-	_printParam("Channel1_uint", Channel1_uint);
+//	_printParam("Channel0_uint", Channel0_uint);
+//	_printParam("Channel1_uint", Channel1_uint);
 
 	Lux = CalculateLux(GainX1, IntegrationTime402, Channel0_uint, Channel1_uint, T_FN_CL_Package);
 
-	_printParam("Lux", Lux);
-
-	if (Lux == 2)
-	{
-		_printString("ERROR LUX!\r\n");
-	}
+//	_printParam("Lux", Lux);
+//
+//	if (Lux == 2)
+//	{
+//		_printString("ERROR LUX!\r\n");
+//	}
 
 	*xLux = Lux;
 
