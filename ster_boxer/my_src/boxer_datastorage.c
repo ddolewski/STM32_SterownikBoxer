@@ -17,24 +17,24 @@ static const flashSettings_t defFlashConfig =
 	.signatureA = SIGNATURE_A,
 	.backupTempControl =
 	{
-		.userTemp = 25,
-		.fanPull = 40,
-		.fanPush = 60,
-		.tempCtrlMode = TEMP_AUTO,
+		.userTemp 		= 25,
+		.fanPull 		= 40,
+		.fanPush 		= 60,
+		.tempCtrlMode 	= TEMP_AUTO,
 	},
 
 	.backupLightControl =
 	{
-		.lightingState = LIGHT_OFF,
-		.timeOnHours = 12,
-		.timeOffHours = 12,
+		.lightingState 	= LIGHT_OFF,
+		.timeOnHours 	= 12,
+		.timeOffHours 	= 12,
 	},
 
 	.backupIrrigationControl =
 	{
-		.mode = IRRIGATION_MODE_OFF,
-		.frequency = 0,
-		.water = 0
+		.mode 		= IRRIGATION_MODE_OFF,
+		.frequency 	= 0,
+		.water 		= 0
 	},
 
 	.backupPhEcuationFactors =
@@ -50,10 +50,10 @@ static const flashSettings_t defFlashConfig =
 
 static const flashLampCounters_t defFlashLightCounters =
 {
-	.signatureC = SIGNATURE_C,
-    .lightCounters = { .counterSeconds = 0, .counterHours = 0 },
-	.lightingState = LIGHT_OFF,
-	.signatureD = SIGNATURE_D
+	.signatureC 	= SIGNATURE_C,
+    .lightCounters 	= { .counterSeconds = 0, .counterHours = 0 },
+	.lightingState 	= LIGHT_OFF,
+	.signatureD 	= SIGNATURE_D
 };
 //flashCopy_t backupConfig __attribute__((section(".STORAGE_REGION"))) = {0};
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,10 +70,10 @@ void FLASH_ReadConfiguration(void)
 
 	if ((xBackupConfig.signatureA == SIGNATURE_A) && (xBackupConfig.signatureB == SIGNATURE_B))
 	{
-		irrigationControl = xBackupConfig.backupIrrigationControl;
-		xLightControl = xBackupConfig.backupLightControl;
-		tempControl = xBackupConfig.backupTempControl;
-		FactorsEquationpH = xBackupConfig.backupPhEcuationFactors;
+		irrigationControl 	= xBackupConfig.backupIrrigationControl;
+		xLightControl 		= xBackupConfig.backupLightControl;
+		tempControl 		= xBackupConfig.backupTempControl;
+		FactorsEquationpH 	= xBackupConfig.backupPhEcuationFactors;
 
 		if (isfinite(FactorsEquationpH.soilFactor_A)  == 0  ||
 			isfinite(FactorsEquationpH.soilFactor_B)  == 0  ||
@@ -85,10 +85,10 @@ void FLASH_ReadConfiguration(void)
 	}
 	else
 	{
-		irrigationControl = defFlashConfig.backupIrrigationControl;
-		xLightControl = defFlashConfig.backupLightControl;
-		tempControl = defFlashConfig.backupTempControl;
-		FactorsEquationpH = defFlashConfig.backupPhEcuationFactors;
+		irrigationControl 	= defFlashConfig.backupIrrigationControl;
+		xLightControl 		= defFlashConfig.backupLightControl;
+		tempControl 		= defFlashConfig.backupTempControl;
+		FactorsEquationpH 	= defFlashConfig.backupPhEcuationFactors;
 
 		flashError = SYSTEM_FLASH_ErasePage(CONFIG_PAGE_NUMBER);
 		if (flashError == ERROR)
@@ -118,10 +118,10 @@ void FLASH_SaveConfiguration(void)
 	xBackupConfig.signatureA = SIGNATURE_A;
 	xBackupConfig.signatureB = SIGNATURE_B;
 
-	xBackupConfig.backupIrrigationControl = irrigationControl;
-	xBackupConfig.backupLightControl = xLightControl;
-	xBackupConfig.backupTempControl = tempControl;
-	xBackupConfig.backupPhEcuationFactors = FactorsEquationpH;
+	xBackupConfig.backupIrrigationControl 	= irrigationControl;
+	xBackupConfig.backupLightControl 		= xLightControl;
+	xBackupConfig.backupTempControl 		= tempControl;
+	xBackupConfig.backupPhEcuationFactors 	= FactorsEquationpH;
 
 	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&xBackupConfig, CONFIG_PAGE_NUMBER, sizeof(xBackupConfig));
 
@@ -133,10 +133,10 @@ void FLASH_SaveConfiguration(void)
 
 void FLASH_RestoreDefaultConfig(void)
 {
-	irrigationControl = defFlashConfig.backupIrrigationControl;
-	xLightControl = defFlashConfig.backupLightControl;
-	tempControl = defFlashConfig.backupTempControl;
-	FactorsEquationpH = defFlashConfig.backupPhEcuationFactors;
+	irrigationControl 	= defFlashConfig.backupIrrigationControl;
+	xLightControl 		= defFlashConfig.backupLightControl;
+	tempControl 		= defFlashConfig.backupTempControl;
+	FactorsEquationpH 	= defFlashConfig.backupPhEcuationFactors;
 
 	ErrorStatus flashError = SYSTEM_FLASH_ErasePage(CONFIG_PAGE_NUMBER);
 	if (flashError == ERROR)
@@ -150,12 +150,14 @@ void FLASH_RestoreDefaultConfig(void)
 	{
 		_printString("blad zapisu flash\r\n");
 	}
+
+	FLASH_ClearLightState();
 }
 
 void FLASH_ClearLightState(void)
 {
-	xLightCounters = defFlashLightCounters.lightCounters;
-	ErrorStatus flashError = SYSTEM_FLASH_ErasePage(LIGHT_COUNTERS_PAGE_NUMBER);
+	xLightCounters 			= defFlashLightCounters.lightCounters;
+	ErrorStatus flashError 	= SYSTEM_FLASH_ErasePage(LIGHT_COUNTERS_PAGE_NUMBER);
 	if (flashError == ERROR)
 	{
 		_printString("blad kasowania flash\r\n");

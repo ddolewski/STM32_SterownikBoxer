@@ -65,11 +65,9 @@ static void PeripheralInit(void)
 	GPIOx_PinConfig(BUZZER_PORT, Mode_Out, OSpeed_50MHz, OType_PP, OState_PU, BUZZER_PIN);
 	GPIOx_SetPin(BUZZER_PORT, BUZZER_PIN);
 
-	//todo sprawdzic jaki powinien byc stan na WIFI_PWR
 	GPIOx_PinConfig(WIFI_PWR_PORT, Mode_Out, OSpeed_50MHz, OType_PP, OState_PU, WIFI_PWR_PIN);
 	GPIOx_SetPin(WIFI_PWR_PORT, WIFI_PWR_PIN);
 
-	//todo sprawdzic jaki powinien byc stan na WIFI_RST
 	GPIOx_PinConfig(WIFI_RST_PORT, Mode_Out, OSpeed_50MHz, OType_PP, OState_PU, WIFI_RST_PIN);
 	GPIOx_SetPin(WIFI_RST_PORT, WIFI_RST_PIN);
 
@@ -249,7 +247,7 @@ static void PeripheralInit(void)
 	while (softStartDone == FALSE)
 	{
 		SoftStart_Handler();
-		delay_us__(200);
+		delay_us__(150);
 	}
 
 //	PWM_PumpInit();

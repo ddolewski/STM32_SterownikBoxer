@@ -1,21 +1,22 @@
 #include "tsl2561.h"
 #include "systime.h"
+#include "debug.h"
 
-static ErrorStatus TSL2561_Initialize(I2C_TypeDef* I2Cx, uint16_t SlaveAddr);
-static ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr);
+static ErrorStatus TSL2561_PowerOn(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, bool_t powerOn);
+static ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t intergrationTimeGain);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ErrorStatus TSL2561_Init(void)
 {
 	ErrorStatus tslError = SUCCESS;
-	tslError = TSL2561_Initialize(I2C2, TSL2561_GND_ADDR);
+	tslError = TSL2561_PowerOn(I2C2, TSL2561_GND_ADDR, TRUE);
 	systimeDelayMs(30);
-	tslError = TSL2561_Config(I2C2, TSL2561_GND_ADDR);
+	tslError = TSL2561_Config(I2C2, TSL2561_GND_ADDR, DefaultIntegrationTimeAndGain);
 	systimeDelayMs(20);
 
 	return tslError;
 }
 
-static ErrorStatus TSL2561_Initialize(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
+static ErrorStatus TSL2561_PowerOn(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, bool_t powerOn)
 {
 	uint32_t TimeOut = 1000000;
 
@@ -66,7 +67,14 @@ static ErrorStatus TSL2561_Initialize(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 	}
 
 	TimeOut = 100000;
-	I2C_SendData(I2Cx, TurnOnBits);
+	if (powerOn == TRUE)
+	{
+		I2C_SendData(I2Cx, TurnOnBits);
+	}
+	else
+	{
+		I2C_SendData(I2Cx, TurnOffBits);
+	}
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
 	{
@@ -98,7 +106,7 @@ static ErrorStatus TSL2561_Initialize(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 	return SUCCESS;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
+static ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t intergrationTimeGain)
 {
 	uint32_t TimeOut = 1000000;
 
@@ -148,7 +156,7 @@ static ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr)
 	}
 
 	TimeOut = 100000;
-	I2C_SendData(I2Cx, DefaultIntegrationTimeAndGain);
+	I2C_SendData(I2Cx, intergrationTimeGain);
 
 	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TC))
 	{
@@ -277,19 +285,35 @@ uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Register
 uint32_t TSL2561_ReadLux(ErrorStatus * Error)
 {
 	uint32_t Lux = 0;
-	Data0Low_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0LowByteMode, Error);
+	Data0Low_uchar  = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0LowByteMode,  Error);
 	Data0High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0HighByteMode, Error);
-	Data1Low_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1LowByteMode, Error);
+	Data1Low_uchar  = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1LowByteMode,  Error);
 	Data1High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1HighByteMode, Error);
 
-	Data0Low_uint = (uint32_t)Data0Low_uchar;
+	Data0Low_uint  = (uint32_t)Data0Low_uchar;
 	Data0High_uint = (uint32_t)Data0High_uchar;
-	Data1Low_uint = (uint32_t)Data1Low_uchar;
+	Data1Low_uint  = (uint32_t)Data1Low_uchar;
 	Data1High_uint = (uint32_t)Data1High_uchar;
+
+	_printParam("Data0Low_uint",  Data0Low_uint);
+	_printParam("Data0High_uint", Data0High_uint);
+	_printParam("Data1Low_uint",  Data1Low_uint);
+	_printParam("Data1High_uint", Data1High_uint);
 
 	Channel0_uint = ((uint32_t)256 * Data0High_uint) + Data0Low_uint; //Shift Data0High to upper byte
 	Channel1_uint = ((uint32_t)256 * Data1High_uint) + Data1Low_uint; //Shift Data1High to upper byte
+
+	_printParam("Channel0_uint", Channel0_uint);
+	_printParam("Channel1_uint", Channel1_uint);
+
 	Lux = CalculateLux(GainX1, IntegrationTime402, Channel0_uint, Channel1_uint, T_FN_CL_Package);
+
+	_printParam("Lux", Lux);
+
+	if (Lux == 2)
+	{
+		_printString("ERROR LUX!\r\n");
+	}
 	return Lux;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

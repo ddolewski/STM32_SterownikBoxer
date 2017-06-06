@@ -18,7 +18,7 @@
 #define TurnOffBits						0x00	// 0x00 - turn off
 
 // Timing register definitions
-#define TimingRegister 					0x81					// configure integration time for each conversion, configure gain
+#define TimingRegister 					0x81	// configure integration time for each conversion, configure gain
 #define DefaultIntegrationTimeAndGain 	0x02	// default value - 402ms integration time for each conversion, gain x1
 #define IntegrationTime101Gainx1 		0x01	// 101ms integration time for each conversion, gain x1
 #define IntegrationTime13_7Gainx1 		0x00	// 13,7ms integration time for each conversion. gain x1

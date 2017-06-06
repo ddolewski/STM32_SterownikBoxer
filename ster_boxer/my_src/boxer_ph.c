@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "string.h"
+#include "boxer_display.h"
 
 typedef struct adcRef_t
 {
@@ -37,7 +38,6 @@ typedef struct
 static ADC_value_t ADC_value = {0};
 static adcRef_t referenceVoltage;
 
-//static volatile uint8_t adcAverageMeasCounter;
 uint8_t adcAverageMeasCounter = 0;
 static uint16_t ADC_ConvertedData[3];
 pHBufferVoltage_t pHBufferVoltage;
@@ -51,7 +51,7 @@ pH_t pH;
 #define SOIL_BUFF_INDEX  	1
 #define WATER_BUFF_INDEX 	2
 
-static void ADC_ReadCalcPh(void);
+static int8_t ADC_ReadCalcPh(void);
 static void ADC_CalibrateProbes_BufferChooser(void);
 static void ADC_CalibrateProbess_GetFactorsFromMeasurement(volatile pHBufferVoltage_t * xReferenceBufferVoltages, volatile ph_factors_t * xOutPhFactors, probe_type_t xProbeType);
 
@@ -138,9 +138,9 @@ void ADC_DMA_Init(void)
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-static void ADC_ReadCalcPh(void)
+static int8_t ADC_ReadCalcPh(void)
 {
-	uint32_t timeout = 0xFFFFFFF;
+	uint32_t timeout = 1000000;
 	while (DMA_GetFlagStatus(DMA1_FLAG_TC1) == RESET)
     {
     	if (timeout > 0)
@@ -149,7 +149,7 @@ static void ADC_ReadCalcPh(void)
     	}
     	else
     	{
-    		break;
+    		return -1;
     	}
     }
 
@@ -168,9 +168,9 @@ static void ADC_ReadCalcPh(void)
 		//////////////////////////////////////////////////////////////////////////
 		if (calibrateFlags.processActive == FALSE)
 		{
-			probeData.inSoil = (float)ADC_value.soil * referenceVoltage.mVFactor;
-			probeData.tempSoil += probeData.inSoil;
-			probeData.inWater = (float)ADC_value.water * referenceVoltage.mVFactor;
+			probeData.inSoil 	= (float)ADC_value.soil * referenceVoltage.mVFactor;
+			probeData.tempSoil 	+= probeData.inSoil;
+			probeData.inWater 	= (float)ADC_value.water * referenceVoltage.mVFactor;
 			probeData.tempWater += probeData.inWater;
 
 			adcAverageMeasCounter++;
@@ -179,11 +179,11 @@ static void ADC_ReadCalcPh(void)
 				probeData.inAverageSoil  = (probeData.tempSoil/250);
 				probeData.inAverageWater = (probeData.tempWater/250);
 				adcAverageMeasCounter = 0;
-				probeData.tempSoil = 0;
-				probeData.tempWater = 0;
+				probeData.tempSoil    = 0;
+				probeData.tempWater   = 0;
 
 				xLastWaterPh = pH.water;
-				xLastSoilPh = pH.soil;
+				xLastSoilPh  = pH.soil;
 
 				if (FactorsEquationpH.soilFactor_A == 0 && FactorsEquationpH.soilFactor_B == 0)
 				{
@@ -208,18 +208,21 @@ static void ADC_ReadCalcPh(void)
 		{
 			if (calibrateFlags.measureVoltagePh == TRUE)
 			{
-				probeData.inAverageSoil = (float)ADC_value.soil * referenceVoltage.mVFactor;
+				probeData.inAverageSoil  = (float)ADC_value.soil  * referenceVoltage.mVFactor;
 				probeData.inAverageWater = (float)ADC_value.water * referenceVoltage.mVFactor;
 			}
 
-			pH.soil = 0;
+			pH.soil  = 0;
 			pH.water = 0;
 		}
 	}
 	else
 	{
 		// error !
+		return -1;
 	}
+
+	return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static void ADC_CalibrateProbes_BufferChooser(void)
@@ -336,25 +339,30 @@ void ADC_CalibrateProbes_Handler(void)
 						(FactorsEquationpH.soilFactor_A != 0 && FactorsEquationpH.soilFactor_B != 0 &&
 						 FactorsEquationpH.waterFactor_A != 0 && FactorsEquationpH.waterFactor_B != 0))
 					{
-						GLCD_GoTo(0,5);
-						GLCD_WriteString("Kalibracja wykonana");
-						systimeDelayMs(2000);
-						GLCD_ClearScreen();
 						ADC_CalibrateProbess_GetFactorsFromMeasurement(
 								&pHBufferVoltage,
 								&FactorsEquationpH,
 								calibrateFlags.probeType);
 
-
 						FLASH_SaveConfiguration();
+
+						GLCD_GoTo(0,5);
+						GLCD_WriteString("Kalibracja wykonana");
+						systimeDelayMs(2000);
+						GLCD_ClearScreen();
 					}
 					else
 					{
 						GLCD_GoTo(0,5);
 						GLCD_WriteString("Kalibracja bez sondy pH!");
+						systimeDelayMs(2000);
+						GLCD_ClearScreen();
 					}
 
 					memset(&calibrateFlags, 0, sizeof(calibrateFlags)); //skasowanie flag
+					//zaczynamy od 1 strony
+					displayData.page = PAGE_1;
+					displayData.pageCounter = 0;
 				}
 			}
 		}
