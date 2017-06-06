@@ -52,11 +52,10 @@ ErrorStatus PCF8563_ReadTime(time_complex_t * xTime, I2C_TypeDef* I2Cx)
 		}
 		else
 		{
-//			USARTx_SendString(USART_COMM, "pcf8563 readtime error\n\r");
+			_error("RTC read error");
 		}
 	}
 	
-	//UART_PutInt(xTime->year, 10);
 	xTime->year += 2000;
 	return error;
 }

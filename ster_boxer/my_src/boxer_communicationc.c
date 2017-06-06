@@ -20,38 +20,38 @@
 #define RX_PIN 		GPIO_Pin_3
 #define TX_PIN		GPIO_Pin_2
 
-static uint8_t response_timeout = 0;
-bool_t atnel_wait_for_response = FALSE;
+static uint8_t response_timeout 	= 0;
+bool_t atnel_wait_for_response 		= FALSE;
 
-volatile static bool_t echoOff = FALSE;
-static volatile int rxIdx = 0;
-volatile bool_t rxRecvFlag = FALSE;
+volatile static bool_t echoOff 		= FALSE;
+static volatile int rxIdx 			= 0;
+volatile bool_t rxRecvFlag 			= FALSE;
 
 static volatile char RxBuffer[RX_BUFF_SIZE] = {0};
 static volatile char TxBuffer[TX_BUFF_SIZE] = {0};
-static volatile fifo_t tx_fifo = {NULL, 0, 0};
+static volatile fifo_t tx_fifo 				= {NULL, 0, 0};
 
 static atnel_init_state_t atnelInitProccess = ATNEL_UNINITIALISE;
-atnel_mode_t atnel_Mode = ATNEL_MODE_TRANSPARENT;
+atnel_mode_t atnel_Mode 					= ATNEL_MODE_TRANSPARENT;
 
-atnel_at_cmd_resp_t atnel_AtCmdRespType = AT_NONE_RESP;
-atnel_at_cmd_req_t atnel_AtCmdReqType = AT_NONE_REQ;
+atnel_at_cmd_resp_t atnel_AtCmdRespType 	= AT_NONE_RESP;
+atnel_at_cmd_req_t atnel_AtCmdReqType 		= AT_NONE_REQ;
 
-atnel_trnsp_cmd_resp_t atnel_TrCmdRespType = TRNSP_NONE_RESP;
-atnel_trnsp_cmd_req_t atnel_TrCmdReqType = TRNSP_NONE_REQ;
+atnel_trnsp_cmd_resp_t atnel_TrCmdRespType 	= TRNSP_NONE_RESP;
+atnel_trnsp_cmd_req_t atnel_TrCmdReqType 	= TRNSP_NONE_REQ;
 
-bool_t atnel_wait_change_mode = FALSE;
-static time_complex_t ntpTime = {0};
+bool_t atnel_wait_change_mode 		= FALSE;
+static time_complex_t ntpTime 		= {0};
 
-static bool_t ntpSyncProccess = FALSE;
-static uint16_t ntpRequestTimer = 0; //pierwsze zapytanie o czas po 10s od wlaczenia
-static uint8_t ntp_resp_wait = FALSE;
-static uint8_t ntpRetryTimer = 0;
-static uint8_t ntpRetryCounter = 0;
+static bool_t ntpSyncProccess 		= FALSE;
+static uint16_t ntpRequestTimer 	= 0; //pierwsze zapytanie o czas po 10s od wlaczenia
+static uint8_t ntp_resp_wait 		= FALSE;
+static uint8_t ntpRetryTimer 		= 0;
+static uint8_t ntpRetryCounter 		= 0;
 
-static uint8_t atnelWaitCounter = 0;
-static uint8_t dataCounter = 0;
-static bool_t atnelReset = FALSE;
+static uint8_t atnelWaitCounter 	= 0;
+static uint8_t dataCounter 			= 0;
+static bool_t atnelReset 			= FALSE;
 static uint8_t resetMaxCounterValue = 5;
 
 static void ClearRxBuff(void);
@@ -79,12 +79,12 @@ void SerialPort_Init(void)
 
     fifo_init(&tx_fifo, (void *)TxBuffer, TX_BUFF_SIZE);
 
-    USART_InitStructure.USART_BaudRate = 115200;
-    USART_InitStructure.USART_WordLength = USART_WordLength_8b;
-    USART_InitStructure.USART_StopBits = USART_StopBits_1;
-    USART_InitStructure.USART_Parity = USART_Parity_No;
-    USART_InitStructure.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    USART_InitStructure.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    USART_InitStructure.USART_BaudRate 				= 115200;
+    USART_InitStructure.USART_WordLength 			= USART_WordLength_8b;
+    USART_InitStructure.USART_StopBits 				= USART_StopBits_1;
+    USART_InitStructure.USART_Parity 				= USART_Parity_No;
+    USART_InitStructure.USART_HardwareFlowControl 	= USART_HardwareFlowControl_None;
+    USART_InitStructure.USART_Mode 					= USART_Mode_Rx | USART_Mode_Tx;
 
     RCC_AHBPeriphClockCmd(RCC_AHBPeriph_GPIOA, ENABLE);
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
@@ -92,11 +92,11 @@ void SerialPort_Init(void)
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource2, GPIO_AF_1);
     GPIO_PinAFConfig(GPIOA, GPIO_PinSource3, GPIO_AF_1);
 
-    GPIO_InitStructure.GPIO_Pin = TX_PIN | RX_PIN;
-    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF;
-    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
-    GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP;
+    GPIO_InitStructure.GPIO_Pin 	= TX_PIN | RX_PIN;
+    GPIO_InitStructure.GPIO_Mode 	= GPIO_Mode_AF;
+    GPIO_InitStructure.GPIO_Speed 	= GPIO_Speed_50MHz;
+    GPIO_InitStructure.GPIO_OType 	= GPIO_OType_PP;
+    GPIO_InitStructure.GPIO_PuPd 	= GPIO_PuPd_UP;
     GPIO_Init(GPIOA, &GPIO_InitStructure);
 
     USART_Init(USART2, &USART_InitStructure);
@@ -338,7 +338,7 @@ void TransmitSerial_Handler(void)
 						_printString("\r\nsend AT+GMT=1\r\n");
 					}
 
-					atnel_AtCmdReqType = AT_NONE_REQ;
+					atnel_AtCmdReqType 	= AT_NONE_REQ;
 					atnel_AtCmdRespType = AT_GMT_RESP;
 
 					ntp_resp_wait = TRUE;
@@ -348,8 +348,8 @@ void TransmitSerial_Handler(void)
 					SerialPort_PutString("AT+ENTM\r");
 					_printString("send AT+ENTM\r\n");
 
-					atnel_AtCmdReqType = AT_NONE_REQ;
-					atnel_AtCmdRespType = AT_ENTM_RESP;
+					atnel_AtCmdReqType 		= AT_NONE_REQ;
+					atnel_AtCmdRespType 	= AT_ENTM_RESP;
 					atnel_wait_for_response = TRUE;
 					break;
 
@@ -357,8 +357,8 @@ void TransmitSerial_Handler(void)
 					SerialPort_PutString("AT+E=off\r");
 					_printString("send AT+E=off\r\n");
 
-					atnel_AtCmdReqType = AT_NONE_REQ;
-					atnel_AtCmdRespType = AT_E_RESP;
+					atnel_AtCmdReqType 		= AT_NONE_REQ;
+					atnel_AtCmdRespType 	= AT_E_RESP;
 					atnel_wait_for_response = TRUE;
 					break;
 
@@ -424,7 +424,7 @@ void ReceiveSerial_Handler(void)
 				char * atnelResponse = strstr(RxBuffer, "a");
 				if (atnelResponse != NULL)
 				{
-					atnelInitProccess = ATNEL_RECV_A;
+					atnelInitProccess 		= ATNEL_RECV_A;
 					atnel_wait_for_response = FALSE;
 					response_timeout = 0;
 
@@ -439,7 +439,7 @@ void ReceiveSerial_Handler(void)
 
 				if (atnelResponse != NULL)
 				{
-					atnelInitProccess = ATNEL_INIT_DONE;
+					atnelInitProccess 		= ATNEL_INIT_DONE;
 					atnel_wait_for_response = FALSE;
 					response_timeout = 0;
 
@@ -510,9 +510,9 @@ void ReceiveSerial_Handler(void)
 	#ifndef DEBUG_TERMINAL_USART
 							PCF8563_WriteTime(&timeUtc, I2C1);
 	#endif
-							atnel_AtCmdReqType = AT_ENTM_REQ;
+							atnel_AtCmdReqType 	= AT_ENTM_REQ;
 							atnel_AtCmdRespType = AT_NONE_RESP;
-							ntp_resp_wait = FALSE;
+							ntp_resp_wait 		= FALSE;
 
 							ClearRxBuff();
 						}
@@ -528,11 +528,11 @@ void ReceiveSerial_Handler(void)
 					{
 						_printString(at_entm_response);
 
-						atnel_AtCmdReqType = AT_NONE_REQ;
-						atnel_AtCmdRespType = AT_NONE_RESP;
-						atnel_wait_change_mode = TRUE;
+						atnel_AtCmdReqType 		= AT_NONE_REQ;
+						atnel_AtCmdRespType 	= AT_NONE_RESP;
+						atnel_wait_change_mode 	= TRUE;
 						atnel_wait_for_response = FALSE;
-						response_timeout = 0;
+						response_timeout 		= 0;
 
 						echoOff = FALSE;
 
@@ -549,9 +549,10 @@ void ReceiveSerial_Handler(void)
 					{
 						_printString(at_echo_response);
 
-						atnel_AtCmdReqType = AT_GMT_REQ;
-						atnel_AtCmdRespType = AT_NONE_RESP;
-						atnel_wait_change_mode = FALSE;
+						atnel_AtCmdReqType 		= AT_GMT_REQ;
+						atnel_AtCmdRespType 	= AT_NONE_RESP;
+						atnel_wait_change_mode 	= FALSE;
+
 						echoOff = TRUE;
 
 						ClearRxBuff();
@@ -709,10 +710,10 @@ void ReceiveSerial_Handler(void)
 
 									ClearRxBuff();
 
-									uint8_t probeType = atoi( ReceivedString[2] );
-									calibrateFlags.probeType = (probe_type_t)probeType;
-									calibrateFlags.processActive = TRUE;
-									calibrateFlags.waitForNextBuffer = TRUE;
+									uint8_t probeType 					= atoi( ReceivedString[2] );
+									calibrateFlags.probeType 			= (probe_type_t)probeType;
+									calibrateFlags.processActive 		= TRUE;
+									calibrateFlags.waitForNextBuffer 	= TRUE;
 									adcAverageMeasCounter = 0;
 									GLCD_ClearScreen();
 								}
