@@ -282,13 +282,33 @@ uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Register
 	return ReadValue;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-uint32_t TSL2561_ReadLux(ErrorStatus * Error)
+ErrorStatus TSL2561_ReadLux(uint32_t * xLux)
 {
+	ErrorStatus Error = SUCCESS;
 	uint32_t Lux = 0;
-	Data0Low_uchar  = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0LowByteMode,  Error);
-	Data0High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0HighByteMode, Error);
-	Data1Low_uchar  = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1LowByteMode,  Error);
-	Data1High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1HighByteMode, Error);
+	Data0Low_uchar  = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0LowByteMode,  &Error);
+	if (Error == ERROR)
+	{
+		return 1;
+	}
+
+	Data0High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0HighByteMode, &Error);
+	if (Error == ERROR)
+	{
+		return 1;
+	}
+
+	Data1Low_uchar  = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1LowByteMode,  &Error);
+	if (Error == ERROR)
+	{
+		return 1;
+	}
+
+	Data1High_uchar = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data1HighByteMode, &Error);
+	if (Error == ERROR)
+	{
+		return 1;
+	}
 
 	Data0Low_uint  = (uint32_t)Data0Low_uchar;
 	Data0High_uint = (uint32_t)Data0High_uchar;
@@ -314,7 +334,10 @@ uint32_t TSL2561_ReadLux(ErrorStatus * Error)
 	{
 		_printString("ERROR LUX!\r\n");
 	}
-	return Lux;
+
+	*xLux = Lux;
+
+	return 0;
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 uint32_t CalculateLux(uint32_t iGain, uint32_t tInt, uint32_t ch0, uint32_t ch1, int32_t iType)

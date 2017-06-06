@@ -38,6 +38,11 @@ extern float lastTempMiddle;
 extern float lastHumidity;
 extern uint32_t lastLux;
 
+extern ErrorStatus errorSht;
+extern ErrorStatus errorTsl;
+extern ErrorStatus errorDsUp;
+extern ErrorStatus errorDsDown;
+
 void Climate_TempCtrl_Handler(void);
 void Climate_SensorsHandler(void);
 

@@ -242,9 +242,18 @@ static void Display_Page1(lcdDisplayData_t * display)
 		GLCD_WriteString("     ");
 	}
 
-	ftoa(display->temp_middle_t, tempString, 1);
-	GLCD_GoTo(90,4);
-	GLCD_WriteString(tempString);
+	if (errorSht == ERROR)
+	{
+		GLCD_GoTo(90,4);
+		GLCD_WriteString("ERROR");
+	}
+	else
+	{
+		ftoa(display->temp_middle_t, tempString, 1);
+		GLCD_GoTo(90,4);
+		GLCD_WriteString(tempString);
+	}
+
 	memset(tempString, 0, 10);
 
 	itoa(display->humiditySHT2x, tempString);
@@ -257,8 +266,17 @@ static void Display_Page1(lcdDisplayData_t * display)
 		GLCD_WriteString("     ");
 	}
 
-	GLCD_GoTo(90,5);
-	GLCD_WriteString(tempString);
+	if (errorSht == ERROR)
+	{
+		GLCD_GoTo(90,5);
+		GLCD_WriteString("ERROR");
+	}
+	else
+	{
+		GLCD_GoTo(90,5);
+		GLCD_WriteString(tempString);
+	}
+
 	memset(tempString, 0, 10);
 
 	itoa(display->lux, tempString);
@@ -271,8 +289,17 @@ static void Display_Page1(lcdDisplayData_t * display)
 		GLCD_WriteString("      ");
 	}
 
-	GLCD_GoTo(90,6);
-	GLCD_WriteString(tempString);
+	if (errorTsl == ERROR)
+	{
+		GLCD_GoTo(90,6);
+		GLCD_WriteString("ERROR");
+	}
+	else
+	{
+		GLCD_GoTo(90,6);
+		GLCD_WriteString(tempString);
+	}
+
 	memset(tempString, 0, 10);
 }
 

@@ -15,10 +15,10 @@ static systime_t measureOwireTimer = 0;
 static systime_t i2cMeasTimer = 0;
 static bool_t oneWireResetDone = FALSE;
 
-static ErrorStatus errorSht = SUCCESS;
-static ErrorStatus errorTsl = SUCCESS;
-static ErrorStatus errorDsUp = SUCCESS;
-static ErrorStatus errorDsDown = SUCCESS;
+ErrorStatus errorSht = SUCCESS;
+ErrorStatus errorTsl = SUCCESS;
+ErrorStatus errorDsUp = SUCCESS;
+ErrorStatus errorDsDown = SUCCESS;
 
 float lastTempUp = 0;
 float lastTempDown = 0;
@@ -151,7 +151,7 @@ void Climate_SensorsHandler(void)
 		displayData.humiditySHT2x = SHT21_CalcRH(humWord);
 ///////////////////////////////////////////////////////////////////////////////////////////////
 		lastLux = displayData.lux;
-		displayData.lux = TSL2561_ReadLux(&errorTsl);
+		errorTsl = TSL2561_ReadLux(&displayData.lux);
 #ifdef I2C2_LOGS
 		if (errorTsl == ERROR)
 		{
