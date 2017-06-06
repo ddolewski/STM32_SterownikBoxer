@@ -40,8 +40,8 @@ extern uint32_t lastLux;
 
 extern ErrorStatus errorSht;
 extern ErrorStatus errorTsl;
-extern ErrorStatus errorDsUp;
-extern ErrorStatus errorDsDown;
+extern uint8_t errorDsUp;
+extern uint8_t errorDsDown;
 
 void Climate_TempCtrl_Handler(void);
 void Climate_SensorsHandler(void);

@@ -213,9 +213,18 @@ static void Display_Page1(lcdDisplayData_t * display)
 		GLCD_WriteString("     ");
 	}
 
-	ftoa(display->temp_down_t, tempString, 1);
-	GLCD_GoTo(90,2);
-	GLCD_WriteString(tempString);
+	if (errorDsDown == 0)
+	{
+		GLCD_GoTo(90,2);
+		GLCD_WriteString("ERR");
+	}
+	else
+	{
+		ftoa(display->temp_down_t, tempString, 1);
+		GLCD_GoTo(90,2);
+		GLCD_WriteString(tempString);
+	}
+
 	memset(tempString, 0, 10);
 ///////////////////////////////////////////////////////
 	GLCD_GoTo(0,3);
@@ -227,9 +236,18 @@ static void Display_Page1(lcdDisplayData_t * display)
 		GLCD_WriteString("     ");
 	}
 
-	ftoa(display->temp_up_t, tempString, 1);
-	GLCD_GoTo(90,3);
-	GLCD_WriteString(tempString);
+	if (errorDsUp == 0)
+	{
+		GLCD_GoTo(90,3);
+		GLCD_WriteString("ERR");
+	}
+	else
+	{
+		ftoa(display->temp_up_t, tempString, 1);
+		GLCD_GoTo(90,3);
+		GLCD_WriteString(tempString);
+	}
+
 	memset(tempString, 0, 10);
 
 /////////////////////////////////////////////////////
@@ -245,7 +263,7 @@ static void Display_Page1(lcdDisplayData_t * display)
 	if (errorSht == ERROR)
 	{
 		GLCD_GoTo(90,4);
-		GLCD_WriteString("ERROR");
+		GLCD_WriteString("ERR");
 	}
 	else
 	{
@@ -269,7 +287,7 @@ static void Display_Page1(lcdDisplayData_t * display)
 	if (errorSht == ERROR)
 	{
 		GLCD_GoTo(90,5);
-		GLCD_WriteString("ERROR");
+		GLCD_WriteString("ERR");
 	}
 	else
 	{
@@ -292,7 +310,7 @@ static void Display_Page1(lcdDisplayData_t * display)
 	if (errorTsl == ERROR)
 	{
 		GLCD_GoTo(90,6);
-		GLCD_WriteString("ERROR");
+		GLCD_WriteString("ERR");
 	}
 	else
 	{

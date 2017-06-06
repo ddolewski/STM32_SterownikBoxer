@@ -111,7 +111,7 @@ static void PeripheralInit(void)
 
 #ifndef I2C_OFF_MODE
 	I2C2_Init();
-	ErrorStatus tslError = TSL2561_Init();
+	errorTsl = TSL2561_Init();
 #ifdef MEASURE_LOGS
 	if (tslError == ERROR)
 	{
@@ -169,8 +169,7 @@ static void PeripheralInit(void)
 #endif
 
 #ifndef I2C_OFF_MODE
-
-	displayData.lux = TSL2561_ReadLux(&tslError);
+	errorTsl = TSL2561_ReadLux(&displayData.lux);
 
 #ifdef MEASURE_LOGS
 	if (tslError == ERROR)
@@ -184,7 +183,6 @@ static void PeripheralInit(void)
 #endif
 	uint16_t tempWord = 0;
 	uint16_t humWord = 0;
-	ErrorStatus shtError = SUCCESS;
 
 	uint8_t i2cErrCounter = 0;
 	while (displayData.temp_middle_t <= 0)
@@ -195,7 +193,7 @@ static void PeripheralInit(void)
 			break;
 		}
 
-		shtError = SHT21_SoftReset(I2C2, SHT21_ADDR);
+		errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
 		systimeDelayMs(50);
 	#ifdef MEASURE_LOGS
 		if (tslError == ERROR)
@@ -208,7 +206,7 @@ static void PeripheralInit(void)
 		}
 	#endif
 
-	    tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &shtError);
+	    tempWord = SHT21_MeasureTempCommand(I2C2, SHT21_ADDR, &errorSht);
 
 	#ifdef MEASURE_LOGS
 		if (shtError == ERROR)
@@ -220,7 +218,7 @@ static void PeripheralInit(void)
 			_printString("SHT21 meas temp ok\r\n");
 		}
 	#endif
-	    humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &shtError);
+	    humWord = SHT21_MeasureHumCommand(I2C2, SHT21_ADDR, &errorSht);
 
 	#ifdef MEASURE_LOGS
 		if (shtError == ERROR)

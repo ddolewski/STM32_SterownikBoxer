@@ -17,8 +17,8 @@ static bool_t oneWireResetDone = FALSE;
 
 ErrorStatus errorSht = SUCCESS;
 ErrorStatus errorTsl = SUCCESS;
-ErrorStatus errorDsUp = SUCCESS;
-ErrorStatus errorDsDown = SUCCESS;
+uint8_t errorDsUp = 1; 		//presence
+uint8_t errorDsDown = 1;	//presence
 
 float lastTempUp = 0;
 float lastTempDown = 0;

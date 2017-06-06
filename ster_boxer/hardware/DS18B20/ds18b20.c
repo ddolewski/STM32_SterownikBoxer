@@ -226,6 +226,11 @@ uint8_t readTemperature(DS18B20Sensor_t * sensor)
 	uint8_t dsData[8] = {0};
 	ucReset = uc1Wire_ResetPulse();
 
+	if (ucReset == 0) //not present
+	{
+		return 1;
+	}
+
 	v1Wire_SendByte(0x55);
 	sendROM(sensor->cROM);
 	v1Wire_SendByte(0xBE);
@@ -243,6 +248,11 @@ uint8_t readTemperature(DS18B20Sensor_t * sensor)
 	uint8_t crcDS18B20 = uv1Wire_ReadByte(); //CRC8 Dallas standard
 	ucReset = uc1Wire_ResetPulse();
 
+	if (ucReset == 0) //not present
+	{
+		return 1;
+	}
+
 	uint8_t crcCalculated = CRC8(dsData, 8);
 
 	if (crcDS18B20 == crcCalculated)
@@ -254,7 +264,7 @@ uint8_t readTemperature(DS18B20Sensor_t * sensor)
 		}
 	}
 
-	return ucReset;
+	return 1; //ds presence
 }
 
 uint8_t readTemperatureChar(DS18B20Sensor_t * sensor)
