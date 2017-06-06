@@ -7,11 +7,7 @@ const uint8_t sensor1ROM[8]={40, 255, 8, 153, 100, 20, 3, 10};
 //const uint8_t sensor2ROM[8]={40, 21, 46, 135, 4, 0, 0, 53}; // ROM starego czujnika
 const uint8_t sensor2ROM[8]={40, 255, 180, 92, 139, 22, 3, 213};
 
-volatile uint8_t toggle = 0;
-volatile uint8_t delayFlag = 0;
-
 GPIO_InitTypeDef GPIO_InitStructure;
-
 
 void OneWire_TimerInit(void)
 {
@@ -64,7 +60,7 @@ uint8_t uc1Wire_ResetPulse(void)
 	OneWire_Low();
 	delay_us__(480); //minimum 480us
 	OneWire_In();
-	delay_us__(60); //15-60us
+	delay_us__(60);  //15-60us
 
 	if (GPIOx_ReadInputPin(DS18B20_PORT, DS18B20_PIN))
 	{
@@ -236,8 +232,8 @@ uint8_t readTemperature(DS18B20Sensor_t * sensor)
 	v1Wire_SendByte(0xBE);
 	sensor->cTempL = uv1Wire_ReadByte();
 	sensor->cTempH = uv1Wire_ReadByte();
-	dsData[0] = sensor->cTempL;  //temperature LSB
-	dsData[1] = sensor->cTempH;  //temperature MSB
+	dsData[0] = sensor->cTempL;  	//temperature LSB
+	dsData[1] = sensor->cTempH;  	//temperature MSB
 
 	dsData[2] =  uv1Wire_ReadByte(); //Th register or user byte 1
 	dsData[3] =  uv1Wire_ReadByte(); //Tl register or user byte 2

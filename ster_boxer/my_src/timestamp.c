@@ -1,5 +1,4 @@
 #include "timestamp.h"
-//#include "mkuart.h"
 
 #define TIME_SEC_IN_HOUR	3600
 

@@ -15,13 +15,13 @@
 #include "boxer_datastorage.h"
 #include "pcf8563.h"
 
-#define PUMP_PIN			GPIO_Pin_1
-#define TIMER_PRESCALER		48
+#define PUMP_PIN				GPIO_Pin_1
+#define TIMER_PRESCALER			48
 
-static systime_t oneSecTimer = 0;
-static uint16_t TimerPeriod = 0;
-bool_t initFanPwm = FALSE;
-bool_t softStartDone = FALSE;
+static systime_t oneSecTimer 	= 0;
+static uint16_t TimerPeriod 	= 0;
+bool_t initFanPwm 				= FALSE;
+bool_t softStartDone 			= FALSE;
 
 static uint32_t PWM_PercentToRegister(uint8_t xPercent);
 static uint8_t PWM_FANSoftStart(void);

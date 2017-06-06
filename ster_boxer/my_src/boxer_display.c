@@ -17,9 +17,9 @@ static void Display_Page2(lcdDisplayData_t * display);
 static void Display_Page3(lcdDisplayData_t * display);
 static void Display_PhCalibration(void);
 
-static systime_t displayTimer = 0;
-static uint8_t sPhWaterUnderRange = TRUE;
-static uint8_t sPhSoilUnderRange = TRUE;
+static systime_t displayTimer 		= 0;
+static uint8_t sPhWaterUnderRange 	= TRUE;
+static uint8_t sPhSoilUnderRange 	= TRUE;
 ////////////////////////////////////////////////////////////////////////////
 void Display_Handler(void)
 {

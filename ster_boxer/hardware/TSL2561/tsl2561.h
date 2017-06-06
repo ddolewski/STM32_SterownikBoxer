@@ -152,17 +152,6 @@
 #define Data1LowByteMode 				0x8E	// Command 8 - 1000 set byte protocol, E - channel1 low data
 #define Data1HighByteMode 				0x8F	// Command 8 - 1000 set byte protocol, F - channel1 high data
 
-uint8_t Data0Low_uchar;
-uint8_t Data0High_uchar;
-uint8_t Data1Low_uchar;
-uint8_t Data1High_uchar;
-uint32_t Data0Low_uint;
-uint32_t Data0High_uint;
-uint32_t Data1Low_uint;
-uint32_t Data1High_uint;
-uint32_t Channel0_uint;
-uint32_t Channel1_uint;
-
 ErrorStatus TSL2561_Init(void);
 uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t RegisterAddr, ErrorStatus * Error);
 ErrorStatus TSL2561_ReadLux(uint32_t * xLux);

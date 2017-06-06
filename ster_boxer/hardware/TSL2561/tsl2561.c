@@ -4,6 +4,8 @@
 
 static ErrorStatus TSL2561_PowerOn(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, bool_t powerOn);
 static ErrorStatus TSL2561_Config(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t intergrationTimeGain);
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ErrorStatus TSL2561_Init(void)
 {
@@ -286,6 +288,17 @@ ErrorStatus TSL2561_ReadLux(uint32_t * xLux)
 {
 	ErrorStatus Error = SUCCESS;
 	uint32_t Lux = 0;
+	uint8_t Data0Low_uchar  = 0;
+	uint8_t Data0High_uchar = 0;
+	uint8_t Data1Low_uchar  = 0;
+	uint8_t Data1High_uchar = 0;
+	uint32_t Data0Low_uint  = 0;
+	uint32_t Data0High_uint = 0;
+	uint32_t Data1Low_uint  = 0;
+	uint32_t Data1High_uint = 0;
+	uint32_t Channel0_uint  = 0;
+	uint32_t Channel1_uint  = 0;
+
 	Data0Low_uchar  = TSL2561_ReadByte(I2C2, TSL2561_GND_ADDR, Data0LowByteMode,  &Error);
 	if (Error == ERROR)
 	{

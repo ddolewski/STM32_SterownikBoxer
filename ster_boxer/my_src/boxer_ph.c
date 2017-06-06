@@ -1,10 +1,3 @@
-/*
- * boxer_adc.c
- *
- *  Created on: 29 lip 2015
- *      Author: Doles
- */
-
 #include "boxer_ph.h"
 #include "boxer_datastorage.h"
 #include "KS0108.h"
@@ -35,21 +28,19 @@ typedef struct
 	float pH9;
 }pHBufferVoltage_t;
 
-static ADC_value_t ADC_value = {0};
-static adcRef_t referenceVoltage;
+static ADC_value_t ADC_value 		 = {0};
+static adcRef_t referenceVoltage	 = {0};
+static uint16_t ADC_ConvertedData[3] = {0};
+pHBufferVoltage_t pHBufferVoltage    = {0};
+uint8_t adcAverageMeasCounter		 = 0;
+pH_t pH 							 = {0};
 
-uint8_t adcAverageMeasCounter = 0;
-static uint16_t ADC_ConvertedData[3];
-pHBufferVoltage_t pHBufferVoltage;
+#define SOIL_PH_INPUT 				GPIO_Pin_5
+#define WATER_PH_INPUT 				GPIO_Pin_6
 
-pH_t pH;
-
-#define SOIL_PH_INPUT 	GPIO_Pin_5
-#define WATER_PH_INPUT 	GPIO_Pin_6
-
-#define V_REF_BUFF_INDEX 	0
-#define SOIL_BUFF_INDEX  	1
-#define WATER_BUFF_INDEX 	2
+#define V_REF_BUFF_INDEX 			0
+#define SOIL_BUFF_INDEX  			1
+#define WATER_BUFF_INDEX 			2
 
 static int8_t ADC_ReadCalcPh(void);
 static void ADC_CalibrateProbes_BufferChooser(void);
@@ -157,8 +148,8 @@ static int8_t ADC_ReadCalcPh(void)
     DMA_ClearFlag(DMA1_FLAG_TC1);
 
 	referenceVoltage.vRefValueADC = ADC_ConvertedData[V_REF_BUFF_INDEX];	//Vref voltage
-	ADC_value.soil  = ADC_ConvertedData[SOIL_BUFF_INDEX]; 		//PA5
-	ADC_value.water = ADC_ConvertedData[WATER_BUFF_INDEX]; 		//PA6
+	ADC_value.soil  = ADC_ConvertedData[SOIL_BUFF_INDEX]; 					//PA5
+	ADC_value.water = ADC_ConvertedData[WATER_BUFF_INDEX]; 					//PA6
 
 	if (isfinite(((float)VREFINT_CAL * (float)3.3)/referenceVoltage.vRefValueADC) == 1)
 	{

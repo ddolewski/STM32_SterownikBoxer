@@ -11,27 +11,27 @@
 #include "boxer_light.h"
 #include "hardware/TSL2561/tsl2561.h"
 
-static systime_t measureOwireTimer = 0;
-static systime_t i2cMeasTimer = 0;
-static bool_t oneWireResetDone = FALSE;
+static systime_t measureOwireTimer 	= 0;
+static systime_t i2cMeasTimer 		= 0;
+static bool_t oneWireResetDone 		= FALSE;
 
 ErrorStatus errorSht = SUCCESS;
 ErrorStatus errorTsl = SUCCESS;
-uint8_t errorDsUp = 1; 		//presence
-uint8_t errorDsDown = 1;	//presence
+uint8_t errorDsUp 	 = 1; 		//presence
+uint8_t errorDsDown  = 1;		//presence
 
-float lastTempUp = 0;
-float lastTempDown = 0;
-float lastTempMiddle = 0;
-float lastHumidity = 0;
-uint32_t lastLux = 0;
+float lastTempUp 		= 0;
+float lastTempDown 		= 0;
+float lastTempMiddle 	= 0;
+float lastHumidity 		= 0;
+uint32_t lastLux 		= 0;
 /////////////////////////////////////////////////////////////////////////////
 void Climate_SensorsHandler(void)
 {
 	if (oneWireResetDone == FALSE)
 	{
 	#ifndef OWIRE_OFF_MODE
-		errorDsUp = initializeConversion(&sensorTempUp);
+		errorDsUp   = initializeConversion(&sensorTempUp);
 		errorDsDown = initializeConversion(&sensorTempDown);
 	#endif
 		oneWireResetDone = TRUE;
@@ -79,7 +79,6 @@ void Climate_SensorsHandler(void)
 			}
 			else
 			{
-//				_printString("ds up measure ok\r\n");
 				ftoa(displayData.temp_up_t, tempString, 1);
 				_printString(tempString);
 				_printString("\r\n");
@@ -91,7 +90,6 @@ void Climate_SensorsHandler(void)
 			}
 			else
 			{
-//				_printString("ds dpwn measure ok\r\n");
 				ftoa(displayData.temp_down_t, tempString, 1);
 				_printString(tempString);
 				_printString("\r\n");
@@ -101,7 +99,7 @@ void Climate_SensorsHandler(void)
 		}
 	}
 ////////////////////////////////////////////////////////////////////////////////////////////////////
-	if (systimeTimeoutControl(&i2cMeasTimer, 3000))
+	if (systimeTimeoutControl(&i2cMeasTimer, 5000))
 	{
 #ifndef I2C_OFF_MODE
 		errorSht = SHT21_SoftReset(I2C2, SHT21_ADDR);
@@ -180,16 +178,16 @@ void Climate_TempCtrl_Handler(void)
 				case LIGHT_ON:
 					if (sensorTempUp.fTemp > (float)tempControl.userTemp)
 					{
-						PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100);//, PWM_CHANGE_SLOW); 	//wyciagajacy
+						PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100);//wyciagajacy
 						lastPullPWM = 100;
-						PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70);//, PWM_CHANGE_SLOW); 	//wciagajacy
+						PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 70);	//wciagajacy
 						lastPushPWM = 70;
 					}
 					else
 					{
-						PWM_DecPercentTo(PWM_FAN_PULL_AIR, 60);//, PWM_CHANGE_SLOW);
+						PWM_DecPercentTo(PWM_FAN_PULL_AIR, 60);
 						lastPullPWM = 60;
-						PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30);//, PWM_CHANGE_SLOW);
+						PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30);
 						lastPushPWM = 30;
 					}
 					break;
@@ -197,14 +195,14 @@ void Climate_TempCtrl_Handler(void)
 				case LIGHT_OFF:
 					if (lastPullPWM > 40)
 					{
-						if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, 40))//, 40, PWM_CHANGE_SLOW) == 1)
+						if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, 40))
 						{
 							lastPullPWM = 40;
 						}
 					}
 					else
 					{
-						if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, 40))//, 40, PWM_CHANGE_SLOW) == 1)
+						if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, 40))
 						{
 							lastPullPWM = 40;
 						}
@@ -212,14 +210,14 @@ void Climate_TempCtrl_Handler(void)
 
 					if (lastPushPWM > 30)
 					{
-						if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30))//, 30, PWM_CHANGE_SLOW) == 1)
+						if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, 30))
 						{
 							lastPushPWM = 30;
 						}
 					}
 					else
 					{
-						if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30))//, 30, PWM_CHANGE_SLOW) == 1)
+						if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, 30))
 						{
 							lastPushPWM = 30;
 						}
@@ -236,14 +234,14 @@ void Climate_TempCtrl_Handler(void)
 				{
 					if (lastPullPWM > tempControl.fanPull)
 					{
-						if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))//, PWM_CHANGE_SLOW) == 1)
+						if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))
 						{
 							lastPullPWM = tempControl.fanPull;
 						}
 					}
 					else
 					{
-						if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))//, PWM_CHANGE_SLOW) == 1)
+						if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))
 						{
 							lastPullPWM = tempControl.fanPull;
 						}
@@ -254,14 +252,14 @@ void Climate_TempCtrl_Handler(void)
 				{
 					if (lastPushPWM > tempControl.fanPush)
 					{
-						if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))//, PWM_CHANGE_SLOW) == 1)
+						if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))
 						{
 							lastPushPWM = tempControl.fanPush;
 						}
 					}
 					else
 					{
-						if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))//, PWM_CHANGE_SLOW) == 1)
+						if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))
 						{
 							lastPushPWM = tempControl.fanPush;
 						}
