@@ -503,28 +503,28 @@ static void Display_Page3(lcdDisplayData_t * display)
 	GLCD_GoTo(0,3);
 	GLCD_WriteString("Licznik czasu [h]:");
 
-	if (xLightCounters.counterHours < 10 && xLightCounters.counterHours != 1)
+	if (xLightControl.counterHours < 10 && xLightControl.counterHours != 1)
 	{
 		GLCD_GoTo(120,3);
 	}
-	else if (xLightCounters.counterHours == 1)
+	else if (xLightControl.counterHours == 1)
 	{
 		GLCD_GoTo(121,3);
 	}
-	else if (xLightCounters.counterHours >= 10 && xLightCounters.counterHours != 11)
+	else if (xLightControl.counterHours >= 10 && xLightControl.counterHours != 11)
 	{
 		GLCD_GoTo(114,3);
 	}
-	else if (xLightCounters.counterHours == 11)
+	else if (xLightControl.counterHours == 11)
 	{
 		GLCD_GoTo(115,3);
 	}
-	else if (xLightCounters.counterHours > 19)
+	else if (xLightControl.counterHours > 19)
 	{
 		GLCD_GoTo(115,3);
 	}
 
-	itoa(xLightCounters.counterHours, tempString);
+	itoa(xLightControl.counterHours, tempString);
 	if (xLightControl.timeOnHours == 24 || xLightControl.timeOffHours == 24)
 	{
 		GLCD_WriteString("-");
@@ -588,14 +588,14 @@ static void Display_Page3(lcdDisplayData_t * display)
 	GLCD_WriteString("Temp. max [*C]: ");
 	GLCD_GoTo(114,5);
 
-	itoa(tempControl.userTemp, tempString);
+	itoa(xTempControl.userTemp, tempString);
 	GLCD_WriteString(tempString);
 	memset(tempString, 0, 10);
 
 	GLCD_GoTo(0,6);
 	GLCD_WriteString("Tryb temp.: ");
 
-	switch(tempControl.tempCtrlMode)
+	switch(xTempControl.tempCtrlMode)
 	{
 	case TEMP_AUTO:
 		GLCD_GoTo(91,6);

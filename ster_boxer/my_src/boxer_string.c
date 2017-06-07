@@ -66,7 +66,7 @@ void PrepareUdpString(uint32_t Lux, float humSht, float tempSht, float ds18b20Te
 	strcat(xOutString, " ");
 
 	memset(TempString, 0, 20);
-	itoa(xLightCounters.counterHours, TempString);
+	itoa(xLightControl.counterHours, TempString);
 	strcat(xOutString, TempString);
 
 	strcat(xOutString, " END");

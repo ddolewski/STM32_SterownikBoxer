@@ -629,17 +629,25 @@ void ReceiveSerial_Handler(void)
 										// jesli nowy stan lampy jest inny od poprzedniego to skasuj liczniki (nowy stan)
 										if (tempLightState != xLightControl.lightingState)
 										{
-											xLightCounters.counterHours   = 0;
-											xLightCounters.counterSeconds = 0;
+											xLightControl.counterSeconds 	= 0;
+											xLightControl.counterHours 		= 0;
 										}
 
-										if (timeOn == 24 || timeOff == 24)
+										if (xLightControl.timeOnHours == 0 && xLightControl.timeOffHours == 24)
 										{
-											xLightCounters.counterHours   = 0;
-											xLightCounters.counterSeconds = 0;
+											LAMP_TURNOFF();
+											xLightControl.lightingState 	= LIGHT_OFF;
+											xLightControl.counterSeconds 	= 0;
+											xLightControl.counterHours 		= 0;
+										}
+										else if (xLightControl.timeOnHours == 24 && xLightControl.timeOffHours == 0)
+										{
+											LAMP_TURNON();
+											xLightControl.lightingState 	= LIGHT_ON;
+											xLightControl.counterSeconds 	= 0;
+											xLightControl.counterHours 		= 0;
 										}
 
-										FLASH_ClearLightState();
 										FLASH_SaveConfiguration();
 									}
 								}
@@ -658,10 +666,10 @@ void ReceiveSerial_Handler(void)
 
 									uint8_t temp = atoi( ReceivedString[2] );
 
-									if (tempControl.userTemp >= TEMP_MIN && tempControl.userTemp <= TEMP_MAX)
+									if (xTempControl.userTemp >= TEMP_MIN && xTempControl.userTemp <= TEMP_MAX)
 									{
-										tempControl.tempCtrlMode = TEMP_AUTO;
-										tempControl.userTemp = temp;
+										xTempControl.tempCtrlMode = TEMP_AUTO;
+										xTempControl.userTemp = temp;
 										FLASH_SaveConfiguration();
 									}
 								}
@@ -682,13 +690,13 @@ void ReceiveSerial_Handler(void)
 									uint8_t fanPull = atoi( ReceivedString[2] );
 									uint8_t fanPush = atoi( ReceivedString[3] );
 
-									tempControl.tempCtrlMode = TEMP_MANUAL;
+									xTempControl.tempCtrlMode = TEMP_MANUAL;
 
 									if ( (fanPull >= PWM_MIN_PERCENT && fanPull <= PWM_MAX_PERCENT) &&
 										 (fanPush >= PWM_MIN_PERCENT && fanPush <= PWM_MAX_PERCENT) )
 									{
-										tempControl.fanPull = fanPull;
-										tempControl.fanPush = fanPush;
+										xTempControl.fanPull = fanPull;
+										xTempControl.fanPush = fanPush;
 									}
 									else
 									{
@@ -750,7 +758,7 @@ void ReceiveSerial_Handler(void)
 								{
 									_printString("\r\n");
 
-									FLASH_SaveLightCounters();
+									FLASH_SaveConfiguration();
 									ClearRxBuff();
 									MISC_ResetARM();
 								}
@@ -770,7 +778,6 @@ void ReceiveSerial_Handler(void)
 
 										ClearRxBuff();
 										FLASH_RestoreDefaultConfig();
-										FLASH_ClearLightState();
 										MISC_ResetARM();
 									}
 									else

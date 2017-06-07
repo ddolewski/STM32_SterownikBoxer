@@ -28,7 +28,7 @@ soil_moist_t lastSoilMoistState = SOIL_UNKNOWN_STATE;
 static void Irrigation_SoilMoisture(void);
 static uint8_t Irrigation_PumpEnable(bool_t xStatus);
 /////////////////////////////////////////////////////////////////////////////
-irrigate_control_t irrigationControl;
+irrigate_control_t xIrrigationControl;
 void Irrigation_Handler(void)
 {
 //	Irrigation_PumpControll();
@@ -78,17 +78,17 @@ void Irrigation_Core(void)
 {
 	if (pumpOn == FALSE)
 	{
-		switch (irrigationControl.mode)
+		switch (xIrrigationControl.mode)
 		{
 			case IRRIGATION_MODE_AUTO_TIME:
-				if (irrigationControl.frequency != 0)
+				if (xIrrigationControl.frequency != 0)
 				{
 					SecondIrr++;
 					if(SecondIrr == DAY_IN_SEC)	// 24 * 3600s = 1 day [s]
 					{
 						DayIrr++;
 						SecondIrr = 0;
-						if (irrigationControl.frequency == DayIrr)
+						if (xIrrigationControl.frequency == DayIrr)
 						{
 							pumpOn = TRUE;
 							DayIrr = 0;
@@ -111,11 +111,11 @@ void Irrigation_Core(void)
 
 			case IRRIGATION_MODE_MANUAL:
 				pumpOn = TRUE;
-				irrigationControl.mode = IRRIGATION_MODE_OFF;
+				xIrrigationControl.mode = IRRIGATION_MODE_OFF;
 			break;
 
 			default:
-				irrigationControl.mode = IRRIGATION_MODE_OFF;
+				xIrrigationControl.mode = IRRIGATION_MODE_OFF;
 				break;
 		}
 	}

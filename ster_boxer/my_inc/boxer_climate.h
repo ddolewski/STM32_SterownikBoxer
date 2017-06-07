@@ -30,7 +30,7 @@ typedef struct
 	temp_control_state_t tempCtrlMode;
 }temp_control_t;
 
-volatile temp_control_t tempControl;
+volatile temp_control_t xTempControl;
 
 extern float lastTempUp;
 extern float lastTempDown;

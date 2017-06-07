@@ -4,6 +4,9 @@
 #include "stdint.h"
 #include "system_gpio.h"
 
+#define LAMP_TURNON()	GPIOx_SetPin(LAMP_PORT, LAMP_PIN);
+#define LAMP_TURNOFF()	GPIOx_ResetPin(LAMP_PORT, LAMP_PIN);
+
 typedef enum
 {
 	LIGHT_OFF = 'R',
@@ -15,17 +18,12 @@ typedef struct
 	light_state_t lightingState;
 	uint8_t timeOnHours;
 	uint8_t timeOffHours;
-}light_control_t;
-
-typedef struct
-{
 	uint32_t counterSeconds;
 	uint8_t counterHours;
-}light_counters_t;
+}light_control_t;
 
 light_state_t lastLightState;
 volatile light_control_t xLightControl;
-volatile light_counters_t xLightCounters;
 
 void Lightning_Handler(void);
 

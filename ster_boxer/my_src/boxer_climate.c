@@ -170,13 +170,13 @@ void Climate_TempCtrl_Handler(void)
 	{
 		if (softStartDone == TRUE)
 		{
-			switch (tempControl.tempCtrlMode)
+			switch (xTempControl.tempCtrlMode)
 			{
 			case TEMP_AUTO:
 				switch (xLightControl.lightingState)
 				{
 				case LIGHT_ON:
-					if (sensorTempUp.fTemp > (float)tempControl.userTemp)
+					if (sensorTempUp.fTemp > (float)xTempControl.userTemp)
 					{
 						PWM_IncPercentTo(PWM_FAN_PULL_AIR, 100);//wyciagajacy
 						lastPullPWM = 100;
@@ -230,38 +230,38 @@ void Climate_TempCtrl_Handler(void)
 				break;
 
 			case TEMP_MANUAL:
-				if (lastPullPWM != tempControl.fanPull)
+				if (lastPullPWM != xTempControl.fanPull)
 				{
-					if (lastPullPWM > tempControl.fanPull)
+					if (lastPullPWM > xTempControl.fanPull)
 					{
-						if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))
+						if (PWM_DecPercentTo(PWM_FAN_PULL_AIR, xTempControl.fanPull))
 						{
-							lastPullPWM = tempControl.fanPull;
+							lastPullPWM = xTempControl.fanPull;
 						}
 					}
 					else
 					{
-						if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull))
+						if (PWM_IncPercentTo(PWM_FAN_PULL_AIR, xTempControl.fanPull))
 						{
-							lastPullPWM = tempControl.fanPull;
+							lastPullPWM = xTempControl.fanPull;
 						}
 					}
 				}
 
-				if (lastPushPWM != tempControl.fanPush)
+				if (lastPushPWM != xTempControl.fanPush)
 				{
-					if (lastPushPWM > tempControl.fanPush)
+					if (lastPushPWM > xTempControl.fanPush)
 					{
-						if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))
+						if (PWM_DecPercentTo(PWM_FAN_PUSH_AIR, xTempControl.fanPush))
 						{
-							lastPushPWM = tempControl.fanPush;
+							lastPushPWM = xTempControl.fanPush;
 						}
 					}
 					else
 					{
-						if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush))
+						if (PWM_IncPercentTo(PWM_FAN_PUSH_AIR, xTempControl.fanPush))
 						{
-							lastPushPWM = tempControl.fanPush;
+							lastPushPWM = xTempControl.fanPush;
 						}
 					}
 				}

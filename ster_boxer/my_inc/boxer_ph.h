@@ -6,8 +6,7 @@
 #include "stm32f0xx_gpio.h"
 #include "system_gpio.h"
 #include "boxer_irrigation.h"
-//#include "boxer_struct.h"
-//#include "global.h"
+
 #define ADC1_DR_Address 	0x40012440
 #define VREFINT_CAL 		(*(uint16_t *)0x1ffff7ba)
 
@@ -65,7 +64,8 @@ typedef struct probe_t
 
 extern pH_t pH;
 extern uint8_t adcAverageMeasCounter;
-volatile ph_factors_t FactorsEquationpH;
+
+volatile ph_factors_t xFactorsEquationpH;
 volatile calibrationProcess_t calibrateFlags;
 probe_adc_t probeData;
 

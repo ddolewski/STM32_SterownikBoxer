@@ -10,8 +10,7 @@
 #define UPPER_ADDRESS		(uint32_t)0x0800FFFF	// do strony 63 (ostatnia strona FLASH)
 #define PAGE_SIZE			(uint16_t)1024			// 1024 czyli 1kB na strone
 
-#define CONFIG_PAGE_NUMBER 			62
-#define LIGHT_COUNTERS_PAGE_NUMBER	63
+#define CONFIG_PAGE_NUMBER 			63
 
 typedef enum
 {

@@ -28,7 +28,7 @@ typedef enum
 
 extern soil_moist_t lastSoilMoistState;
 extern soil_moist_t soilMoisture;
-extern irrigate_control_t irrigationControl;
+extern irrigate_control_t xIrrigationControl;
 
 void Irrigation_Core(void);
 void Irrigation_Handler(void);

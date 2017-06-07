@@ -198,10 +198,14 @@ void MainTimer_Handler(void)
 		ADC_CalibrateProbes_Handler();
 //		Irrigation_Core();
 
-    	if (xLightCounters.counterSeconds % ((uint32_t)1200000) == 0) //co 20 min
-    	{
-    		FLASH_SaveLightCounters();
-    	}
+		if ((xLightControl.timeOnHours != 0 && xLightControl.timeOffHours != 24) ||
+			(xLightControl.timeOnHours != 24 && xLightControl.timeOffHours != 0))
+		{
+	    	if (xLightControl.counterSeconds % ((uint32_t)1200000) == 0) //co 20 min
+	    	{
+	    		FLASH_SaveConfiguration();
+	    	}
+		}
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -309,13 +313,13 @@ static uint8_t PWM_FANSoftStart(void)
 	uint8_t retPull = 0;
 	uint8_t retPush = 0;
 
-	switch (tempControl.tempCtrlMode)
+	switch (xTempControl.tempCtrlMode)
 	{
 	case TEMP_MANUAL:
-		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, tempControl.fanPull);
-		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, tempControl.fanPush);
-		lastPullPWM = tempControl.fanPull;
-		lastPushPWM = tempControl.fanPush;
+		retPull = PWM_IncPercentTo(PWM_FAN_PULL_AIR, xTempControl.fanPull);
+		retPush = PWM_IncPercentTo(PWM_FAN_PUSH_AIR, xTempControl.fanPush);
+		lastPullPWM = xTempControl.fanPull;
+		lastPushPWM = xTempControl.fanPush;
 		break;
 
 	case TEMP_AUTO:

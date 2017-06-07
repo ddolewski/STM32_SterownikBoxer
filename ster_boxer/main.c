@@ -126,7 +126,6 @@ static void PeripheralInit(void)
 #endif
 
 	FLASH_ReadConfiguration();
-	FLASH_ReadLightCounters();
 	FLASH_STORAGE_TEST();
 
 	OneWire_TimerInit();

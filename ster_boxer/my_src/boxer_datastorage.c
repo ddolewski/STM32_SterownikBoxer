@@ -10,8 +10,6 @@
 #include "boxer_climate.h"
 #include <math.h>
 
-flashSettings_t	currentFlashConfig;				//ustawienia obecne
-
 static const flashSettings_t defFlashConfig =
 {
 	.signatureA = SIGNATURE_A,
@@ -28,6 +26,8 @@ static const flashSettings_t defFlashConfig =
 		.lightingState 	= LIGHT_OFF,
 		.timeOnHours 	= 12,
 		.timeOffHours 	= 12,
+		.counterSeconds = 0,
+		.counterHours 	= 0
 	},
 
 	.backupIrrigationControl =
@@ -48,13 +48,6 @@ static const flashSettings_t defFlashConfig =
 	.signatureB = SIGNATURE_B
 };
 
-static const flashLampCounters_t defFlashLightCounters =
-{
-	.signatureC 	= SIGNATURE_C,
-    .lightCounters 	= { .counterSeconds = 0, .counterHours = 0 },
-	.lightingState 	= LIGHT_OFF,
-	.signatureD 	= SIGNATURE_D
-};
 //flashCopy_t backupConfig __attribute__((section(".STORAGE_REGION"))) = {0};
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void FLASH_ReadConfiguration(void)
@@ -70,25 +63,40 @@ void FLASH_ReadConfiguration(void)
 
 	if ((xBackupConfig.signatureA == SIGNATURE_A) && (xBackupConfig.signatureB == SIGNATURE_B))
 	{
-		irrigationControl 	= xBackupConfig.backupIrrigationControl;
+		xIrrigationControl 	= xBackupConfig.backupIrrigationControl;
 		xLightControl 		= xBackupConfig.backupLightControl;
-		tempControl 		= xBackupConfig.backupTempControl;
-		FactorsEquationpH 	= xBackupConfig.backupPhEcuationFactors;
+		xTempControl 		= xBackupConfig.backupTempControl;
+		xFactorsEquationpH 	= xBackupConfig.backupPhEcuationFactors;
 
-		if (isfinite(FactorsEquationpH.soilFactor_A)  == 0  ||
-			isfinite(FactorsEquationpH.soilFactor_B)  == 0  ||
-			isfinite(FactorsEquationpH.waterFactor_A) == 0  ||
-			isfinite(FactorsEquationpH.waterFactor_B) == 0)
+		if (isfinite(xFactorsEquationpH.soilFactor_A)  == 0  ||
+			isfinite(xFactorsEquationpH.soilFactor_B)  == 0  ||
+			isfinite(xFactorsEquationpH.waterFactor_A) == 0  ||
+			isfinite(xFactorsEquationpH.waterFactor_B) == 0)
 		{
 			FLASH_RestoreDefaultConfig();
+		}
+
+		if (xLightControl.timeOnHours == 0 && xLightControl.timeOffHours == 24)
+		{
+			LAMP_TURNOFF();
+			xLightControl.lightingState 	= LIGHT_OFF;
+			xLightControl.counterSeconds 	= 0;
+			xLightControl.counterHours 		= 0;
+		}
+		else if (xLightControl.timeOnHours == 24 && xLightControl.timeOffHours == 0)
+		{
+			LAMP_TURNON();
+			xLightControl.lightingState 	= LIGHT_ON;
+			xLightControl.counterSeconds 	= 0;
+			xLightControl.counterHours 		= 0;
 		}
 	}
 	else
 	{
-		irrigationControl 	= defFlashConfig.backupIrrigationControl;
+		xIrrigationControl 	= defFlashConfig.backupIrrigationControl;
 		xLightControl 		= defFlashConfig.backupLightControl;
-		tempControl 		= defFlashConfig.backupTempControl;
-		FactorsEquationpH 	= defFlashConfig.backupPhEcuationFactors;
+		xTempControl 		= defFlashConfig.backupTempControl;
+		xFactorsEquationpH 	= defFlashConfig.backupPhEcuationFactors;
 
 		flashError = SYSTEM_FLASH_ErasePage(CONFIG_PAGE_NUMBER);
 		if (flashError == ERROR)
@@ -118,10 +126,10 @@ void FLASH_SaveConfiguration(void)
 	xBackupConfig.signatureA = SIGNATURE_A;
 	xBackupConfig.signatureB = SIGNATURE_B;
 
-	xBackupConfig.backupIrrigationControl 	= irrigationControl;
+	xBackupConfig.backupIrrigationControl 	= xIrrigationControl;
 	xBackupConfig.backupLightControl 		= xLightControl;
-	xBackupConfig.backupTempControl 		= tempControl;
-	xBackupConfig.backupPhEcuationFactors 	= FactorsEquationpH;
+	xBackupConfig.backupTempControl 		= xTempControl;
+	xBackupConfig.backupPhEcuationFactors 	= xFactorsEquationpH;
 
 	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&xBackupConfig, CONFIG_PAGE_NUMBER, sizeof(xBackupConfig));
 
@@ -133,10 +141,10 @@ void FLASH_SaveConfiguration(void)
 
 void FLASH_RestoreDefaultConfig(void)
 {
-	irrigationControl 	= defFlashConfig.backupIrrigationControl;
+	xIrrigationControl 	= defFlashConfig.backupIrrigationControl;
 	xLightControl 		= defFlashConfig.backupLightControl;
-	tempControl 		= defFlashConfig.backupTempControl;
-	FactorsEquationpH 	= defFlashConfig.backupPhEcuationFactors;
+	xTempControl 		= defFlashConfig.backupTempControl;
+	xFactorsEquationpH 	= defFlashConfig.backupPhEcuationFactors;
 
 	ErrorStatus flashError = SYSTEM_FLASH_ErasePage(CONFIG_PAGE_NUMBER);
 	if (flashError == ERROR)
@@ -149,83 +157,6 @@ void FLASH_RestoreDefaultConfig(void)
 	if (flashError == ERROR)
 	{
 		_printString("blad zapisu flash\r\n");
-	}
-
-	FLASH_ClearLightState();
-}
-
-void FLASH_ClearLightState(void)
-{
-	xLightCounters 			= defFlashLightCounters.lightCounters;
-	ErrorStatus flashError 	= SYSTEM_FLASH_ErasePage(LIGHT_COUNTERS_PAGE_NUMBER);
-	if (flashError == ERROR)
-	{
-		_printString("blad kasowania flash\r\n");
-	}
-
-	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&defFlashLightCounters, LIGHT_COUNTERS_PAGE_NUMBER, sizeof(defFlashLightCounters));
-
-	if (flashError == ERROR)
-	{
-		_printString("blad zapisu flash\r\n");
-	}
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void FLASH_SaveLightCounters(void)
-{
-	flashLampCounters_t xBackupLightCounters;
-	ErrorStatus flashError = SYSTEM_FLASH_ErasePage(LIGHT_COUNTERS_PAGE_NUMBER);
-
-	if (flashError == ERROR)
-	{
-		_printString("blad kasowania flash\r\n");
-	}
-
-	xBackupLightCounters.signatureC = SIGNATURE_C;
-	xBackupLightCounters.signatureD = SIGNATURE_D;
-
-	xBackupLightCounters.lightCounters = xLightCounters;
-	xBackupLightCounters.lightingState = xLightControl.lightingState;
-
-	flashError = SYSTEM_FLASH_WritePage((uint16_t*)&xBackupLightCounters, LIGHT_COUNTERS_PAGE_NUMBER, sizeof(xBackupLightCounters));
-	if (flashError == ERROR)
-	{
-		_printString("blad kasowania flash\r\n");
-	}
-}
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void FLASH_ReadLightCounters(void)
-{
-	ErrorStatus flashError = SUCCESS;
-	flashLampCounters_t xBackupLightCounters;
-	flashError = SYSTEM_FLASH_ReadPage((uint16_t*)&xBackupLightCounters, LIGHT_COUNTERS_PAGE_NUMBER, sizeof(xBackupLightCounters));
-
-	if (flashError == ERROR)
-	{
-		_printString("blad odczytu flash\r\n");
-	}
-
-	if ((xBackupLightCounters.signatureC == SIGNATURE_C) && (xBackupLightCounters.signatureD == SIGNATURE_D))
-	{
-		xLightCounters = xBackupLightCounters.lightCounters;
-		xLightControl.lightingState = xBackupLightCounters.lightingState;
-	}
-	else
-	{
-		xLightCounters = defFlashLightCounters.lightCounters;
-		xLightControl.lightingState = defFlashLightCounters.lightingState;
-
-		flashError = SYSTEM_FLASH_ErasePage(LIGHT_COUNTERS_PAGE_NUMBER);
-		if (flashError == ERROR)
-		{
-			_printString("blad kasowania flash\r\n");
-		}
-
-		flashError = SYSTEM_FLASH_WritePage((uint16_t*)&defFlashLightCounters, LIGHT_COUNTERS_PAGE_NUMBER, sizeof(defFlashLightCounters));
-		if (flashError == ERROR)
-		{
-			_printString("blad zapisu flash\r\n");
-		}
 	}
 }
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -243,7 +174,7 @@ void FLASH_STORAGE_TEST(void)
 	xBackupConfig.backupLightControl.timeOffHours = 4;
 	xBackupConfig.backupLightControl.timeOnHours = 20;
 
-	xBackupConfig.backupTempControl.tempControl = TEMP_AUTO;
+	xBackupConfig.backupTempControl.xTempControl = TEMP_AUTO;
 	xBackupConfig.backupTempControl.userTemp = 30;
 
 	xBackupConfig.backupPhEcuationFactors.waterFactor_A = 6.34;

@@ -10,8 +10,6 @@
 
 #define SIGNATURE_A 				((uint32_t)0x01234567)
 #define SIGNATURE_B 				((uint32_t)0x89ABCDEF)
-#define SIGNATURE_C 				((uint32_t)0xABCDEFAA)
-#define SIGNATURE_D 				((uint32_t)0xACACACAC)
 
 typedef struct
 {
@@ -25,21 +23,10 @@ typedef struct
 	uint32_t signatureB;
 }flashSettings_t;
 
-typedef struct
-{
-	uint32_t signatureC;
-	light_counters_t lightCounters;
-	light_state_t lightingState;
-	uint32_t signatureD;
-}flashLampCounters_t;
-
 extern flashSettings_t currentFlashConfig;
 
 void FLASH_ReadConfiguration(void);
 void FLASH_SaveConfiguration(void);
 void FLASH_RestoreDefaultConfig(void);
-void FLASH_ClearLightState(void);
-void FLASH_ReadLightCounters(void);
-void FLASH_SaveLightCounters(void);
 void FLASH_STORAGE_TEST(void);
 #endif /* MY_INC_BOXER_DATASTORAGE_H_ */
