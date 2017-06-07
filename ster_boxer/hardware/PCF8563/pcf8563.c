@@ -18,13 +18,43 @@ static int DecToBcd(int data);
 
 static time_complex_t localTime;
 
+//uint8_t pcf8563IntReset(void)
+//{
+//	uint8_t tmp_dta;
+//
+//	if (i2c1_start(PCF_WR_ADDR, START) != 0) return 1; // start i adres do zapisu
+//	if (i2c1_wr_byte(CLKOUT_CTRL) != 0) return 1; // adres komorki do odczytu
+//	if (i2c1_start(PCF_RD_ADDR, RESTART) != 0) return 1; // re-start i adres do odczytu
+//	if (i2c1_rd_byte(&tmp_dta) != 0) return 1; // odczytuje bajt danych
+//	i2c1_stop();
+//	if (i2c1_wait_for_stop() != 0) return 1;
+//
+//	DEBUG_PARAM_INT(tmp_dta);
+//	return 0;
+//}
+
+uint8_t PCF8563_IntReset(I2C_TypeDef * I2Cx)
+{
+	ErrorStatus error = SUCCESS;
+	uint8_t tmp_dta;
+
+	tmp_dta = PCF8563_RegRead(I2Cx, PCF8563_ADDR, 0x0D, &error);
+}
+
 ErrorStatus PCF8563_Init(I2C_TypeDef * I2Cx)
 {
 	ErrorStatus error = SUCCESS;
 	uint8_t temp = ((1<<7) | (0x03<<0));
-
-	error = PCF8563_RegWrite(I2Cx, PCF8563_ADDR, 0x0D, temp);
+/*
+    10000000 for 32.768 kHz;
+    10000001 for 1.024 kHz;
+    10000010 for 32 kHz;
+    10000011 for 1 Hz;
+    0 turns the output off and sets it to high impedance.
+*/
+	error = PCF8563_RegWrite(I2Cx, PCF8563_ADDR, 0x0D, temp); //0b10000010;
 	error = PCF8563_RegWrite(I2Cx, PCF8563_ADDR, PCF8563_CTRL_STAT_REG1, 0x08);
+	uint8_t reg = PCF8563_IntReset(I2Cx);
 	return error;
 }
 

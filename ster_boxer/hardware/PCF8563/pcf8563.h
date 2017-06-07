@@ -9,7 +9,7 @@
 
 #define PCF8563_ADDR 				(uint8_t)0xA2
 
-#define PCF8563_CLKOUT_CTRL_REG		((uint8_t)0x0D))
+#define PCF8563_CLKOUT_REG			((uint8_t)0x0D))
 
 #define PCF8563_CTRL_STAT_STOP_BIT	((uint8_t)(0x05))
 
@@ -35,6 +35,7 @@ typedef struct
 }time_short_t;
 
 ErrorStatus PCF8563_Init(I2C_TypeDef * I2Cx);
+uint8_t PCF8563_IntReset(I2C_TypeDef * I2Cx);
 ErrorStatus PCF8563_ReadTime(time_complex_t * xTime, I2C_TypeDef* I2Cx);
 ErrorStatus PCF8563_WriteTime(time_complex_t * xTime, I2C_TypeDef * I2Cx);
 void RTC_Handler(void);

@@ -195,7 +195,7 @@ uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Register
 	uint32_t TimeOut = 1000000;
 	uint8_t ReadValue = 0;
 
-	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) != RESET)
+	while (I2C_GetFlagStatus(I2Cx, I2C_ISR_BUSY) == SET)
 	{
 		if(TimeOut > 0)
 		{
@@ -214,7 +214,7 @@ uint8_t TSL2561_ReadByte(I2C_TypeDef* I2Cx, uint16_t SlaveAddr, uint8_t Register
 
 	I2C_GenerateSTART(I2Cx, ENABLE);
 
-	while(!I2C_GetFlagStatus(I2Cx, I2C_ISR_TXIS))
+	while(I2C_GetFlagStatus(I2Cx, I2C_ISR_TXIS) == RESET)
 	{
 		if(TimeOut > 0)
 		{

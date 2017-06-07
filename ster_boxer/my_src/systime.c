@@ -5,7 +5,7 @@
 #include "debug.h"
 #include "boxer_climate.h"
 #include "boxer_timers.h"
-
+volatile uint8_t toggle = 0;
 static volatile systime_t msTimer = 0;	//timer systemowy odmierzajacy czas w ms
 //-------------------------------------------------------------------------------------------------
 // Funkcja inicjalizujaca timer systemeowy
@@ -25,6 +25,22 @@ void SysTick_Handler (void)
 {
 	msTimer++;
 	systickIrq = 1;
+#ifdef I2C_OFF_MODE
+	toggle ^= 1;
+	switch (toggle)
+	{
+	case 0:
+		GPIOB->BRR = (uint32_t)GPIOx_Pin_10;
+		break;
+
+	case 1:
+		GPIOB->BSRR = (uint32_t)GPIOx_Pin_10;
+		break;
+
+	default:
+		break;
+	}
+#endif
 }
 //-------------------------------------------------------------------------------------------------
 // Funkcja zwracajaca aktualny czas systemowy
