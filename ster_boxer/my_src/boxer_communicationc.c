@@ -252,7 +252,7 @@ void Ntp_Handler(void)
 	{
 		ntpRequestTimer++;
 
-		if (ntpRequestTimer == NTP_REQTIME(12)) //todo wyslij zapytanie o czas co godzine
+		if (ntpRequestTimer == NTP_REQTIME(12))
 		{
 			Ntp_SendRequest();
 		}

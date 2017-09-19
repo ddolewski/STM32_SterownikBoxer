@@ -35,7 +35,7 @@ typedef struct
 }time_short_t;
 
 ErrorStatus PCF8563_Init(I2C_TypeDef * I2Cx);
-uint8_t PCF8563_IntReset(I2C_TypeDef * I2Cx);
+uint8_t PCF8563_IntReset(I2C_TypeDef * I2Cx, uint8_t * tmp_dta);
 ErrorStatus PCF8563_ReadTime(time_complex_t * xTime, I2C_TypeDef* I2Cx);
 ErrorStatus PCF8563_WriteTime(time_complex_t * xTime, I2C_TypeDef * I2Cx);
 void RTC_Handler(void);
